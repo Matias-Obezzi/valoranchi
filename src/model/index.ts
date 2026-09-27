@@ -14,7 +14,7 @@ export type Tier = {
   name: string;
   rank: number;
   icon: Image;
-} | null;
+};
 
 export type OwnedSkinLevel = {
   uuid: string;
@@ -32,7 +32,7 @@ export type OwnedChroma = {
 export type OwnedSkin = {
   uuid: string;
   name: string;
-  tier: Tier;
+  tier: Tier | null;
   icon: Image;
   levels: OwnedSkinLevel[];
   chromas: OwnedChroma[];

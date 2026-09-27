@@ -127,7 +127,14 @@
           "type": "string"
         },
         "tier": {
-          "$ref": "#/definitions/Tier"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Tier"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "icon": {
           "$ref": "#/definitions/Image"
@@ -149,30 +156,23 @@
       "additionalProperties": false
     },
     "Tier": {
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "uuid": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "rank": {
-              "type": "number"
-            },
-            "icon": {
-              "$ref": "#/definitions/Image"
-            }
-          },
-          "required": ["uuid", "name", "rank", "icon"],
-          "additionalProperties": false
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
         },
-        {
-          "type": "null"
+        "name": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "number"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
         }
-      ]
+      },
+      "required": ["uuid", "name", "rank", "icon"],
+      "additionalProperties": false
     },
     "Image": {
       "type": ["string", "null"]
