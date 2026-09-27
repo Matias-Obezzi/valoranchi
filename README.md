@@ -119,6 +119,10 @@ if (process.ExitCode == 0)
 4. Active region and shard are resolved from product sessions or game logs.
 5. The resulting session headers authenticate subsequent requests directly to Riot PVP game servers.
 
+## Catalogue Cache
+
+Names, images and tiers come from valorant-api.com. The catalogue for each language is stored on disk, under `%LOCALAPPDATA%aloranchi-riot-client\catalogue` on Windows and the system temp directory elsewhere, keyed by the game version, so it is downloaded once per patch. Pass `catalogueDir` to `RiotClient` to move it, or `null` to keep it in memory only.
+
 ## Token Host Rule
 
 Access tokens and entitlements JWTs are strictly scoped. They may only ever be sent to hosts matching `*.pvp.net`, `*.riotgames.com`, or loopback `127.0.0.1`. The HTTP gateway enforces this policy and throws a `ForbiddenHostError` before sending any request that would transmit credentials to an unauthorized host. Requests to public endpoints such as `valorant-api.com` never carry authorization headers.

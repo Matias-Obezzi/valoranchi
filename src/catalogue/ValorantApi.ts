@@ -1,8 +1,10 @@
 import type { HttpGateway } from "../riot/HttpGateway.js";
 import { Catalogue } from "./Catalogue.js";
+import type { FileCatalogueStore } from "./CatalogueStore.js";
 import type {
   ValorantApiAgent,
   ValorantApiBuddy,
+  ValorantApiCatalogueData,
   ValorantApiContentTier,
   ValorantApiCurrency,
   ValorantApiPlayerCard,
@@ -51,10 +53,16 @@ const GLOBAL_CACHE = new MemoryCatalogueCache();
 export class ValorantApi {
   private readonly gateway: HttpGateway;
   private readonly cache: MemoryCatalogueCache;
+  private readonly store: FileCatalogueStore | null;
 
-  constructor(gateway: HttpGateway, cache: MemoryCatalogueCache = GLOBAL_CACHE) {
+  constructor(
+    gateway: HttpGateway,
+    cache: MemoryCatalogueCache = GLOBAL_CACHE,
+    store: FileCatalogueStore | null = null,
+  ) {
     this.gateway = gateway;
     this.cache = cache;
+    this.store = store;
   }
 
   async getClientVersion(): Promise<string> {
@@ -77,6 +85,26 @@ export class ValorantApi {
       return cached;
     }
 
+    const catalogue = new Catalogue(await this.loadCatalogueData(language));
+    this.cache.setCatalogue(language, catalogue);
+    return catalogue;
+  }
+
+  private async loadCatalogueData(language: string): Promise<ValorantApiCatalogueData> {
+    if (!this.store) {
+      return this.fetchCatalogueData(language);
+    }
+    const version = await this.getClientVersion();
+    const stored = this.store.read(language);
+    if (stored?.version === version) {
+      return stored.data;
+    }
+    const data = await this.fetchCatalogueData(language);
+    this.store.write(language, { version, data });
+    return data;
+  }
+
+  private async fetchCatalogueData(language: string): Promise<ValorantApiCatalogueData> {
     const [
       weaponsRes,
       playerCardsRes,
@@ -97,7 +125,7 @@ export class ValorantApi {
       this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
     ]);
 
-    const catalogue = new Catalogue({
+    return {
       weapons: weaponsRes.data,
       playerCards: playerCardsRes.data,
       playerTitles: playerTitlesRes.data,
@@ -106,10 +134,7 @@ export class ValorantApi {
       agents: agentsRes.data,
       contentTiers: contentTiersRes.data,
       currencies: currenciesRes.data,
-    });
-
-    this.cache.setCatalogue(language, catalogue);
-    return catalogue;
+    };
   }
 
   private async fetchEndpoint<T>(endpoint: string, language: string): Promise<ApiResponse<T>> {

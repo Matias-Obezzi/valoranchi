@@ -1,4 +1,5 @@
-import { ValorantApi } from "./catalogue/ValorantApi.js";
+import { FileCatalogueStore } from "./catalogue/CatalogueStore.js";
+import { MemoryCatalogueCache, ValorantApi } from "./catalogue/ValorantApi.js";
 import { CollectionBuilder } from "./collection/CollectionBuilder.js";
 import { LoadoutBuilder } from "./collection/LoadoutBuilder.js";
 import { RiotClientNotRunningError } from "./errors.js";
@@ -15,6 +16,7 @@ export interface RiotClientOptions {
   language?: string;
   lockfilePath?: string;
   sessionTtlMs?: number;
+  catalogueDir?: string | null;
   gateway?: HttpGateway;
   valorantApi?: ValorantApi;
   localApiFactory?: (port: number, pass: string) => RiotClientLocalApi;
@@ -43,7 +45,7 @@ export class RiotClient {
     this.lockfilePath = options.lockfilePath ?? defaultLockfilePath();
     this.sessionTtlMs = options.sessionTtlMs ?? 30_000;
     this.gateway = options.gateway ?? new HttpGateway();
-    this.valorantApi = options.valorantApi ?? new ValorantApi(this.gateway);
+    this.valorantApi = options.valorantApi ?? this.defaultValorantApi(options.catalogueDir);
     this.localApiFactory =
       options.localApiFactory ?? ((port, pass) => new RiotClientLocalApi(port, pass));
   }
@@ -133,6 +135,11 @@ export class RiotClient {
       });
 
     return this.inFlightSession;
+  }
+
+  private defaultValorantApi(catalogueDir: string | null | undefined): ValorantApi {
+    const store = catalogueDir === null ? null : new FileCatalogueStore(catalogueDir);
+    return new ValorantApi(this.gateway, new MemoryCatalogueCache(), store);
   }
 
   private api(session: Session): RiotApi {
