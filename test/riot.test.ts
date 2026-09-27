@@ -93,6 +93,34 @@ describe("HttpGateway", () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
+  it("makes POST requests with serialized body and content-type", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ created: true }), {
+        status: 200,
+      }),
+    );
+    const gateway = new HttpGateway(mockFetch);
+
+    const res = await gateway.post<{ created: boolean }>(
+      "https://pd.na.a.pvp.net/store/v3/storefront/123",
+      {},
+      { Authorization: "Bearer secret" },
+    );
+
+    expect(res).toEqual({ created: true });
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/store/v3/storefront/123",
+      expect.objectContaining({
+        method: "POST",
+        body: "{}",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          Authorization: "Bearer secret",
+        }),
+      }),
+    );
+  });
+
   it("maps non-2xx responses to RiotApiError with sanitized url", async () => {
     const mockFetch = vi.fn().mockResolvedValue(
       new Response("Not Found", {
@@ -126,6 +154,7 @@ describe("RiotApi", () => {
     const fakeGateway = {
       get: mockGet,
       put: vi.fn(),
+      post: vi.fn(),
     } as unknown as HttpGateway;
 
     const api = new RiotApi(fakeGateway, session);
@@ -139,6 +168,27 @@ describe("RiotApi", () => {
     );
   });
 
+  it("calls storefront endpoint with POST and empty object", async () => {
+    const mockPost = vi.fn().mockResolvedValue({ SkinsPanelLayout: {} });
+    const fakeGateway = {
+      get: vi.fn(),
+      put: vi.fn(),
+      post: mockPost,
+    } as unknown as HttpGateway;
+
+    const api = new RiotApi(fakeGateway, session);
+    const res = await api.storefront();
+
+    expect(res).toEqual({ SkinsPanelLayout: {} });
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/store/v3/storefront/puuid-1234",
+      {},
+      expect.objectContaining({
+        Authorization: "Bearer access-token-xyz",
+      }),
+    );
+  });
+
   it("calls names endpoint with PUT and puuids array", async () => {
     const mockPut = vi
       .fn()
@@ -146,6 +196,7 @@ describe("RiotApi", () => {
     const fakeGateway = {
       get: vi.fn(),
       put: mockPut,
+      post: vi.fn(),
     } as unknown as HttpGateway;
 
     const api = new RiotApi(fakeGateway, session);

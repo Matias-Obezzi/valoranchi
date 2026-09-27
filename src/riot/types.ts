@@ -76,3 +76,97 @@ export interface RiotNameResponse {
   GameName: string;
   TagLine: string;
 }
+
+export interface RiotStoreReward {
+  ItemTypeID: string;
+  ItemID: string;
+  Quantity: number;
+}
+
+export interface RiotStoreOffer {
+  OfferID: string;
+  IsDirectPurchase?: boolean;
+  StartDate?: string;
+  Cost: Record<string, number>;
+  Rewards: RiotStoreReward[];
+}
+
+export interface RiotSkinsPanelLayout {
+  SingleItemOffers?: string[];
+  SingleItemStoreOffers?: RiotStoreOffer[];
+  SingleItemOffersRemainingDurationInSeconds?: number;
+}
+
+export interface RiotBonusStoreOffer {
+  BonusOfferID: string;
+  Offer: RiotStoreOffer;
+  DiscountPercent: number;
+  DiscountCosts: Record<string, number>;
+  IsSeen: boolean;
+}
+
+export interface RiotBonusStore {
+  BonusStoreOffers?: RiotBonusStoreOffer[];
+  BonusStoreRemainingDurationInSeconds?: number;
+}
+
+export interface RiotBundleItem {
+  Item: {
+    ItemTypeID: string;
+    ItemID: string;
+    Amount: number;
+  };
+  BasePrice: number;
+  CurrencyID: string;
+  DiscountPercent: number;
+  DiscountedPrice: number;
+  IsPromoItem: boolean;
+}
+
+export interface RiotBundle {
+  ID: string;
+  DataAssetID: string;
+  CurrencyID: string;
+  Items: RiotBundleItem[];
+  TotalBaseCost: Record<string, number> | null;
+  TotalDiscountedCost: Record<string, number> | null;
+  TotalDiscountPercent: number;
+  DurationRemainingInSeconds: number;
+  WholesaleOnly: boolean;
+}
+
+export interface RiotFeaturedBundle {
+  Bundle?: RiotBundle;
+  Bundles?: RiotBundle[];
+  BundleRemainingDurationInSeconds?: number;
+}
+
+export interface RiotAccessoryStoreOffer {
+  Offer: RiotStoreOffer;
+  ContractID: string;
+}
+
+export interface RiotAccessoryStore {
+  AccessoryStoreOffers?: RiotAccessoryStoreOffer[];
+  AccessoryStoreRemainingDurationInSeconds?: number;
+  StorefrontID?: string;
+}
+
+export interface RiotUpgradeCurrencyOffer {
+  OfferID: string;
+  StorefrontItemID: string;
+  Offer: RiotStoreOffer;
+  DiscountedPercent: number;
+}
+
+export interface RiotUpgradeCurrencyStore {
+  UpgradeCurrencyOffers?: RiotUpgradeCurrencyOffer[];
+}
+
+export interface RiotStorefrontResponse {
+  FeaturedBundle?: RiotFeaturedBundle;
+  SkinsPanelLayout?: RiotSkinsPanelLayout;
+  UpgradeCurrencyStore?: RiotUpgradeCurrencyStore;
+  AccessoryStore?: RiotAccessoryStore;
+  BonusStore?: RiotBonusStore;
+}

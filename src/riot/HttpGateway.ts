@@ -15,7 +15,20 @@ export class HttpGateway {
     return this.request<T>(url, { method: "GET" }, headers);
   }
 
+  async post<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return this.sendWithBody<T>("POST", url, body, headers);
+  }
+
   async put<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return this.sendWithBody<T>("PUT", url, body, headers);
+  }
+
+  private async sendWithBody<T>(
+    method: "POST" | "PUT",
+    url: string,
+    body?: unknown,
+    headers?: Record<string, string>,
+  ): Promise<T> {
     const serializedBody =
       typeof body === "string" ? body : body !== undefined ? JSON.stringify(body) : undefined;
 
@@ -27,7 +40,7 @@ export class HttpGateway {
     return this.request<T>(
       url,
       {
-        method: "PUT",
+        method,
         headers: requestHeaders,
         body: serializedBody,
       },

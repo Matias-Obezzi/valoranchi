@@ -6,6 +6,7 @@ import type {
   RiotEntitlementsResponse,
   RiotLoadoutResponse,
   RiotNameResponse,
+  RiotStorefrontResponse,
   RiotWalletResponse,
 } from "./types.js";
 
@@ -44,6 +45,13 @@ export class RiotApi {
 
   async wallet(): Promise<RiotWalletResponse> {
     return this.get(`${this.session.endpoints.pd}/store/v1/wallet/${this.session.puuid}`);
+  }
+
+  async storefront(): Promise<RiotStorefrontResponse> {
+    const url = `${this.session.endpoints.pd}/store/v3/storefront/${this.session.puuid}`;
+    return this.cached(`POST ${url}`, () =>
+      this.gateway.post<RiotStorefrontResponse>(url, {}, this.session.headers()),
+    );
   }
 
   async names(puuids: string[]): Promise<RiotNameResponse[]> {
