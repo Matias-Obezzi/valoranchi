@@ -171,4 +171,104 @@ describe("RiotClientLocalApi", () => {
 
     await expect(api.entitlementsToken()).rejects.toThrow(RiotClientNotReadyError);
   });
+
+  it("returns parsed JSON on get with status 200", async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ test: "data" }),
+      text: async () => "",
+    });
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch,
+    });
+
+    const res = await api.get<{ test: string }>("/chat/v4/friends");
+    expect(res).toEqual({ test: "data" });
+  });
+
+  it("returns null on get when response is 404 without retrying", async () => {
+    let calls = 0;
+    const mockFetch = async () => {
+      calls++;
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+        text: async () => "Not Found",
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch,
+      sleepFn: async () => {},
+    });
+
+    const res = await api.get("/chat/v6/messages?cid=missing");
+    expect(res).toBeNull();
+    expect(calls).toBe(1);
+  });
+
+  it("retries on get when receiving 503 and succeeds", async () => {
+    let calls = 0;
+    const mockFetch = async () => {
+      calls++;
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 503,
+          json: async () => ({}),
+          text: async () => "Service Unavailable",
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ ready: true }),
+        text: async () => "",
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch,
+      sleepFn: async () => {},
+    });
+
+    const res = await api.get<{ ready: boolean }>("/chat/v4/presences");
+    expect(calls).toBe(2);
+    expect(res).toEqual({ ready: true });
+  });
+
+  it("throws RiotClientNotRunningError on get when connection refused", async () => {
+    const connRefusedError = new Error("connect ECONNREFUSED 127.0.0.1:5678");
+    (connRefusedError as { code?: string }).code = "ECONNREFUSED";
+
+    const mockFetch = async () => {
+      throw connRefusedError;
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch,
+      sleepFn: async () => {},
+    });
+
+    await expect(api.get("/chat/v4/friends")).rejects.toThrow(RiotClientNotRunningError);
+  });
+
+  it("throws RiotClientNotReadyError on get when retries are exhausted", async () => {
+    const mockFetch = async () => ({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+      text: async () => "Internal Server Error",
+    });
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch,
+      sleepFn: async () => {},
+    });
+
+    await expect(api.get("/chat/v4/friends")).rejects.toThrow(RiotClientNotReadyError);
+  });
 });
