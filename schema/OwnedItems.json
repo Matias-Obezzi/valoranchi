@@ -1,0 +1,376 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/OwnedItems",
+  "definitions": {
+    "OwnedItems": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/definitions/Player"
+        },
+        "language": {
+          "type": "string"
+        },
+        "generatedAt": {
+          "type": "string"
+        },
+        "weapons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedWeapon"
+          }
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedCard"
+          }
+        },
+        "titles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedTitle"
+          }
+        },
+        "sprays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedSpray"
+          }
+        },
+        "buddies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedBuddy"
+          }
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedAgent"
+          }
+        }
+      },
+      "required": [
+        "player",
+        "language",
+        "generatedAt",
+        "weapons",
+        "cards",
+        "titles",
+        "sprays",
+        "buddies",
+        "agents"
+      ],
+      "additionalProperties": false
+    },
+    "Player": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "shard": {
+          "type": "string"
+        },
+        "accountLevel": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "puuid",
+        "gameName",
+        "tagLine",
+        "region",
+        "shard",
+        "accountLevel"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedWeapon": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "skinsOwned": {
+          "type": "number"
+        },
+        "skinsTotal": {
+          "type": "number"
+        },
+        "skins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedSkin"
+          }
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "category",
+        "skinsOwned",
+        "skinsTotal",
+        "skins"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedSkin": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tier": {
+          "$ref": "#/definitions/Tier"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedSkinLevel"
+          }
+        },
+        "chromas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OwnedChroma"
+          }
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "tier",
+        "icon",
+        "levels",
+        "chromas"
+      ],
+      "additionalProperties": false
+    },
+    "Tier": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "rank": {
+              "type": "number"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            }
+          },
+          "required": [
+            "uuid",
+            "name",
+            "rank",
+            "icon"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Image": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "OwnedSkinLevel": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "owned": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "owned"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedChroma": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "owned": {
+          "type": "boolean"
+        },
+        "swatch": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "owned",
+        "swatch"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedCard": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "small": {
+          "$ref": "#/definitions/Image"
+        },
+        "wide": {
+          "$ref": "#/definitions/Image"
+        },
+        "large": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "small",
+        "wide",
+        "large"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedTitle": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedSpray": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "icon"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedBuddy": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "instances": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "icon",
+        "instances"
+      ],
+      "additionalProperties": false
+    },
+    "OwnedAgent": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "role",
+        "icon"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

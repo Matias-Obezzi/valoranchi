@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Wallet",
+  "definitions": {
+    "Wallet": {
+      "type": "object",
+      "properties": {
+        "valorantPoints": {
+          "type": "number"
+        },
+        "radianite": {
+          "type": "number"
+        },
+        "kingdomCredits": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "valorantPoints",
+        "radianite",
+        "kingdomCredits"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
