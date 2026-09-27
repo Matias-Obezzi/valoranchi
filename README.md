@@ -1,6 +1,6 @@
 # @valoranchi/riot-client
 
-A TypeScript library and command-line tool for reading the local signed-in Riot Client session and retrieving player inventory, loadout, wallet balances, and identity information for VALORANT.
+A TypeScript library and command-line tool for reading the local signed-in Riot Client session and retrieving player inventory, loadout, wallet balances, friends roster, presence, chat messages, and storefront offers for VALORANT.
 
 ## Installation
 
@@ -16,7 +16,7 @@ npx @valoranchi/riot-client whoami
 
 ## Node Usage
 
-Import `RiotClient` and call any of the four public view model methods:
+Import `RiotClient` and call any of the public view model methods:
 
 ```ts
 import { RiotClient } from "@valoranchi/riot-client";
@@ -38,6 +38,25 @@ console.log(loadout);
 // 4. Get currency balances (VP, Radianite, Kingdom Credits)
 const wallet = await client.wallet();
 console.log(wallet);
+
+// 5. Get friends roster and presence
+const friends = await client.friends();
+console.log(friends);
+
+// 6. Get incoming/outgoing friend requests and blocked players
+const requests = await client.friendRequests();
+const blocked = await client.blocked();
+
+// 7. Get conversations and messages
+const conversations = await client.conversations();
+const messages = await client.messages();
+
+// 8. Get storefront rotation (daily, night market, bundles, accessories, radianite)
+const store = await client.store({ language: "en-US" });
+console.log(store);
+
+// Close the local loopback client agent when finished
+await client.close();
 ```
 
 ## CLI Usage
@@ -49,6 +68,12 @@ riotclient whoami
 riotclient owned-items --language en-US --pretty
 riotclient loadout
 riotclient wallet
+riotclient friends
+riotclient friend-requests
+riotclient blocked
+riotclient conversations
+riotclient messages --cid <conversation-id>
+riotclient store --pretty
 ```
 
 Example trimmed output from `riotclient whoami --pretty`:
@@ -61,6 +86,56 @@ Example trimmed output from `riotclient whoami --pretty`:
   "region": "na",
   "shard": "na",
   "accountLevel": 128
+}
+```
+
+Example trimmed output from `riotclient store --pretty`:
+
+```json
+{
+  "player": {
+    "puuid": "4a7b9c1d-1234-5678-9abc-def012345678",
+    "gameName": "Player",
+    "tagLine": "NA1",
+    "region": "na",
+    "shard": "na",
+    "accountLevel": 128
+  },
+  "fetchedAt": "2026-09-27T12:00:00.000Z",
+  "daily": {
+    "endsAt": "2026-09-28T00:00:00.000Z",
+    "offers": [
+      {
+        "offerId": "4324a482-47da-4521-b3b0-4dbfcfefd779",
+        "item": {
+          "kind": "skin",
+          "uuid": "8908f237-47b2-031a-e905-1a89c93cc8f5",
+          "name": "Prime Vandal",
+          "weapon": "Vandal",
+          "tier": {
+            "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
+            "name": "Exclusive",
+            "rank": 5,
+            "icon": "https://media.valorant-api.com/contenttiers/exclusive.png"
+          },
+          "icon": "https://media.valorant-api.com/weaponskinlevels/7209796e-4f76-88c9-04fa-fb81498b5e9d/displayicon.png",
+          "levelUuid": "7209796e-4f76-88c9-04fa-fb81498b5e9d"
+        },
+        "cost": {
+          "currency": "Valorant Points",
+          "currencyUuid": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+          "amount": 1775
+        }
+      }
+    ]
+  },
+  "nightMarket": null,
+  "bundles": {
+    "endsAt": "2026-10-05T00:00:00.000Z",
+    "items": []
+  },
+  "accessories": null,
+  "radianite": []
 }
 ```
 
@@ -121,11 +196,13 @@ if (process.ExitCode == 0)
 
 ## Catalogue Cache
 
-Names, images and tiers come from valorant-api.com. The catalogue for each language is stored on disk, under `%LOCALAPPDATA%aloranchi-riot-client\catalogue` on Windows and the system temp directory elsewhere, keyed by the game version, so it is downloaded once per patch. Pass `catalogueDir` to `RiotClient` to move it, or `null` to keep it in memory only.
+Names, images, bundles, and tiers come from valorant-api.com. The catalogue for each language is stored on disk, under `%LOCALAPPDATA%\valoranchi-riot-client\catalogue` on Windows and the system temp directory elsewhere, keyed by the game version, so it is downloaded once per patch. Pass `catalogueDir` to `RiotClient` to move it, or `null` to keep it in memory only.
 
 ## Response Cache
 
 Riot answers are fetched live by default. To reuse them for a while, pass `responseCache: { ttlMs: 60_000 }` to `RiotClient`, or `--cache 60` to the CLI. Entries are stored per player and endpoint under `%LOCALAPPDATA%\valoranchi-riot-client\responses`, hold only the response body, never a token, and are refetched once older than the TTL. Keep the TTL short: a purchase or a loadout change is invisible until it expires.
+
+Chat data (friends, presence, friend requests, blocked players, conversations, and messages) comes directly from the local Riot Client loopback API and is never cached.
 
 ## Token Host Rule
 
@@ -134,6 +211,7 @@ Access tokens and entitlements JWTs are strictly scoped. They may only ever be s
 ## What It Does Not Do
 
 - No store purchases or transactional operations
+- No sending chat messages or modifying friend relationships
 - No automation, bots, or match orchestration
 - No writing or mutating equipped loadouts
 - No telemetry or credential logging

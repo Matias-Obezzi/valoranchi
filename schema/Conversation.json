@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Conversation",
+  "definitions": {
+    "Conversation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["whisper", "party", "pregame", "team", "all"]
+        },
+        "unread": {
+          "type": "number"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "with": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "puuid": {
+                  "type": "string"
+                },
+                "gameName": {
+                  "type": "string"
+                },
+                "tagLine": {
+                  "type": "string"
+                }
+              },
+              "required": ["puuid", "gameName", "tagLine"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["id", "kind", "unread", "muted", "with"],
+      "additionalProperties": false
+    }
+  }
+}

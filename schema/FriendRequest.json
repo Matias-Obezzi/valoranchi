@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/FriendRequest",
+  "definitions": {
+    "FriendRequest": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["incoming", "outgoing"]
+        }
+      },
+      "required": ["puuid", "gameName", "tagLine", "direction"],
+      "additionalProperties": false
+    }
+  }
+}

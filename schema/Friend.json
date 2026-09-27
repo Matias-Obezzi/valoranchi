@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Friend",
+  "definitions": {
+    "Friend": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "note": {
+          "type": ["string", "null"]
+        },
+        "group": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "lastOnline": {
+          "type": ["string", "null"]
+        },
+        "presence": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "$ref": "#/definitions/PresenceState"
+            },
+            "product": {
+              "type": ["string", "null"]
+            },
+            "since": {
+              "type": ["string", "null"]
+            },
+            "valorant": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ValorantPresence"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["state", "product", "since", "valorant"],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "puuid",
+        "gameName",
+        "tagLine",
+        "note",
+        "group",
+        "region",
+        "lastOnline",
+        "presence"
+      ],
+      "additionalProperties": false
+    },
+    "PresenceState": {
+      "type": "string",
+      "enum": ["online", "away", "busy", "mobile", "offline"]
+    },
+    "ValorantPresence": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": ["string", "null"],
+          "enum": ["menus", "pregame", "ingame", null]
+        },
+        "queue": {
+          "type": ["string", "null"]
+        },
+        "map": {
+          "type": ["string", "null"]
+        },
+        "party": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": ["string", "null"]
+            },
+            "size": {
+              "type": ["number", "null"]
+            },
+            "max": {
+              "type": ["number", "null"]
+            },
+            "owner": {
+              "type": ["boolean", "null"]
+            }
+          },
+          "required": ["id", "size", "max", "owner"],
+          "additionalProperties": false
+        },
+        "competitiveTier": {
+          "type": ["number", "null"]
+        },
+        "leaderboardPosition": {
+          "type": ["number", "null"]
+        },
+        "accountLevel": {
+          "type": ["number", "null"]
+        },
+        "card": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "small": {
+                  "$ref": "#/definitions/Image"
+                }
+              },
+              "required": ["uuid", "name", "small"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": ["string", "null"]
+                }
+              },
+              "required": ["uuid", "name", "text"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ally": {
+                  "type": "number"
+                },
+                "enemy": {
+                  "type": "number"
+                }
+              },
+              "required": ["ally", "enemy"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "state",
+        "queue",
+        "map",
+        "party",
+        "competitiveTier",
+        "leaderboardPosition",
+        "accountLevel",
+        "card",
+        "title",
+        "score"
+      ],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    }
+  }
+}

@@ -1,0 +1,455 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Store",
+  "definitions": {
+    "Store": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "$ref": "#/definitions/Player"
+        },
+        "fetchedAt": {
+          "type": "string"
+        },
+        "daily": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endsAt": {
+                  "type": "string"
+                },
+                "offers": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/DailyOffer"
+                  }
+                }
+              },
+              "required": ["endsAt", "offers"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "nightMarket": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endsAt": {
+                  "type": "string"
+                },
+                "offers": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/NightMarketOffer"
+                  }
+                }
+              },
+              "required": ["endsAt", "offers"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bundles": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endsAt": {
+                  "type": ["string", "null"]
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Bundle"
+                  }
+                }
+              },
+              "required": ["endsAt", "items"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accessories": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "endsAt": {
+                  "type": "string"
+                },
+                "offers": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/AccessoryOffer"
+                  }
+                }
+              },
+              "required": ["endsAt", "offers"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "radianite": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RadianiteOffer"
+          }
+        }
+      },
+      "required": [
+        "player",
+        "fetchedAt",
+        "daily",
+        "nightMarket",
+        "bundles",
+        "accessories",
+        "radianite"
+      ],
+      "additionalProperties": false
+    },
+    "Player": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "shard": {
+          "type": "string"
+        },
+        "accountLevel": {
+          "type": "number"
+        }
+      },
+      "required": ["puuid", "gameName", "tagLine", "region", "shard", "accountLevel"],
+      "additionalProperties": false
+    },
+    "DailyOffer": {
+      "type": "object",
+      "properties": {
+        "offerId": {
+          "type": "string"
+        },
+        "item": {
+          "$ref": "#/definitions/StoreItem"
+        },
+        "cost": {
+          "$ref": "#/definitions/Cost"
+        }
+      },
+      "required": ["offerId", "item", "cost"],
+      "additionalProperties": false
+    },
+    "StoreItem": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "skin"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "weapon": {
+              "type": "string"
+            },
+            "tier": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Tier"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            },
+            "levelUuid": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "uuid", "name", "weapon", "tier", "icon", "levelUuid"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["buddy", "spray", "card", "title", "agent", "flex"]
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            }
+          },
+          "required": ["kind", "uuid", "name", "icon"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "currency"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            }
+          },
+          "required": ["kind", "uuid", "name", "amount"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "other"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "typeUuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "null"
+            }
+          },
+          "required": ["kind", "uuid", "typeUuid", "name"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Tier": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "number"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "rank", "icon"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "Cost": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "currencyUuid": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "required": ["currency", "currencyUuid", "amount"],
+      "additionalProperties": false
+    },
+    "NightMarketOffer": {
+      "type": "object",
+      "properties": {
+        "offerId": {
+          "type": "string"
+        },
+        "item": {
+          "$ref": "#/definitions/StoreItem"
+        },
+        "cost": {
+          "$ref": "#/definitions/Cost"
+        },
+        "discountedCost": {
+          "$ref": "#/definitions/Cost"
+        },
+        "discountPercent": {
+          "type": "number"
+        },
+        "seen": {
+          "type": "boolean"
+        }
+      },
+      "required": ["offerId", "item", "cost", "discountedCost", "discountPercent", "seen"],
+      "additionalProperties": false
+    },
+    "Bundle": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": ["string", "null"]
+        },
+        "description": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "promoImage": {
+          "$ref": "#/definitions/Image"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "totalBase": {
+          "type": ["number", "null"]
+        },
+        "totalDiscounted": {
+          "type": ["number", "null"]
+        },
+        "discountPercent": {
+          "type": "number"
+        },
+        "wholesaleOnly": {
+          "type": "boolean"
+        },
+        "endsAt": {
+          "type": ["string", "null"]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BundleItem"
+          }
+        }
+      },
+      "required": [
+        "uuid",
+        "name",
+        "subtitle",
+        "description",
+        "icon",
+        "promoImage",
+        "currency",
+        "totalBase",
+        "totalDiscounted",
+        "discountPercent",
+        "wholesaleOnly",
+        "endsAt",
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "BundleItem": {
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/StoreItem"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "basePrice": {
+          "type": "number"
+        },
+        "discountedPrice": {
+          "type": "number"
+        },
+        "discountPercent": {
+          "type": "number"
+        },
+        "promo": {
+          "type": "boolean"
+        }
+      },
+      "required": ["item", "amount", "basePrice", "discountedPrice", "discountPercent", "promo"],
+      "additionalProperties": false
+    },
+    "AccessoryOffer": {
+      "type": "object",
+      "properties": {
+        "offerId": {
+          "type": "string"
+        },
+        "item": {
+          "$ref": "#/definitions/StoreItem"
+        },
+        "cost": {
+          "$ref": "#/definitions/Cost"
+        },
+        "contractUuid": {
+          "type": "string"
+        }
+      },
+      "required": ["offerId", "item", "cost", "contractUuid"],
+      "additionalProperties": false
+    },
+    "RadianiteOffer": {
+      "type": "object",
+      "properties": {
+        "offerId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "cost": {
+          "$ref": "#/definitions/Cost"
+        },
+        "discountPercent": {
+          "type": "number"
+        }
+      },
+      "required": ["offerId", "amount", "cost", "discountPercent"],
+      "additionalProperties": false
+    }
+  }
+}

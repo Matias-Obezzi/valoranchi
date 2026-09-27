@@ -3,7 +3,18 @@ import path from "node:path";
 import prettier from "prettier";
 import { createGenerator } from "ts-json-schema-generator";
 
-const types = ["OwnedItems", "Loadout", "Wallet", "Player"];
+const types = [
+  "OwnedItems",
+  "Loadout",
+  "Wallet",
+  "Player",
+  "Friend",
+  "FriendRequest",
+  "BlockedPlayer",
+  "Conversation",
+  "Message",
+  "Store",
+];
 const schemaDir = path.resolve("schema");
 
 if (!fs.existsSync(schemaDir)) {
