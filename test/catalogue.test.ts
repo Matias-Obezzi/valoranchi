@@ -84,6 +84,15 @@ const sampleData = {
       verticalPromoImage: "promo-bundle",
     },
   ],
+  maps: [
+    {
+      uuid: "map-1",
+      displayName: "Ascent",
+      mapUrl: "/Game/Maps/Ascent/Ascent",
+      displayIcon: "icon-map",
+      listViewIcon: "icon-map-list",
+    },
+  ],
 };
 
 describe("Catalogue", () => {
@@ -103,6 +112,7 @@ describe("Catalogue", () => {
     expect(catalogue.getAgent("agent-1")?.displayName).toBe("Jett");
     expect(catalogue.getTier("tier-1")?.displayName).toBe("Exclusive");
     expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
+    expect(catalogue.getMapByPath("/Game/Maps/Ascent/Ascent")?.displayName).toBe("Ascent");
   });
 });
 
@@ -135,6 +145,7 @@ describe("ValorantApi", () => {
       if (url.includes("contentTiers")) return { status: 200, data: sampleData.contentTiers };
       if (url.includes("currencies")) return { status: 200, data: sampleData.currencies };
       if (url.includes("bundles")) return { status: 200, data: sampleData.bundles };
+      if (url.includes("maps")) return { status: 200, data: sampleData.maps };
       throw new Error(`Unexpected url: ${url}`);
     });
 
@@ -148,6 +159,6 @@ describe("ValorantApi", () => {
     expect(cat1.getWeapon("weapon-1")?.displayName).toBe("Vandal");
     expect(cat1.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
     expect(cat2).toBe(cat1);
-    expect(mockGet).toHaveBeenCalledTimes(9);
+    expect(mockGet).toHaveBeenCalledTimes(10);
   });
 });

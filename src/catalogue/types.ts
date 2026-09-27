@@ -96,6 +96,14 @@ export interface ValorantApiBundle {
   verticalPromoImage: string | null;
 }
 
+export interface ValorantApiMap {
+  uuid: string;
+  displayName: string;
+  mapUrl: string;
+  displayIcon: string | null;
+  listViewIcon: string | null;
+}
+
 export interface ValorantApiCatalogueData {
   weapons: ValorantApiWeapon[];
   playerCards: ValorantApiPlayerCard[];
@@ -106,4 +114,5 @@ export interface ValorantApiCatalogueData {
   contentTiers: ValorantApiContentTier[];
   currencies: ValorantApiCurrency[];
   bundles: ValorantApiBundle[];
+  maps: ValorantApiMap[];
 }

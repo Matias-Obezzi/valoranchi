@@ -63,6 +63,15 @@ function resolveTitle(catalogue: Catalogue | null | undefined, uuid: unknown) {
     : { uuid: uuid.toLowerCase(), name: "", text: null };
 }
 
+function resolveMap(catalogue: Catalogue | null | undefined, path: unknown) {
+  if (typeof path !== "string" || path.length === 0) return null;
+  const entity = catalogue?.getMapByPath(path);
+  return {
+    path,
+    name: entity ? entity.displayName : null,
+  };
+}
+
 function readState(
   raw: Record<string, unknown>,
   matchData: Record<string, unknown>,
@@ -124,7 +133,7 @@ export function decodeValorantPresence(
   return {
     state: readState(raw, matchData, partyData),
     queue: typeof rawQueue === "string" && rawQueue.length > 0 ? rawQueue : null,
-    map: typeof rawMap === "string" && rawMap.length > 0 ? rawMap : null,
+    map: resolveMap(catalogue, rawMap),
     party: readParty(raw, partyData),
     score: readScore(raw, partyData),
     ...readIdentity(raw, playerData, catalogue),

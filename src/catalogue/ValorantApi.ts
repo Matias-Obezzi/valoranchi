@@ -8,6 +8,7 @@ import type {
   ValorantApiCatalogueData,
   ValorantApiContentTier,
   ValorantApiCurrency,
+  ValorantApiMap,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
   ValorantApiSpray,
@@ -97,7 +98,11 @@ export class ValorantApi {
     }
     const version = await this.getClientVersion();
     const stored = this.store.read(language);
-    if (stored?.version === version && Array.isArray(stored.data?.bundles)) {
+    if (
+      stored?.version === version &&
+      Array.isArray(stored.data?.bundles) &&
+      Array.isArray(stored.data?.maps)
+    ) {
       return stored.data;
     }
     const data = await this.fetchCatalogueData(language);
@@ -116,6 +121,7 @@ export class ValorantApi {
       contentTiersRes,
       currenciesRes,
       bundlesRes,
+      mapsRes,
     ] = await Promise.all([
       this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
       this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
@@ -126,6 +132,7 @@ export class ValorantApi {
       this.fetchEndpoint<ValorantApiContentTier[]>("contentTiers", language),
       this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
       this.fetchEndpoint<ValorantApiBundle[]>("bundles", language),
+      this.fetchEndpoint<ValorantApiMap[]>("maps", language),
     ]);
 
     return {
@@ -138,6 +145,7 @@ export class ValorantApi {
       contentTiers: contentTiersRes.data,
       currencies: currenciesRes.data,
       bundles: bundlesRes.data,
+      maps: mapsRes.data,
     };
   }
 

@@ -55,7 +55,7 @@ describe("FileCatalogueStore", () => {
       store,
     );
     await stale.getCatalogue("en-US");
-    expect(newer).toHaveBeenCalledTimes(10);
+    expect(newer).toHaveBeenCalledTimes(11);
     expect(store.read("en-US")?.version).toBe("release-10.01-1");
   });
 
@@ -76,7 +76,28 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
-    expect(gateway).toHaveBeenCalledTimes(10);
+    expect(gateway).toHaveBeenCalledTimes(11);
     expect(store.read("en-US")?.data.bundles).toBeDefined();
+  });
+
+  it("treats a stored catalogue without maps as a cache miss", async () => {
+    const store = new FileCatalogueStore(dir);
+    const { maps: _, ...dataWithoutMaps } = sampleData;
+    store.write("en-US", {
+      version: "release-10.00-1",
+      data: dataWithoutMaps as unknown as ValorantApiCatalogueData,
+    });
+
+    const gateway = gatewayServing();
+    const api = new ValorantApi(
+      { get: gateway } as unknown as HttpGateway,
+      new MemoryCatalogueCache(),
+      store,
+    );
+    const catalogue = await api.getCatalogue("en-US");
+
+    expect(catalogue.getMapByPath("/Game/Maps/Ascent/Ascent")?.displayName).toBe("Ascent");
+    expect(gateway).toHaveBeenCalledTimes(11);
+    expect(store.read("en-US")?.data.maps).toBeDefined();
   });
 });

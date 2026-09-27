@@ -80,7 +80,24 @@
           "type": ["string", "null"]
         },
         "map": {
-          "type": ["string", "null"]
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": ["string", "null"]
+                }
+              },
+              "required": ["path", "name"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "party": {
           "type": "object",

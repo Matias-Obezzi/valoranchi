@@ -20,6 +20,15 @@ const sampleCatalogueData = {
   contentTiers: [],
   currencies: [],
   bundles: [],
+  maps: [
+    {
+      uuid: "map-1",
+      displayName: "Ascent",
+      mapUrl: "/Game/Maps/Ascent/Ascent",
+      displayIcon: null,
+      listViewIcon: null,
+    },
+  ],
 };
 
 describe("decodeValorantPresence", () => {
@@ -47,7 +56,10 @@ describe("decodeValorantPresence", () => {
     expect(result).toEqual({
       state: "menus",
       queue: "unrated",
-      map: "/Game/Maps/Ascent/Ascent",
+      map: {
+        path: "/Game/Maps/Ascent/Ascent",
+        name: "Ascent",
+      },
       party: {
         id: "party-123",
         size: 2,
@@ -100,7 +112,10 @@ describe("decodeValorantPresence", () => {
     expect(result).toEqual({
       state: "ingame",
       queue: "competitive",
-      map: "/Game/Maps/Bonsai/Bonsai",
+      map: {
+        path: "/Game/Maps/Bonsai/Bonsai",
+        name: null,
+      },
       party: {
         id: "party-nested",
         size: 3,

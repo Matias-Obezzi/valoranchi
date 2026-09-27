@@ -173,5 +173,14 @@
       "displayIcon2": "https://media.valorant-api.com/bundles/prime/displayicon2.png",
       "verticalPromoImage": "https://media.valorant-api.com/bundles/prime/promo.png"
     }
+  ],
+  "maps": [
+    {
+      "uuid": "map-1",
+      "displayName": "Ascent",
+      "mapUrl": "/Game/Maps/Ascent/Ascent",
+      "displayIcon": null,
+      "listViewIcon": null
+    }
   ]
 }

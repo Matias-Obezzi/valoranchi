@@ -121,7 +121,7 @@ export type PresenceState = "online" | "away" | "busy" | "mobile" | "offline";
 export type ValorantPresence = {
   state: "menus" | "pregame" | "ingame" | null;
   queue: string | null;
-  map: string | null;
+  map: { path: string; name: string | null } | null;
   party: { id: string | null; size: number | null; max: number | null; owner: boolean | null };
   competitiveTier: number | null;
   leaderboardPosition: number | null;
