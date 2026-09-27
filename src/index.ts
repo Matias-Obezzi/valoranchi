@@ -12,9 +12,20 @@ export {
 } from "./errors.js";
 
 export type {
+  AccessoryOffer,
+  BlockedPlayer,
+  Bundle,
+  BundleItem,
+  Conversation,
+  Cost,
+  DailyOffer,
+  Friend,
+  FriendRequest,
   Image,
   Loadout,
   LoadoutGun,
+  Message,
+  NightMarketOffer,
   OwnedAgent,
   OwnedBuddy,
   OwnedCard,
@@ -26,6 +37,11 @@ export type {
   OwnedTitle,
   OwnedWeapon,
   Player,
+  PresenceState,
+  RadianiteOffer,
+  Store,
+  StoreItem,
   Tier,
+  ValorantPresence,
   Wallet,
 } from "./model/index.js";

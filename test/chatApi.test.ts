@@ -1,0 +1,139 @@
+import { describe, expect, it } from "vitest";
+import { ChatApi } from "../src/local/ChatApi.js";
+import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+
+describe("ChatApi", () => {
+  it("fetches friends, presences, requests, and blocked players", async () => {
+    const mockFetch = async (url: string) => {
+      if (url.includes("/chat/v4/friends")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ friends: [{ puuid: "p1", game_name: "Friend1" }] }),
+          text: async () => "",
+        };
+      }
+      if (url.includes("/chat/v4/presences")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ presences: [{ puuid: "p1", product: "valorant" }] }),
+          text: async () => "",
+        };
+      }
+      if (url.includes("/chat/v4/friendrequests")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ requests: [{ puuid: "p2", subscription: "pending_in" }] }),
+          text: async () => "",
+        };
+      }
+      if (url.includes("/chat/v4/blocked")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ blocked: [{ puuid: "p3", game_name: "Blocked1" }] }),
+          text: async () => "",
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+    };
+
+    const localApi = new RiotClientLocalApi(5678, "pass", { fetchFn: mockFetch });
+    const chatApi = new ChatApi(localApi);
+
+    const friends = await chatApi.friends();
+    const presences = await chatApi.presences();
+    const requests = await chatApi.friendRequests();
+    const blocked = await chatApi.blocked();
+
+    expect(friends).toEqual([{ puuid: "p1", game_name: "Friend1" }]);
+    expect(presences).toEqual([{ puuid: "p1", product: "valorant" }]);
+    expect(requests).toEqual([{ puuid: "p2", subscription: "pending_in" }]);
+    expect(blocked).toEqual([{ puuid: "p3", game_name: "Blocked1" }]);
+  });
+
+  it("merges conversations from all 4 endpoints and deduplicates by cid", async () => {
+    const mockFetch = async (url: string) => {
+      if (url.endsWith("/chat/v6/conversations")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            conversations: [
+              { cid: "user1@la1.pvp.net", type: "chat" },
+              { cid: "dup@la1.pvp.net", type: "chat" },
+            ],
+          }),
+          text: async () => "",
+        };
+      }
+      if (url.endsWith("/chat/v6/conversations/ares-parties")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            conversations: [
+              { cid: "party-room@ares-parties.la1", type: "groupchat" },
+              { cid: "dup@la1.pvp.net", type: "chat" },
+            ],
+          }),
+          text: async () => "",
+        };
+      }
+      if (url.endsWith("/chat/v6/conversations/ares-pregame")) {
+        // Simulating 404 or empty outside game
+        return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+      }
+      if (url.endsWith("/chat/v6/conversations/ares-coregame")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            conversations: [{ cid: "match-room-all@ares-coregame.la1", type: "groupchat" }],
+          }),
+          text: async () => "",
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+    };
+
+    const localApi = new RiotClientLocalApi(5678, "pass", { fetchFn: mockFetch });
+    const chatApi = new ChatApi(localApi);
+
+    const conversations = await chatApi.conversations();
+    expect(conversations).toHaveLength(4);
+    expect(conversations.map((c) => c.cid)).toEqual([
+      "user1@la1.pvp.net",
+      "dup@la1.pvp.net",
+      "party-room@ares-parties.la1",
+      "match-room-all@ares-coregame.la1",
+    ]);
+  });
+
+  it("returns messages or empty list on 404", async () => {
+    const mockFetch = async (url: string) => {
+      if (url.includes("cid=existing")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            messages: [{ id: "m1", cid: "existing", body: "hello", time: "12345678" }],
+          }),
+          text: async () => "",
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+    };
+
+    const localApi = new RiotClientLocalApi(5678, "pass", { fetchFn: mockFetch });
+    const chatApi = new ChatApi(localApi);
+
+    const existing = await chatApi.messages("existing");
+    expect(existing).toEqual([{ id: "m1", cid: "existing", body: "hello", time: "12345678" }]);
+
+    const missing = await chatApi.messages("non-existent");
+    expect(missing).toEqual([]);
+  });
+});

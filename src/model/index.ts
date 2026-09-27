@@ -115,3 +115,154 @@ export type Wallet = {
   radianite: number;
   kingdomCredits: number;
 };
+
+export type PresenceState = "online" | "away" | "busy" | "mobile" | "offline";
+
+export type ValorantPresence = {
+  state: "menus" | "pregame" | "ingame" | null;
+  queue: string | null;
+  map: string | null;
+  party: { id: string | null; size: number | null; max: number | null; owner: boolean | null };
+  competitiveTier: number | null;
+  leaderboardPosition: number | null;
+  accountLevel: number | null;
+  card: { uuid: string; name: string; small: Image } | null;
+  title: { uuid: string; name: string; text: string | null } | null;
+  score: { ally: number; enemy: number } | null;
+};
+
+export type Friend = {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  note: string | null;
+  group: string;
+  region: string;
+  lastOnline: string | null;
+  presence: {
+    state: PresenceState;
+    product: string | null;
+    since: string | null;
+    valorant: ValorantPresence | null;
+  };
+};
+
+export type FriendRequest = {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  direction: "incoming" | "outgoing";
+};
+
+export type BlockedPlayer = {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+};
+
+export type Conversation = {
+  id: string;
+  kind: "whisper" | "party" | "pregame" | "team" | "all";
+  unread: number;
+  muted: boolean;
+  with: { puuid: string; gameName: string; tagLine: string } | null;
+};
+
+export type Message = {
+  id: string;
+  conversationId: string;
+  from: { puuid: string; gameName: string; tagLine: string };
+  body: string;
+  at: string;
+  read: boolean;
+  kind: "whisper" | "room";
+};
+
+export type Cost = {
+  currency: string;
+  currencyUuid: string;
+  amount: number;
+};
+
+export type StoreItem =
+  | {
+      kind: "skin";
+      uuid: string;
+      name: string;
+      weapon: string;
+      tier: Tier | null;
+      icon: Image;
+      levelUuid: string;
+    }
+  | {
+      kind: "buddy" | "spray" | "card" | "title" | "agent" | "flex";
+      uuid: string;
+      name: string;
+      icon: Image;
+    }
+  | { kind: "currency"; uuid: string; name: string; amount: number }
+  | { kind: "other"; uuid: string; typeUuid: string; name: null };
+
+export type DailyOffer = {
+  offerId: string;
+  item: StoreItem;
+  cost: Cost;
+};
+
+export type NightMarketOffer = {
+  offerId: string;
+  item: StoreItem;
+  cost: Cost;
+  discountedCost: Cost;
+  discountPercent: number;
+  seen: boolean;
+};
+
+export type BundleItem = {
+  item: StoreItem;
+  amount: number;
+  basePrice: number;
+  discountedPrice: number;
+  discountPercent: number;
+  promo: boolean;
+};
+
+export type Bundle = {
+  uuid: string;
+  name: string;
+  subtitle: string | null;
+  description: string | null;
+  icon: Image;
+  promoImage: Image;
+  currency: string;
+  totalBase: number | null;
+  totalDiscounted: number | null;
+  discountPercent: number;
+  wholesaleOnly: boolean;
+  endsAt: string | null;
+  items: BundleItem[];
+};
+
+export type AccessoryOffer = {
+  offerId: string;
+  item: StoreItem;
+  cost: Cost;
+  contractUuid: string;
+};
+
+export type RadianiteOffer = {
+  offerId: string;
+  amount: number;
+  cost: Cost;
+  discountPercent: number;
+};
+
+export type Store = {
+  player: Player;
+  fetchedAt: string;
+  daily: { endsAt: string; offers: DailyOffer[] } | null;
+  nightMarket: { endsAt: string; offers: NightMarketOffer[] } | null;
+  bundles: { endsAt: string | null; items: Bundle[] } | null;
+  accessories: { endsAt: string; offers: AccessoryOffer[] } | null;
+  radianite: RadianiteOffer[];
+};
