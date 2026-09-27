@@ -13,6 +13,7 @@ Commands:
 
 Options:
   --language <lang>  Catalogue language (default: en-US)
+  --cache <seconds>  Reuse Riot responses younger than this many seconds
   --pretty           Pretty-print JSON output
   --help             Show usage instructions
   --version          Show version number
@@ -78,6 +79,7 @@ export async function runCli(args: string[]): Promise<number> {
     args,
     options: {
       language: { type: "string" },
+      cache: { type: "string" },
       pretty: { type: "boolean", default: false },
       help: { type: "boolean", default: false },
       version: { type: "boolean", default: false },
@@ -96,7 +98,11 @@ export async function runCli(args: string[]): Promise<number> {
   }
 
   const command = parsed.positionals[0]!;
-  const client = new RiotClient({ language: parsed.values.language });
+  const cacheSeconds = Number(parsed.values.cache ?? 0);
+  const client = new RiotClient({
+    language: parsed.values.language,
+    responseCache: cacheSeconds > 0 ? { ttlMs: cacheSeconds * 1000 } : undefined,
+  });
 
   try {
     const result = await executeCommand(client, command, parsed.values.language);

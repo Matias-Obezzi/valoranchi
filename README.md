@@ -123,6 +123,10 @@ if (process.ExitCode == 0)
 
 Names, images and tiers come from valorant-api.com. The catalogue for each language is stored on disk, under `%LOCALAPPDATA%aloranchi-riot-client\catalogue` on Windows and the system temp directory elsewhere, keyed by the game version, so it is downloaded once per patch. Pass `catalogueDir` to `RiotClient` to move it, or `null` to keep it in memory only.
 
+## Response Cache
+
+Riot answers are fetched live by default. To reuse them for a while, pass `responseCache: { ttlMs: 60_000 }` to `RiotClient`, or `--cache 60` to the CLI. Entries are stored per player and endpoint under `%LOCALAPPDATA%\valoranchi-riot-client\responses`, hold only the response body, never a token, and are refetched once older than the TTL. Keep the TTL short: a purchase or a loadout change is invisible until it expires.
+
 ## Token Host Rule
 
 Access tokens and entitlements JWTs are strictly scoped. They may only ever be sent to hosts matching `*.pvp.net`, `*.riotgames.com`, or loopback `127.0.0.1`. The HTTP gateway enforces this policy and throws a `ForbiddenHostError` before sending any request that would transmit credentials to an unauthorized host. Requests to public endpoints such as `valorant-api.com` never carry authorization headers.

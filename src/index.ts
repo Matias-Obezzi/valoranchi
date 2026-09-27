@@ -1,3 +1,4 @@
+export { defaultResponseCacheDir } from "./riot/ResponseCache.js";
 export { defaultCatalogueDir } from "./catalogue/CatalogueStore.js";
 export { RiotClient, type RiotClientOptions } from "./RiotClient.js";
 

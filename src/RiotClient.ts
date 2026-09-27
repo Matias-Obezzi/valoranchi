@@ -9,6 +9,7 @@ import { RiotClientLocalApi } from "./local/RiotClientLocalApi.js";
 import type { Loadout, OwnedItems, Player, Wallet } from "./model/index.js";
 import { HttpGateway } from "./riot/HttpGateway.js";
 import { RiotApi } from "./riot/RiotApi.js";
+import { FileResponseCache } from "./riot/ResponseCache.js";
 import { Session } from "./riot/Session.js";
 import { CURRENCY_UUIDS, type RiotAccountXpResponse, type RiotNameResponse } from "./riot/types.js";
 
@@ -17,6 +18,7 @@ export interface RiotClientOptions {
   lockfilePath?: string;
   sessionTtlMs?: number;
   catalogueDir?: string | null;
+  responseCache?: { ttlMs: number; dir?: string };
   gateway?: HttpGateway;
   valorantApi?: ValorantApi;
   localApiFactory?: (port: number, pass: string) => RiotClientLocalApi;
@@ -35,6 +37,7 @@ export class RiotClient {
   private readonly sessionTtlMs: number;
   private readonly gateway: HttpGateway;
   private readonly valorantApi: ValorantApi;
+  private readonly responseCache: FileResponseCache | null;
   private readonly localApiFactory: (port: number, pass: string) => RiotClientLocalApi;
 
   private cachedSession: CachedSession | null = null;
@@ -46,6 +49,9 @@ export class RiotClient {
     this.sessionTtlMs = options.sessionTtlMs ?? 30_000;
     this.gateway = options.gateway ?? new HttpGateway();
     this.valorantApi = options.valorantApi ?? this.defaultValorantApi(options.catalogueDir);
+    this.responseCache = options.responseCache
+      ? new FileResponseCache(options.responseCache.ttlMs, options.responseCache.dir)
+      : null;
     this.localApiFactory =
       options.localApiFactory ?? ((port, pass) => new RiotClientLocalApi(port, pass));
   }
@@ -143,7 +149,7 @@ export class RiotClient {
   }
 
   private api(session: Session): RiotApi {
-    return new RiotApi(this.gateway, session);
+    return new RiotApi(this.gateway, session, this.responseCache);
   }
 
   private playerFrom(
