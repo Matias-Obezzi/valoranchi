@@ -4,7 +4,7 @@
   "description": "TypeScript client and CLI for local Riot Client integration and Valorant inventory inspection.",
   "type": "module",
   "bin": {
-    "riotclient": "dist/cli.js"
+    "riotclient": "dist/bin.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exitCodeForError, formatError } from "../src/cli.js";
+import { exitCodeForError, formatError, runCli, USAGE } from "../src/cli.js";
 import {
   ForbiddenHostError,
   RegionUnknownError,
@@ -47,5 +47,41 @@ describe("CLI error mapping", () => {
         message: "Generic failure",
       },
     });
+  });
+});
+
+describe("CLI entrypoint and flags", () => {
+  it("prints version and exits 0 on --version", async () => {
+    let output = "";
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    try {
+      const code = await runCli(["--version"]);
+      expect(code).toBe(0);
+      expect(output.trim()).toBe("0.1.0");
+    } finally {
+      process.stdout.write = originalWrite;
+    }
+  });
+
+  it("prints USAGE and exits 0 on --help", async () => {
+    let output = "";
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    try {
+      const code = await runCli(["--help"]);
+      expect(code).toBe(0);
+      expect(output).toBe(USAGE);
+    } finally {
+      process.stdout.write = originalWrite;
+    }
   });
 });
