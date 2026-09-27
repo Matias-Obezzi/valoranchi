@@ -10,22 +10,10 @@ export class HttpGateway {
   }
 
   async get<T>(url: string, headers?: Record<string, string>): Promise<T> {
-    this.assertAllowedHost(url, headers);
-    const response = await this.fetchFn(url, {
-      method: "GET",
-      headers,
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    if (!response.ok) {
-      throw new RiotApiError(response.status, url);
-    }
-
-    return (await response.json()) as T;
+    return this.request<T>(url, { method: "GET" }, headers);
   }
 
   async put<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
-    this.assertAllowedHost(url, headers);
     const serializedBody =
       typeof body === "string" ? body : body !== undefined ? JSON.stringify(body) : undefined;
 
@@ -34,10 +22,26 @@ export class HttpGateway {
       ...headers,
     };
 
+    return this.request<T>(
+      url,
+      {
+        method: "PUT",
+        headers: requestHeaders,
+        body: serializedBody,
+      },
+      headers,
+    );
+  }
+
+  private async request<T>(
+    url: string,
+    init: RequestInit,
+    headers?: Record<string, string>,
+  ): Promise<T> {
+    this.assertAllowedHost(url, headers);
     const response = await this.fetchFn(url, {
-      method: "PUT",
-      headers: requestHeaders,
-      body: serializedBody,
+      ...init,
+      headers: (init.headers as Record<string, string> | undefined) ?? headers,
       signal: AbortSignal.timeout(10_000),
     });
 
