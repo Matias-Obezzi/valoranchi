@@ -1,12 +1,27 @@
 import { FileCatalogueStore } from "./catalogue/CatalogueStore.js";
 import { MemoryCatalogueCache, ValorantApi } from "./catalogue/ValorantApi.js";
 import { CollectionBuilder } from "./collection/CollectionBuilder.js";
+import { FriendsBuilder } from "./collection/FriendsBuilder.js";
 import { LoadoutBuilder } from "./collection/LoadoutBuilder.js";
+import { MessagesBuilder } from "./collection/MessagesBuilder.js";
+import { StoreBuilder } from "./collection/StoreBuilder.js";
 import { RiotClientNotRunningError } from "./errors.js";
+import { ChatApi } from "./local/ChatApi.js";
 import { defaultLockfilePath, readLockfile } from "./local/Lockfile.js";
 import { resolveRegion } from "./local/RegionResolver.js";
 import { RiotClientLocalApi } from "./local/RiotClientLocalApi.js";
-import type { Loadout, OwnedItems, Player, Wallet } from "./model/index.js";
+import type {
+  BlockedPlayer,
+  Conversation,
+  Friend,
+  FriendRequest,
+  Loadout,
+  Message,
+  OwnedItems,
+  Player,
+  Store,
+  Wallet,
+} from "./model/index.js";
 import { HttpGateway } from "./riot/HttpGateway.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import { FileResponseCache } from "./riot/ResponseCache.js";
@@ -31,6 +46,12 @@ interface CachedSession {
   createdAt: number;
 }
 
+interface CachedLocalApi {
+  port: number;
+  password: string;
+  api: RiotClientLocalApi;
+}
+
 export class RiotClient {
   private readonly language: string;
   private readonly lockfilePath: string | null;
@@ -42,6 +63,7 @@ export class RiotClient {
 
   private cachedSession: CachedSession | null = null;
   private inFlightSession: Promise<Session> | null = null;
+  private cachedLocalApi: CachedLocalApi | null = null;
 
   constructor(options: RiotClientOptions = {}) {
     this.language = options.language ?? "en-US";
@@ -54,6 +76,14 @@ export class RiotClient {
       : null;
     this.localApiFactory =
       options.localApiFactory ?? ((port, pass) => new RiotClientLocalApi(port, pass));
+  }
+
+  async close(): Promise<void> {
+    if (this.cachedLocalApi) {
+      const api = this.cachedLocalApi.api;
+      this.cachedLocalApi = null;
+      await api.close();
+    }
   }
 
   async whoami(): Promise<Player> {
@@ -107,6 +137,70 @@ export class RiotClient {
     };
   }
 
+  async friends(): Promise<Friend[]> {
+    const localApi = this.getLocalApi();
+    const chatApi = new ChatApi(localApi);
+    const [rawFriends, rawPresences, catalogue] = await Promise.all([
+      chatApi.friends(),
+      chatApi.presences(),
+      this.valorantApi.getCatalogue(this.language),
+    ]);
+    return new FriendsBuilder(rawFriends, rawPresences, catalogue).build();
+  }
+
+  async friendRequests(): Promise<FriendRequest[]> {
+    const localApi = this.getLocalApi();
+    const rawRequests = await new ChatApi(localApi).friendRequests();
+    return rawRequests.map((r) => ({
+      puuid: r.puuid,
+      gameName: r.game_name,
+      tagLine: r.game_tag,
+      direction: r.subscription === "pending_in" ? "incoming" : "outgoing",
+    }));
+  }
+
+  async blocked(): Promise<BlockedPlayer[]> {
+    const localApi = this.getLocalApi();
+    const rawBlocked = await new ChatApi(localApi).blocked();
+    return rawBlocked.map((b) => ({
+      puuid: b.puuid,
+      gameName: b.game_name,
+      tagLine: b.game_tag,
+    }));
+  }
+
+  async conversations(): Promise<Conversation[]> {
+    const localApi = this.getLocalApi();
+    const chatApi = new ChatApi(localApi);
+    const [rawConversations, friends] = await Promise.all([
+      chatApi.conversations(),
+      this.friends(),
+    ]);
+    return new MessagesBuilder(friends).buildConversations(rawConversations);
+  }
+
+  async messages(conversationId?: string): Promise<Message[]> {
+    const localApi = this.getLocalApi();
+    const rawMessages = await new ChatApi(localApi).messages(conversationId);
+    return new MessagesBuilder().buildMessages(rawMessages);
+  }
+
+  async store(options?: { language?: string }): Promise<Store> {
+    const lang = options?.language ?? this.language;
+    const session = await this.getSession();
+    const api = this.api(session);
+
+    const [names, accountXp, rawStorefront, catalogue] = await Promise.all([
+      api.names([session.puuid]),
+      api.accountXp(),
+      api.storefront(),
+      this.valorantApi.getCatalogue(lang),
+    ]);
+
+    const player = this.playerFrom(session, names, accountXp);
+    return new StoreBuilder(player, rawStorefront, catalogue, Date.now()).build();
+  }
+
   async getSession(): Promise<Session> {
     const lockfile = readLockfile(this.lockfilePath);
     if (!lockfile) {
@@ -126,7 +220,7 @@ export class RiotClient {
       return this.inFlightSession;
     }
 
-    this.inFlightSession = this.createSession(lockfile.port, lockfile.password)
+    this.inFlightSession = this.createSession()
       .then((session) => {
         this.cachedSession = {
           port: lockfile.port,
@@ -141,6 +235,34 @@ export class RiotClient {
       });
 
     return this.inFlightSession;
+  }
+
+  private getLocalApi(): RiotClientLocalApi {
+    const lockfile = readLockfile(this.lockfilePath);
+    if (!lockfile) {
+      throw new RiotClientNotRunningError();
+    }
+
+    if (
+      this.cachedLocalApi &&
+      this.cachedLocalApi.port === lockfile.port &&
+      this.cachedLocalApi.password === lockfile.password
+    ) {
+      return this.cachedLocalApi.api;
+    }
+
+    if (this.cachedLocalApi) {
+      void this.cachedLocalApi.api.close();
+      this.cachedLocalApi = null;
+    }
+
+    const api = this.localApiFactory(lockfile.port, lockfile.password);
+    this.cachedLocalApi = {
+      port: lockfile.port,
+      password: lockfile.password,
+      api,
+    };
+    return api;
   }
 
   private defaultValorantApi(catalogueDir: string | null | undefined): ValorantApi {
@@ -167,13 +289,13 @@ export class RiotClient {
     };
   }
 
-  private async createSession(port: number, pass: string): Promise<Session> {
-    const localApi = this.localApiFactory(port, pass);
+  private async createSession(): Promise<Session> {
+    const localApi = this.getLocalApi();
     const [tokens, regionInfo, clientVersion] = await Promise.all([
       localApi.entitlementsToken(),
       resolveRegion(localApi),
       this.valorantApi.getClientVersion(),
-    ]).finally(() => localApi.close());
+    ]);
 
     return new Session({
       puuid: tokens.subject,

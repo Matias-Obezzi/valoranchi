@@ -168,4 +168,125 @@ describe("RiotClient facade", () => {
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
+
+  it("closes the local API once when client.close() is called", async () => {
+    const tempDir = path.join(__dirname, "tmp-test-close");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const lockfilePath = path.join(tempDir, "lockfile");
+    fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+    const closeSpy = vi.fn().mockResolvedValue(undefined);
+    const mockLocalApi = {
+      entitlementsToken: async () => ({ accessToken: "a", token: "t", subject: "p" }),
+      valorantSession: async () => ({ region: "na", shard: "na" }),
+      get: vi.fn().mockResolvedValue({ friends: [] }),
+      close: closeSpy,
+    } as unknown as RiotClientLocalApi;
+
+    const client = new RiotClient({
+      lockfilePath,
+      localApiFactory: () => mockLocalApi,
+    });
+
+    await client.friends();
+    await client.close();
+    await client.close();
+
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("executes chat methods without building game-server session", async () => {
+    const tempDir = path.join(__dirname, "tmp-test-chat");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const lockfilePath = path.join(tempDir, "lockfile");
+    fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+    const tokenSpy = vi.fn();
+    const mockLocalApi = {
+      entitlementsToken: tokenSpy,
+      get: vi.fn().mockImplementation(async (path: string) => {
+        if (path.includes("/chat/v4/friends")) return { friends: [{ puuid: "f1", game_name: "Friend1", game_tag: "001" }] };
+        if (path.includes("/chat/v4/presences")) return { presences: [] };
+        if (path.includes("/chat/v4/friendrequests")) return { requests: [{ puuid: "r1", game_name: "Req", game_tag: "002", subscription: "pending_in" }] };
+        if (path.includes("/chat/v4/blocked")) return { blocked: [{ puuid: "b1", game_name: "Block", game_tag: "003" }] };
+        if (path.includes("/chat/v6/conversations")) return { conversations: [{ cid: "f1@la1.pvp.net", type: "chat" }] };
+        if (path.includes("/chat/v6/messages")) return { messages: [{ id: "m1", cid: "f1@la1.pvp.net", body: "hi", time: "1000", type: "chat", puuid: "f1", game_name: "Friend1", game_tag: "001" }] };
+        return null;
+      }),
+      close: vi.fn(),
+    } as unknown as RiotClientLocalApi;
+
+    const mockValorantApi = {
+      getCatalogue: async () => new Catalogue(catalogueData),
+    } as unknown as ValorantApi;
+
+    const client = new RiotClient({
+      lockfilePath,
+      valorantApi: mockValorantApi,
+      localApiFactory: () => mockLocalApi,
+    });
+
+    const friends = await client.friends();
+    const requests = await client.friendRequests();
+    const blocked = await client.blocked();
+    const conversations = await client.conversations();
+    const messages = await client.messages("f1@la1.pvp.net");
+
+    expect(friends[0]?.gameName).toBe("Friend1");
+    expect(requests[0]?.direction).toBe("incoming");
+    expect(blocked[0]?.gameName).toBe("Block");
+    expect(conversations[0]?.kind).toBe("whisper");
+    expect(conversations[0]?.with?.gameName).toBe("Friend1");
+    expect(messages[0]?.body).toBe("hi");
+    expect(tokenSpy).not.toHaveBeenCalled();
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
+
+  it("fetches store view model using session and storefront", async () => {
+    const tempDir = path.join(__dirname, "tmp-test-store");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const lockfilePath = path.join(tempDir, "lockfile");
+    fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+    const mockLocalApi = {
+      entitlementsToken: async () => ({ accessToken: "a", token: "t", subject: "puuid-store" }),
+      valorantSession: async () => ({ region: "na", shard: "na" }),
+      close: vi.fn(),
+    } as unknown as RiotClientLocalApi;
+
+    const storefrontFixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "fixtures", "storefront.json"), "utf-8"),
+    );
+
+    const mockGateway = {
+      get: vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/account-xp/")) return { Progress: { Level: 25, XP: 100 } };
+        return {};
+      }),
+      put: vi.fn().mockResolvedValue([{ Subject: "puuid-store", GameName: "Buyer", TagLine: "0000" }]),
+      post: vi.fn().mockResolvedValue(storefrontFixture),
+    } as unknown as HttpGateway;
+
+    const mockValorantApi = {
+      getClientVersion: async () => "1.0.0",
+      getCatalogue: async () => new Catalogue(catalogueData),
+    } as unknown as ValorantApi;
+
+    const client = new RiotClient({
+      lockfilePath,
+      gateway: mockGateway,
+      valorantApi: mockValorantApi,
+      localApiFactory: () => mockLocalApi,
+    });
+
+    const store = await client.store();
+    expect(store.player.gameName).toBe("Buyer");
+    expect(store.daily?.offers).toHaveLength(1);
+    expect(store.nightMarket?.offers).toHaveLength(1);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
 });
