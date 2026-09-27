@@ -1,0 +1,73 @@
+{
+  "EntitlementsByTypes": [
+    {
+      "ItemTypeID": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+      "Entitlements": [
+        {
+          "TypeID": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+          "ItemID": "7209796e-4f76-88c9-04fa-fb81498b5e9d"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "3ad1b2b2-acdb-4524-852f-954a76ddae0a",
+      "Entitlements": [
+        {
+          "TypeID": "3ad1b2b2-acdb-4524-852f-954a76ddae0a",
+          "ItemID": "d348a609-4458-7e3e-7a91-db9b01053805"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "dd3bf334-87f3-40bd-b043-682a57a8dc3a",
+      "Entitlements": [
+        {
+          "TypeID": "dd3bf334-87f3-40bd-b043-682a57a8dc3a",
+          "ItemID": "bb31e51f-4cb1-6415-321d-938a9bc6a41f",
+          "InstanceID": "inst-1"
+        },
+        {
+          "TypeID": "dd3bf334-87f3-40bd-b043-682a57a8dc3a",
+          "ItemID": "bb31e51f-4cb1-6415-321d-938a9bc6a41f",
+          "InstanceID": "inst-2"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "3f296c07-64c3-494c-923b-fe692a4fa1bd",
+      "Entitlements": [
+        {
+          "TypeID": "3f296c07-64c3-494c-923b-fe692a4fa1bd",
+          "ItemID": "33cd272d-4860-9118-2e06-95bb39ad0419"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "de7caa6b-adf7-4588-bbd1-143831e786c6",
+      "Entitlements": [
+        {
+          "TypeID": "de7caa6b-adf7-4588-bbd1-143831e786c6",
+          "ItemID": "7a85e65d-4f11-c918-0929-c7931f6087d1"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+      "Entitlements": [
+        {
+          "TypeID": "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+          "ItemID": "836b72a6-444f-c07a-d0fc-6d80d287bbda"
+        }
+      ]
+    },
+    {
+      "ItemTypeID": "01bb38e1-da47-4e6a-9b3d-945fe4655707",
+      "Entitlements": [
+        {
+          "TypeID": "01bb38e1-da47-4e6a-9b3d-945fe4655707",
+          "ItemID": "add6443a-41bd-e414-f6ad-e58d267f4e95"
+        }
+      ]
+    }
+  ]
+}
