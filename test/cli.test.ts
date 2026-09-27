@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { RiotClient } from "../src/RiotClient.js";
 import { exitCodeForError, formatError, runCli, USAGE } from "../src/cli.js";
 import {
   ForbiddenHostError,
@@ -82,6 +83,52 @@ describe("CLI entrypoint and flags", () => {
       expect(output).toBe(USAGE);
     } finally {
       process.stdout.write = originalWrite;
+    }
+  });
+
+  it("dispatches all commands to RiotClient and calls close() in finally", async () => {
+    const originalStdout = process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+
+    const closeSpy = vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+    const friendsSpy = vi.spyOn(RiotClient.prototype, "friends").mockResolvedValue([]);
+    const requestsSpy = vi.spyOn(RiotClient.prototype, "friendRequests").mockResolvedValue([]);
+    const blockedSpy = vi.spyOn(RiotClient.prototype, "blocked").mockResolvedValue([]);
+    const convSpy = vi.spyOn(RiotClient.prototype, "conversations").mockResolvedValue([]);
+    const msgSpy = vi.spyOn(RiotClient.prototype, "messages").mockResolvedValue([]);
+    const storeSpy = vi.spyOn(RiotClient.prototype, "store").mockResolvedValue({
+      player: { puuid: "p", gameName: "P", tagLine: "T", region: "r", shard: "s", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: null,
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    });
+
+    try {
+      expect(await runCli(["friends"])).toBe(0);
+      expect(friendsSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["friend-requests"])).toBe(0);
+      expect(requestsSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["blocked"])).toBe(0);
+      expect(blockedSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["conversations"])).toBe(0);
+      expect(convSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["messages", "--cid", "room-123"])).toBe(0);
+      expect(msgSpy).toHaveBeenCalledWith("room-123");
+
+      expect(await runCli(["store"])).toBe(0);
+      expect(storeSpy).toHaveBeenCalledTimes(1);
+
+      expect(closeSpy).toHaveBeenCalledTimes(6);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
     }
   });
 });
