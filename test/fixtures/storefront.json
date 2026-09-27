@@ -1,0 +1,147 @@
+{
+  "SkinsPanelLayout": {
+    "SingleItemOffers": ["7209796e-4f76-88c9-04fa-fb81498b5e9d"],
+    "SingleItemStoreOffers": [
+      {
+        "OfferID": "offer-daily-1",
+        "Cost": {
+          "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 1775
+        },
+        "Rewards": [
+          {
+            "ItemTypeID": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+            "ItemID": "7209796e-4f76-88c9-04fa-fb81498b5e9d",
+            "Quantity": 1
+          }
+        ]
+      }
+    ],
+    "SingleItemOffersRemainingDurationInSeconds": 3600
+  },
+  "BonusStore": {
+    "BonusStoreOffers": [
+      {
+        "BonusOfferID": "offer-bonus-1",
+        "Offer": {
+          "OfferID": "offer-bonus-sub-1",
+          "Cost": {
+            "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 1775
+          },
+          "Rewards": [
+            {
+              "ItemTypeID": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+              "ItemID": "7209796e-4f76-88c9-04fa-fb81498b5e9d",
+              "Quantity": 1
+            }
+          ]
+        },
+        "DiscountPercent": 35,
+        "DiscountCosts": {
+          "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 1153
+        },
+        "IsSeen": true
+      }
+    ],
+    "BonusStoreRemainingDurationInSeconds": 86400
+  },
+  "FeaturedBundle": {
+    "BundleRemainingDurationInSeconds": 172800,
+    "Bundles": [
+      {
+        "ID": "bundle-instance-1",
+        "DataAssetID": "bundle-1",
+        "CurrencyID": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+        "TotalBaseCost": {
+          "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 7100
+        },
+        "TotalDiscountedCost": {
+          "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 4970
+        },
+        "TotalDiscountPercent": 30,
+        "DurationRemainingInSeconds": 172800,
+        "WholesaleOnly": false,
+        "Items": [
+          {
+            "Item": {
+              "ItemTypeID": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+              "ItemID": "7209796e-4f76-88c9-04fa-fb81498b5e9d",
+              "Amount": 1
+            },
+            "BasePrice": 1775,
+            "CurrencyID": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+            "DiscountPercent": 30,
+            "DiscountedPrice": 1242,
+            "IsPromoItem": false
+          },
+          {
+            "Item": {
+              "ItemTypeID": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+              "ItemID": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+              "Amount": 10
+            },
+            "BasePrice": 800,
+            "CurrencyID": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+            "DiscountPercent": 0,
+            "DiscountedPrice": 800,
+            "IsPromoItem": true
+          },
+          {
+            "Item": {
+              "ItemTypeID": "99999999-9999-9999-9999-999999999999",
+              "ItemID": "88888888-8888-8888-8888-888888888888",
+              "Amount": 1
+            },
+            "BasePrice": 500,
+            "CurrencyID": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+            "DiscountPercent": 0,
+            "DiscountedPrice": 500,
+            "IsPromoItem": false
+          }
+        ]
+      }
+    ]
+  },
+  "AccessoryStore": {
+    "AccessoryStoreRemainingDurationInSeconds": 43200,
+    "AccessoryStoreOffers": [
+      {
+        "Offer": {
+          "OfferID": "accessory-offer-1",
+          "Cost": {
+            "85ca954a-41f2-ce94-9b45-8ca3dd39a00d": 4000
+          },
+          "Rewards": [
+            {
+              "ItemTypeID": "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+              "ItemID": "836b72a6-444f-c07a-d0fc-6d80d287bbda",
+              "Quantity": 1
+            }
+          ]
+        },
+        "ContractID": "contract-uuid-1"
+      }
+    ]
+  },
+  "UpgradeCurrencyStore": {
+    "UpgradeCurrencyOffers": [
+      {
+        "OfferID": "upgrade-offer-1",
+        "StorefrontItemID": "item-rad-1",
+        "DiscountedPercent": 0,
+        "Offer": {
+          "OfferID": "upgrade-offer-sub-1",
+          "Cost": {
+            "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741": 1600
+          },
+          "Rewards": [
+            {
+              "ItemTypeID": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+              "ItemID": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+              "Quantity": 20
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
