@@ -1,0 +1,45 @@
+{
+  "name": "@valoranchi/riot-client",
+  "version": "0.1.0",
+  "description": "TypeScript client and CLI for local Riot Client integration and Valorant inventory inspection.",
+  "type": "module",
+  "bin": {
+    "riotclient": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "schema": "node scripts/gen-schemas.mjs",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "undici": "^7.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "eslint": "^9.23.0",
+    "prettier": "^3.6.2",
+    "ts-json-schema-generator": "^2.3.0",
+    "typescript": "~5.8.2",
+    "typescript-eslint": "^8.28.0",
+    "vitest": "^4.1.11"
+  }
+}
