@@ -55,7 +55,28 @@ describe("FileCatalogueStore", () => {
       store,
     );
     await stale.getCatalogue("en-US");
-    expect(newer).toHaveBeenCalledTimes(9);
+    expect(newer).toHaveBeenCalledTimes(10);
     expect(store.read("en-US")?.version).toBe("release-10.01-1");
+  });
+
+  it("treats a stored catalogue without bundles as a cache miss", async () => {
+    const store = new FileCatalogueStore(dir);
+    const { bundles: _, ...dataWithoutBundles } = sampleData;
+    store.write("en-US", {
+      version: "release-10.00-1",
+      data: dataWithoutBundles as unknown as ValorantApiCatalogueData,
+    });
+
+    const gateway = gatewayServing();
+    const api = new ValorantApi(
+      { get: gateway } as unknown as HttpGateway,
+      new MemoryCatalogueCache(),
+      store,
+    );
+    const catalogue = await api.getCatalogue("en-US");
+
+    expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
+    expect(gateway).toHaveBeenCalledTimes(10);
+    expect(store.read("en-US")?.data.bundles).toBeDefined();
   });
 });

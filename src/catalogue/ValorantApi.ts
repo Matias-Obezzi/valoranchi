@@ -4,6 +4,7 @@ import type { FileCatalogueStore } from "./CatalogueStore.js";
 import type {
   ValorantApiAgent,
   ValorantApiBuddy,
+  ValorantApiBundle,
   ValorantApiCatalogueData,
   ValorantApiContentTier,
   ValorantApiCurrency,
@@ -96,7 +97,7 @@ export class ValorantApi {
     }
     const version = await this.getClientVersion();
     const stored = this.store.read(language);
-    if (stored?.version === version) {
+    if (stored?.version === version && Array.isArray(stored.data?.bundles)) {
       return stored.data;
     }
     const data = await this.fetchCatalogueData(language);
@@ -114,6 +115,7 @@ export class ValorantApi {
       agentsRes,
       contentTiersRes,
       currenciesRes,
+      bundlesRes,
     ] = await Promise.all([
       this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
       this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
@@ -123,6 +125,7 @@ export class ValorantApi {
       this.fetchEndpoint<ValorantApiAgent[]>("agents", language),
       this.fetchEndpoint<ValorantApiContentTier[]>("contentTiers", language),
       this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
+      this.fetchEndpoint<ValorantApiBundle[]>("bundles", language),
     ]);
 
     return {
@@ -134,6 +137,7 @@ export class ValorantApi {
       agents: agentsRes.data,
       contentTiers: contentTiersRes.data,
       currencies: currenciesRes.data,
+      bundles: bundlesRes.data,
     };
   }
 

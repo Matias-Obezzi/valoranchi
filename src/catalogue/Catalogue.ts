@@ -2,6 +2,7 @@ import type {
   ValorantApiAgent,
   ValorantApiBuddy,
   ValorantApiBuddyLevel,
+  ValorantApiBundle,
   ValorantApiCatalogueData,
   ValorantApiChroma,
   ValorantApiContentTier,
@@ -37,6 +38,7 @@ export class Catalogue {
   private readonly agentsByUuid = new Map<string, ValorantApiAgent>();
   private readonly tiersByUuid = new Map<string, ValorantApiContentTier>();
   private readonly currenciesByUuid = new Map<string, ValorantApiCurrency>();
+  private readonly bundlesByUuid = new Map<string, ValorantApiBundle>();
 
   constructor(data: ValorantApiCatalogueData) {
     this.weapons = data.weapons;
@@ -88,6 +90,9 @@ export class Catalogue {
     for (const currency of data.currencies) {
       this.currenciesByUuid.set(currency.uuid.toLowerCase(), currency);
     }
+    for (const bundle of data.bundles ?? []) {
+      this.bundlesByUuid.set(bundle.uuid.toLowerCase(), bundle);
+    }
   }
 
   findSkinAndWeaponByLevel(levelUuid: string) {
@@ -136,5 +141,9 @@ export class Catalogue {
 
   getCurrency(uuid: string): ValorantApiCurrency | undefined {
     return this.currenciesByUuid.get(uuid.toLowerCase());
+  }
+
+  getBundle(uuid: string): ValorantApiBundle | undefined {
+    return this.bundlesByUuid.get(uuid.toLowerCase());
   }
 }

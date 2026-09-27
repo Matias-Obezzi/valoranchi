@@ -73,6 +73,17 @@ const sampleData = {
     { uuid: "tier-1", displayName: "Exclusive", rank: 5, displayIcon: "exclusive-icon" },
   ],
   currencies: [{ uuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", displayName: "Valorant Points" }],
+  bundles: [
+    {
+      uuid: "bundle-1",
+      displayName: "Prime Bundle",
+      displayNameSubText: "Prime // 1.0",
+      description: "Prime collection",
+      displayIcon: "icon-bundle",
+      displayIcon2: "icon-bundle-2",
+      verticalPromoImage: "promo-bundle",
+    },
+  ],
 };
 
 describe("Catalogue", () => {
@@ -91,6 +102,7 @@ describe("Catalogue", () => {
     expect(catalogue.getSpray("spray-1")?.displayName).toBe("GG Spray");
     expect(catalogue.getAgent("agent-1")?.displayName).toBe("Jett");
     expect(catalogue.getTier("tier-1")?.displayName).toBe("Exclusive");
+    expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
   });
 });
 
@@ -122,6 +134,7 @@ describe("ValorantApi", () => {
       if (url.includes("agents")) return { status: 200, data: sampleData.agents };
       if (url.includes("contentTiers")) return { status: 200, data: sampleData.contentTiers };
       if (url.includes("currencies")) return { status: 200, data: sampleData.currencies };
+      if (url.includes("bundles")) return { status: 200, data: sampleData.bundles };
       throw new Error(`Unexpected url: ${url}`);
     });
 
@@ -133,7 +146,8 @@ describe("ValorantApi", () => {
     const cat2 = await api.getCatalogue("en-US");
 
     expect(cat1.getWeapon("weapon-1")?.displayName).toBe("Vandal");
+    expect(cat1.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
     expect(cat2).toBe(cat1);
-    expect(mockGet).toHaveBeenCalledTimes(8);
+    expect(mockGet).toHaveBeenCalledTimes(9);
   });
 });

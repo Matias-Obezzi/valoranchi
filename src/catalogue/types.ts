@@ -86,6 +86,16 @@ export interface ValorantApiCurrency {
   displayName: string;
 }
 
+export interface ValorantApiBundle {
+  uuid: string;
+  displayName: string;
+  displayNameSubText: string | null;
+  description: string | null;
+  displayIcon: string | null;
+  displayIcon2: string | null;
+  verticalPromoImage: string | null;
+}
+
 export interface ValorantApiCatalogueData {
   weapons: ValorantApiWeapon[];
   playerCards: ValorantApiPlayerCard[];
@@ -95,4 +105,5 @@ export interface ValorantApiCatalogueData {
   agents: ValorantApiAgent[];
   contentTiers: ValorantApiContentTier[];
   currencies: ValorantApiCurrency[];
+  bundles: ValorantApiBundle[];
 }
