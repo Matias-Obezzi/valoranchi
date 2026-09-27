@@ -2,6 +2,8 @@ import { ForbiddenHostError, RiotApiError } from "../errors.js";
 
 export type HttpFetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
+const REQUEST_TIMEOUT_MS = 30_000;
+
 export class HttpGateway {
   private readonly fetchFn: HttpFetchFn;
 
@@ -42,7 +44,12 @@ export class HttpGateway {
     const response = await this.fetchFn(url, {
       ...init,
       headers: (init.headers as Record<string, string> | undefined) ?? headers,
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    }).catch((error: unknown) => {
+      if (error instanceof Error && error.name === "TimeoutError") {
+        throw new RiotApiError(408, url, `Request to ${url.split("?")[0]} timed out`);
+      }
+      throw error;
     });
 
     if (!response.ok) {

@@ -160,4 +160,14 @@ describe("RiotApi", () => {
     );
     expect(names[0].GameName).toBe("Jett");
   });
+
+  it("maps a fetch timeout to RiotApiError 408", async () => {
+    const gateway = new HttpGateway(async () => {
+      throw new DOMException("aborted", "TimeoutError");
+    });
+    const error = await gateway.get("https://pd.na.a.pvp.net/x?y=1").catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(RiotApiError);
+    expect((error as RiotApiError).status).toBe(408);
+    expect((error as RiotApiError).url).toBe("https://pd.na.a.pvp.net/x");
+  });
 });
