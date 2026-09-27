@@ -1,23 +1,19 @@
-import { Catalogue } from "./catalogue/Catalogue.js";
 import { ValorantApi } from "./catalogue/ValorantApi.js";
 import { CollectionBuilder } from "./collection/CollectionBuilder.js";
+import { LoadoutBuilder } from "./collection/LoadoutBuilder.js";
 import { RiotClientNotRunningError } from "./errors.js";
 import { defaultLockfilePath, readLockfile } from "./local/Lockfile.js";
 import { resolveRegion } from "./local/RegionResolver.js";
 import { RiotClientLocalApi } from "./local/RiotClientLocalApi.js";
-import type {
-  Loadout,
-  LoadoutGun,
-  OwnedCard,
-  OwnedItems,
-  OwnedTitle,
-  Player,
-  Wallet,
-} from "./model/index.js";
+import type { Loadout, OwnedItems, Player, Wallet } from "./model/index.js";
 import { HttpGateway } from "./riot/HttpGateway.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import { Session } from "./riot/Session.js";
-import { CURRENCY_UUIDS, type RiotLoadoutGun, type RiotLoadoutResponse } from "./riot/types.js";
+import {
+  CURRENCY_UUIDS,
+  type RiotLoadoutResponse,
+  type RiotNameResponse,
+} from "./riot/types.js";
 
 export interface RiotClientOptions {
   language?: string;
@@ -58,50 +54,48 @@ export class RiotClient {
 
   async whoami(): Promise<Player> {
     const session = await this.getSession();
-    const riotApi = new RiotApi(this.gateway, session);
-    const [names, loadout] = await Promise.all([riotApi.names([session.puuid]), riotApi.loadout()]);
+    const api = this.api(session);
+    const [names, rawLoadout] = await Promise.all([
+      api.names([session.puuid]),
+      api.loadout(),
+    ]);
 
-    return {
-      puuid: session.puuid,
-      gameName: names[0]?.GameName ?? "",
-      tagLine: names[0]?.TagLine ?? "",
-      region: session.region,
-      shard: session.shard,
-      accountLevel: loadout.Identity?.AccountLevel ?? 0,
-    };
+    return this.playerFrom(session, names, rawLoadout);
   }
 
   async ownedItems(options?: { language?: string }): Promise<OwnedItems> {
     const lang = options?.language ?? this.language;
     const session = await this.getSession();
-    const riotApi = new RiotApi(this.gateway, session);
+    const api = this.api(session);
 
-    const [player, entitlements, catalogue] = await Promise.all([
-      this.whoami(),
-      riotApi.entitlements(),
+    const [names, rawLoadout, entitlements, catalogue] = await Promise.all([
+      api.names([session.puuid]),
+      api.loadout(),
+      api.entitlements(),
       this.valorantApi.getCatalogue(lang),
     ]);
 
+    const player = this.playerFrom(session, names, rawLoadout);
     return new CollectionBuilder(player, entitlements, catalogue, lang).build();
   }
 
   async loadout(): Promise<Loadout> {
     const session = await this.getSession();
-    const riotApi = new RiotApi(this.gateway, session);
+    const api = this.api(session);
 
-    const [player, rawLoadout, catalogue] = await Promise.all([
-      this.whoami(),
-      riotApi.loadout(),
+    const [names, rawLoadout, catalogue] = await Promise.all([
+      api.names([session.puuid]),
+      api.loadout(),
       this.valorantApi.getCatalogue(this.language),
     ]);
 
-    return this.buildLoadout(player, rawLoadout, catalogue);
+    const player = this.playerFrom(session, names, rawLoadout);
+    return new LoadoutBuilder(player, rawLoadout, catalogue).build();
   }
 
   async wallet(): Promise<Wallet> {
     const session = await this.getSession();
-    const riotApi = new RiotApi(this.gateway, session);
-    const rawWallet = await riotApi.wallet();
+    const rawWallet = await this.api(session).wallet();
     const balances = rawWallet.Balances ?? {};
 
     return {
@@ -147,6 +141,25 @@ export class RiotClient {
     return this.inFlightSession;
   }
 
+  private api(session: Session): RiotApi {
+    return new RiotApi(this.gateway, session);
+  }
+
+  private playerFrom(
+    session: Session,
+    names: RiotNameResponse[],
+    rawLoadout: RiotLoadoutResponse,
+  ): Player {
+    return {
+      puuid: session.puuid,
+      gameName: names[0]?.GameName ?? "",
+      tagLine: names[0]?.TagLine ?? "",
+      region: session.region,
+      shard: session.shard,
+      accountLevel: rawLoadout.Identity?.AccountLevel ?? 0,
+    };
+  }
+
   private async createSession(port: number, pass: string): Promise<Session> {
     const localApi = this.localApiFactory(port, pass);
     const [tokens, regionInfo, clientVersion] = await Promise.all([
@@ -163,101 +176,5 @@ export class RiotClient {
       shard: regionInfo.shard,
       clientVersion,
     });
-  }
-
-  private buildLoadout(player: Player, raw: RiotLoadoutResponse, catalogue: Catalogue): Loadout {
-    const guns: LoadoutGun[] = (raw.Guns ?? []).map((gun) => this.buildLoadoutGun(gun, catalogue));
-
-    const sprays = (raw.Sprays ?? []).map((sp) => {
-      const sprayEntity = catalogue.getSpray(sp.SprayID);
-      return {
-        slot: sp.EquipSlotID,
-        uuid: sp.SprayID.toLowerCase(),
-        name: sprayEntity?.displayName ?? "",
-        icon: sprayEntity?.fullTransparentIcon ?? sprayEntity?.displayIcon ?? null,
-      };
-    });
-
-    const cardEntity = raw.Identity?.PlayerCardID
-      ? catalogue.getCard(raw.Identity.PlayerCardID)
-      : null;
-    const card: OwnedCard | null = cardEntity
-      ? {
-          uuid: cardEntity.uuid.toLowerCase(),
-          name: cardEntity.displayName,
-          small: cardEntity.smallArt,
-          wide: cardEntity.wideArt,
-          large: cardEntity.largeArt,
-        }
-      : null;
-
-    const titleEntity = raw.Identity?.PlayerTitleID
-      ? catalogue.getTitle(raw.Identity.PlayerTitleID)
-      : null;
-    const title: OwnedTitle | null = titleEntity
-      ? {
-          uuid: titleEntity.uuid.toLowerCase(),
-          name: titleEntity.displayName,
-          text: titleEntity.titleText,
-        }
-      : null;
-
-    return {
-      player,
-      guns,
-      sprays,
-      card,
-      title,
-      incognito: Boolean(raw.Incognito),
-    };
-  }
-
-  private buildLoadoutGun(gun: RiotLoadoutGun, catalogue: Catalogue): LoadoutGun {
-    const weapon = catalogue.getWeapon(gun.ID);
-    const skin = catalogue.getSkin(gun.SkinID);
-    const levelMatch = catalogue.findSkinAndWeaponByLevel(gun.SkinLevelID);
-    const chromaMatch = catalogue.findSkinAndWeaponByChroma(gun.ChromaID);
-
-    let buddy: { uuid: string; name: string; icon: string | null } | null = null;
-    if (gun.CharmID) {
-      const buddyEntity = catalogue.getBuddy(gun.CharmID);
-      if (buddyEntity) {
-        buddy = {
-          uuid: buddyEntity.uuid.toLowerCase(),
-          name: buddyEntity.displayName,
-          icon: buddyEntity.displayIcon,
-        };
-      }
-    } else if (gun.CharmLevelID) {
-      const levelMatch = catalogue.findBuddyByLevel(gun.CharmLevelID);
-      if (levelMatch) {
-        buddy = {
-          uuid: levelMatch.buddy.uuid.toLowerCase(),
-          name: levelMatch.buddy.displayName,
-          icon: levelMatch.buddy.displayIcon,
-        };
-      }
-    }
-
-    return {
-      weapon: {
-        uuid: gun.ID.toLowerCase(),
-        name: weapon?.displayName ?? "",
-      },
-      skin: {
-        uuid: gun.SkinID.toLowerCase(),
-        name: skin?.displayName ?? "",
-        icon: skin?.displayIcon ?? null,
-      },
-      level: {
-        uuid: gun.SkinLevelID.toLowerCase(),
-        name: levelMatch?.level.displayName ?? "",
-      },
-      chroma: {
-        uuid: gun.ChromaID.toLowerCase(),
-        name: chromaMatch?.chroma.displayName ?? "",
-      },
-      buddy,
-    };
   }
 }

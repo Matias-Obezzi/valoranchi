@@ -106,4 +106,58 @@ describe("RiotClient facade", () => {
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
+
+  it("fetches the loadout endpoint exactly once during loadout()", async () => {
+    const tempDir = path.join(__dirname, "tmp-test-loadout");
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const lockfilePath = path.join(tempDir, "lockfile");
+    fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+    const mockLocalApi = {
+      entitlementsToken: async () => ({
+        accessToken: "access",
+        token: "token",
+        subject: "puuid-1",
+      }),
+      valorantSession: async () => ({
+        region: "na",
+        shard: "na",
+      }),
+    } as unknown as RiotClientLocalApi;
+
+    let loadoutCalls = 0;
+    const mockGateway = {
+      get: vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/personalization/v3/players/")) {
+          loadoutCalls++;
+          return {
+            Guns: [],
+            Sprays: [],
+            Identity: { AccountLevel: 50 },
+            Incognito: false,
+          };
+        }
+        return {};
+      }),
+      put: vi.fn().mockResolvedValue([{ Subject: "puuid-1", GameName: "Jett", TagLine: "1234" }]),
+    } as unknown as HttpGateway;
+
+    const mockValorantApi = {
+      getClientVersion: async () => "1.0.0",
+      getCatalogue: async () => new Catalogue(catalogueData),
+    } as unknown as ValorantApi;
+
+    const client = new RiotClient({
+      lockfilePath,
+      gateway: mockGateway,
+      valorantApi: mockValorantApi,
+      localApiFactory: () => mockLocalApi,
+    });
+
+    const loadout = await client.loadout();
+    expect(loadout.player.gameName).toBe("Jett");
+    expect(loadoutCalls).toBe(1);
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
 });
