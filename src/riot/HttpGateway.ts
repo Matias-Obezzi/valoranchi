@@ -1,9 +1,6 @@
 import { ForbiddenHostError, RiotApiError } from "../errors.js";
 
-export type HttpFetchFn = (
-  input: string | URL | Request,
-  init?: RequestInit,
-) => Promise<Response>;
+export type HttpFetchFn = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 export class HttpGateway {
   private readonly fetchFn: HttpFetchFn;

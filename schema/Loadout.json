@@ -32,12 +32,7 @@
                 "$ref": "#/definitions/Image"
               }
             },
-            "required": [
-              "slot",
-              "uuid",
-              "name",
-              "icon"
-            ],
+            "required": ["slot", "uuid", "name", "icon"],
             "additionalProperties": false
           }
         },
@@ -65,14 +60,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "player",
-        "guns",
-        "sprays",
-        "card",
-        "title",
-        "incognito"
-      ],
+      "required": ["player", "guns", "sprays", "card", "title", "incognito"],
       "additionalProperties": false
     },
     "Player": {
@@ -97,14 +85,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "puuid",
-        "gameName",
-        "tagLine",
-        "region",
-        "shard",
-        "accountLevel"
-      ],
+      "required": ["puuid", "gameName", "tagLine", "region", "shard", "accountLevel"],
       "additionalProperties": false
     },
     "LoadoutGun": {
@@ -120,10 +101,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "uuid",
-            "name"
-          ],
+          "required": ["uuid", "name"],
           "additionalProperties": false
         },
         "skin": {
@@ -139,11 +117,7 @@
               "$ref": "#/definitions/Image"
             }
           },
-          "required": [
-            "uuid",
-            "name",
-            "icon"
-          ],
+          "required": ["uuid", "name", "icon"],
           "additionalProperties": false
         },
         "level": {
@@ -156,10 +130,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "uuid",
-            "name"
-          ],
+          "required": ["uuid", "name"],
           "additionalProperties": false
         },
         "chroma": {
@@ -172,10 +143,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "uuid",
-            "name"
-          ],
+          "required": ["uuid", "name"],
           "additionalProperties": false
         },
         "buddy": {
@@ -193,11 +161,7 @@
                   "$ref": "#/definitions/Image"
                 }
               },
-              "required": [
-                "uuid",
-                "name",
-                "icon"
-              ],
+              "required": ["uuid", "name", "icon"],
               "additionalProperties": false
             },
             {
@@ -206,20 +170,11 @@
           ]
         }
       },
-      "required": [
-        "weapon",
-        "skin",
-        "level",
-        "chroma",
-        "buddy"
-      ],
+      "required": ["weapon", "skin", "level", "chroma", "buddy"],
       "additionalProperties": false
     },
     "Image": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "OwnedCard": {
       "type": "object",
@@ -240,13 +195,7 @@
           "$ref": "#/definitions/Image"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "small",
-        "wide",
-        "large"
-      ],
+      "required": ["uuid", "name", "small", "wide", "large"],
       "additionalProperties": false
     },
     "OwnedTitle": {
@@ -259,17 +208,10 @@
           "type": "string"
         },
         "text": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "text"
-      ],
+      "required": ["uuid", "name", "text"],
       "additionalProperties": false
     }
   }

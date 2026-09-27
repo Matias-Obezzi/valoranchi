@@ -15,11 +15,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "valorantPoints",
-        "radianite",
-        "kingdomCredits"
-      ],
+      "required": ["valorantPoints", "radianite", "kingdomCredits"],
       "additionalProperties": false
     }
   }

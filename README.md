@@ -65,6 +65,7 @@ Example trimmed output from `riotclient whoami --pretty`:
 ```
 
 CLI exit codes:
+
 - `0`: Success (JSON written to stdout)
 - `2`: Riot Client is not running (`RIOT_CLIENT_NOT_RUNNING`)
 - `3`: Riot Client is not ready yet (`RIOT_CLIENT_NOT_READY`)

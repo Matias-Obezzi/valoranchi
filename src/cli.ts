@@ -42,10 +42,7 @@ export function exitCodeForError(error: unknown): number {
   ) {
     return 4;
   }
-  if (
-    error instanceof RiotApiError ||
-    (error as { code?: string })?.code === "RIOT_API_ERROR"
-  ) {
+  if (error instanceof RiotApiError || (error as { code?: string })?.code === "RIOT_API_ERROR") {
     return 5;
   }
   return 1;
@@ -103,9 +100,7 @@ export async function runCli(args: string[]): Promise<number> {
       return 1;
     }
 
-    const output = parsed.values.pretty
-      ? JSON.stringify(result, null, 2)
-      : JSON.stringify(result);
+    const output = parsed.values.pretty ? JSON.stringify(result, null, 2) : JSON.stringify(result);
     process.stdout.write(`${output}\n`);
     return 0;
   } catch (error) {

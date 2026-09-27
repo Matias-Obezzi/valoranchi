@@ -21,8 +21,18 @@ const sampleData = {
             { uuid: "level-2", displayName: "Prime Vandal Level 2", displayIcon: "icon-l2" },
           ],
           chromas: [
-            { uuid: "chroma-1", displayName: "Prime Vandal", displayIcon: "icon-c1", swatch: "swatch-1" },
-            { uuid: "chroma-2", displayName: "Prime Vandal (Orange)", displayIcon: "icon-c2", swatch: "swatch-2" },
+            {
+              uuid: "chroma-1",
+              displayName: "Prime Vandal",
+              displayIcon: "icon-c1",
+              swatch: "swatch-1",
+            },
+            {
+              uuid: "chroma-2",
+              displayName: "Prime Vandal (Orange)",
+              displayIcon: "icon-c2",
+              swatch: "swatch-2",
+            },
           ],
         },
       ],
@@ -31,18 +41,23 @@ const sampleData = {
   playerCards: [
     { uuid: "card-1", displayName: "Duelist Card", smallArt: "sm", wideArt: "wd", largeArt: "lg" },
   ],
-  playerTitles: [
-    { uuid: "title-1", displayName: "Champion", titleText: "Champion" },
-  ],
+  playerTitles: [{ uuid: "title-1", displayName: "Champion", titleText: "Champion" }],
   sprays: [
-    { uuid: "spray-1", displayName: "GG Spray", displayIcon: "gg-icon", fullTransparentIcon: "gg-full" },
+    {
+      uuid: "spray-1",
+      displayName: "GG Spray",
+      displayIcon: "gg-icon",
+      fullTransparentIcon: "gg-full",
+    },
   ],
   buddies: [
     {
       uuid: "buddy-1",
       displayName: "Coin Buddy",
       displayIcon: "coin-icon",
-      levels: [{ uuid: "buddy-level-1", displayName: "Coin Buddy Level 1", displayIcon: "coin-icon" }],
+      levels: [
+        { uuid: "buddy-level-1", displayName: "Coin Buddy Level 1", displayIcon: "coin-icon" },
+      ],
     },
   ],
   agents: [
@@ -57,9 +72,7 @@ const sampleData = {
   contentTiers: [
     { uuid: "tier-1", displayName: "Exclusive", rank: 5, displayIcon: "exclusive-icon" },
   ],
-  currencies: [
-    { uuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", displayName: "Valorant Points" },
-  ],
+  currencies: [{ uuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", displayName: "Valorant Points" }],
 };
 
 describe("Catalogue", () => {
@@ -69,7 +82,9 @@ describe("Catalogue", () => {
     expect(catalogue.getWeapon("weapon-1")?.displayName).toBe("Vandal");
     expect(catalogue.getSkin("skin-1")?.displayName).toBe("Prime Vandal");
     expect(catalogue.findSkinAndWeaponByLevel("level-2")?.weapon.displayName).toBe("Vandal");
-    expect(catalogue.findSkinAndWeaponByChroma("chroma-2")?.chroma.displayName).toBe("Prime Vandal (Orange)");
+    expect(catalogue.findSkinAndWeaponByChroma("chroma-2")?.chroma.displayName).toBe(
+      "Prime Vandal (Orange)",
+    );
     expect(catalogue.findBuddyByLevel("buddy-level-1")?.buddy.displayName).toBe("Coin Buddy");
     expect(catalogue.getCard("card-1")?.displayName).toBe("Duelist Card");
     expect(catalogue.getTitle("title-1")?.titleText).toBe("Champion");

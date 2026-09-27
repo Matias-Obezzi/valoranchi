@@ -87,10 +87,7 @@ describe("RiotClientLocalApi", () => {
         "session-1": {
           productId: "valorant",
           launchConfiguration: {
-            arguments: [
-              "-ares-deployment=latam",
-              "-config-endpoint=https://shared.na.a.pvp.net",
-            ],
+            arguments: ["-ares-deployment=latam", "-config-endpoint=https://shared.na.a.pvp.net"],
           },
         },
       }),

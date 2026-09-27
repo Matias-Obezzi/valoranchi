@@ -140,7 +140,9 @@ describe("RiotApi", () => {
   });
 
   it("calls names endpoint with PUT and puuids array", async () => {
-    const mockPut = vi.fn().mockResolvedValue([{ Subject: "puuid-1234", GameName: "Jett", TagLine: "1234" }]);
+    const mockPut = vi
+      .fn()
+      .mockResolvedValue([{ Subject: "puuid-1234", GameName: "Jett", TagLine: "1234" }]);
     const fakeGateway = {
       get: vi.fn(),
       put: mockPut,

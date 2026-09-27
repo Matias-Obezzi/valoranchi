@@ -24,14 +24,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "puuid",
-        "gameName",
-        "tagLine",
-        "region",
-        "shard",
-        "accountLevel"
-      ],
+      "required": ["puuid", "gameName", "tagLine", "region", "shard", "accountLevel"],
       "additionalProperties": false
     }
   }

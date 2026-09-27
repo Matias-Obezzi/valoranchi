@@ -68,19 +68,22 @@ describe("CollectionBuilder", () => {
         uuid: "f88bb5d7-463e-436f-e8b9-47805187e1f4",
         name: "Prime Vandal",
         owned: true,
-        swatch: "https://media.valorant-api.com/weaponskinchromas/f88bb5d7-463e-436f-e8b9-47805187e1f4/swatch.png",
+        swatch:
+          "https://media.valorant-api.com/weaponskinchromas/f88bb5d7-463e-436f-e8b9-47805187e1f4/swatch.png",
       },
       {
         uuid: "d348a609-4458-7e3e-7a91-db9b01053805",
         name: "Prime Vandal (Orange)",
         owned: true,
-        swatch: "https://media.valorant-api.com/weaponskinchromas/d348a609-4458-7e3e-7a91-db9b01053805/swatch.png",
+        swatch:
+          "https://media.valorant-api.com/weaponskinchromas/d348a609-4458-7e3e-7a91-db9b01053805/swatch.png",
       },
       {
         uuid: "fa5b4c10-482f-2ca8-ea58-d380f2dbe655",
         name: "Prime Vandal (Blue)",
         owned: false,
-        swatch: "https://media.valorant-api.com/weaponskinchromas/fa5b4c10-482f-2ca8-ea58-d380f2dbe655/swatch.png",
+        swatch:
+          "https://media.valorant-api.com/weaponskinchromas/fa5b4c10-482f-2ca8-ea58-d380f2dbe655/swatch.png",
       },
     ]);
 

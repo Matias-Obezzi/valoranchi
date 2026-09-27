@@ -59,10 +59,7 @@ export class RiotClient {
   async whoami(): Promise<Player> {
     const session = await this.getSession();
     const riotApi = new RiotApi(this.gateway, session);
-    const [names, loadout] = await Promise.all([
-      riotApi.names([session.puuid]),
-      riotApi.loadout(),
-    ]);
+    const [names, loadout] = await Promise.all([riotApi.names([session.puuid]), riotApi.loadout()]);
 
     return {
       puuid: session.puuid,
@@ -168,11 +165,7 @@ export class RiotClient {
     });
   }
 
-  private buildLoadout(
-    player: Player,
-    raw: RiotLoadoutResponse,
-    catalogue: Catalogue,
-  ): Loadout {
+  private buildLoadout(player: Player, raw: RiotLoadoutResponse, catalogue: Catalogue): Loadout {
     const guns: LoadoutGun[] = (raw.Guns ?? []).map((gun) => this.buildLoadoutGun(gun, catalogue));
 
     const sprays = (raw.Sprays ?? []).map((sp) => {

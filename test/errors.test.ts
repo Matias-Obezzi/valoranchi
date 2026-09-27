@@ -37,7 +37,10 @@ describe("errors", () => {
   });
 
   it("sanitizes url in RiotApiError by stripping query strings", () => {
-    const apiError = new RiotApiError(404, "https://pd.na.a.pvp.net/store/v1/wallet/123?token=secret");
+    const apiError = new RiotApiError(
+      404,
+      "https://pd.na.a.pvp.net/store/v1/wallet/123?token=secret",
+    );
     expect(apiError.status).toBe(404);
     expect(apiError.url).toBe("https://pd.na.a.pvp.net/store/v1/wallet/123");
     expect(apiError.code).toBe("RIOT_API_ERROR");

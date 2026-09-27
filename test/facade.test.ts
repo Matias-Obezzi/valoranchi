@@ -67,9 +67,7 @@ describe("RiotClient facade", () => {
         }
         return {};
       }),
-      put: vi.fn().mockResolvedValue([
-        { Subject: "puuid-1", GameName: "Jett", TagLine: "1234" },
-      ]),
+      put: vi.fn().mockResolvedValue([{ Subject: "puuid-1", GameName: "Jett", TagLine: "1234" }]),
     } as unknown as HttpGateway;
 
     const mockValorantApi = {

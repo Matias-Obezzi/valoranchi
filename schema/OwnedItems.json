@@ -86,14 +86,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "puuid",
-        "gameName",
-        "tagLine",
-        "region",
-        "shard",
-        "accountLevel"
-      ],
+      "required": ["puuid", "gameName", "tagLine", "region", "shard", "accountLevel"],
       "additionalProperties": false
     },
     "OwnedWeapon": {
@@ -121,14 +114,7 @@
           }
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "category",
-        "skinsOwned",
-        "skinsTotal",
-        "skins"
-      ],
+      "required": ["uuid", "name", "category", "skinsOwned", "skinsTotal", "skins"],
       "additionalProperties": false
     },
     "OwnedSkin": {
@@ -159,14 +145,7 @@
           }
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "tier",
-        "icon",
-        "levels",
-        "chromas"
-      ],
+      "required": ["uuid", "name", "tier", "icon", "levels", "chromas"],
       "additionalProperties": false
     },
     "Tier": {
@@ -187,12 +166,7 @@
               "$ref": "#/definitions/Image"
             }
           },
-          "required": [
-            "uuid",
-            "name",
-            "rank",
-            "icon"
-          ],
+          "required": ["uuid", "name", "rank", "icon"],
           "additionalProperties": false
         },
         {
@@ -201,10 +175,7 @@
       ]
     },
     "Image": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": ["string", "null"]
     },
     "OwnedSkinLevel": {
       "type": "object",
@@ -219,11 +190,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "owned"
-      ],
+      "required": ["uuid", "name", "owned"],
       "additionalProperties": false
     },
     "OwnedChroma": {
@@ -242,12 +209,7 @@
           "$ref": "#/definitions/Image"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "owned",
-        "swatch"
-      ],
+      "required": ["uuid", "name", "owned", "swatch"],
       "additionalProperties": false
     },
     "OwnedCard": {
@@ -269,13 +231,7 @@
           "$ref": "#/definitions/Image"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "small",
-        "wide",
-        "large"
-      ],
+      "required": ["uuid", "name", "small", "wide", "large"],
       "additionalProperties": false
     },
     "OwnedTitle": {
@@ -288,17 +244,10 @@
           "type": "string"
         },
         "text": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "text"
-      ],
+      "required": ["uuid", "name", "text"],
       "additionalProperties": false
     },
     "OwnedSpray": {
@@ -314,11 +263,7 @@
           "$ref": "#/definitions/Image"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "icon"
-      ],
+      "required": ["uuid", "name", "icon"],
       "additionalProperties": false
     },
     "OwnedBuddy": {
@@ -337,12 +282,7 @@
           "type": "number"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "icon",
-        "instances"
-      ],
+      "required": ["uuid", "name", "icon", "instances"],
       "additionalProperties": false
     },
     "OwnedAgent": {
@@ -355,21 +295,13 @@
           "type": "string"
         },
         "role": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "icon": {
           "$ref": "#/definitions/Image"
         }
       },
-      "required": [
-        "uuid",
-        "name",
-        "role",
-        "icon"
-      ],
+      "required": ["uuid", "name", "role", "icon"],
       "additionalProperties": false
     }
   }
