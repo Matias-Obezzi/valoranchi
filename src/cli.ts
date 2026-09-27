@@ -1,12 +1,6 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
-import {
-  RegionUnknownError,
-  RiotApiError,
-  RiotClientError,
-  RiotClientNotReadyError,
-  RiotClientNotRunningError,
-} from "./errors.js";
+import { RiotClientError } from "./errors.js";
 import { RiotClient } from "./RiotClient.js";
 
 const USAGE = `Usage: riotclient <command> [options]
@@ -23,27 +17,16 @@ Options:
   --help             Show usage instructions
 `;
 
+const ERROR_EXIT_CODES: Record<string, number> = {
+  RIOT_CLIENT_NOT_RUNNING: 2,
+  RIOT_CLIENT_NOT_READY: 3,
+  REGION_UNKNOWN: 4,
+  RIOT_API_ERROR: 5,
+};
+
 export function exitCodeForError(error: unknown): number {
-  if (
-    error instanceof RiotClientNotRunningError ||
-    (error as { code?: string })?.code === "RIOT_CLIENT_NOT_RUNNING"
-  ) {
-    return 2;
-  }
-  if (
-    error instanceof RiotClientNotReadyError ||
-    (error as { code?: string })?.code === "RIOT_CLIENT_NOT_READY"
-  ) {
-    return 3;
-  }
-  if (
-    error instanceof RegionUnknownError ||
-    (error as { code?: string })?.code === "REGION_UNKNOWN"
-  ) {
-    return 4;
-  }
-  if (error instanceof RiotApiError || (error as { code?: string })?.code === "RIOT_API_ERROR") {
-    return 5;
+  if (error instanceof RiotClientError) {
+    return ERROR_EXIT_CODES[error.code] ?? 1;
   }
   return 1;
 }
