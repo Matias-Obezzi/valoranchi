@@ -125,6 +125,10 @@ export class RiotClientLocalApi {
     }
   }
 
+  async close(): Promise<void> {
+    await this.agent.close();
+  }
+
   async valorantSession(): Promise<LocalSessionInfo | null> {
     const url = `https://127.0.0.1:${this.port}/product-session/v1/external-sessions`;
     try {

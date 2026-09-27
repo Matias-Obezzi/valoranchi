@@ -173,7 +173,7 @@ export class RiotClient {
       localApi.entitlementsToken(),
       resolveRegion(localApi),
       this.valorantApi.getClientVersion(),
-    ]);
+    ]).finally(() => localApi.close());
 
     return new Session({
       puuid: tokens.subject,

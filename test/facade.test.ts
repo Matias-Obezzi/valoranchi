@@ -44,6 +44,7 @@ describe("RiotClient facade", () => {
         region: "na",
         shard: "na",
       }),
+      close: async () => undefined,
     } as unknown as RiotClientLocalApi;
 
     const mockGateway = {
@@ -126,6 +127,7 @@ describe("RiotClient facade", () => {
         region: "na",
         shard: "na",
       }),
+      close: async () => undefined,
     } as unknown as RiotClientLocalApi;
 
     let loadoutCalls = 0;
