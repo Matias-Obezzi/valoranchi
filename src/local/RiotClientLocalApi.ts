@@ -34,6 +34,11 @@ interface ExternalSessionEntry {
   };
 }
 
+type TokenResult =
+  | { kind: "token"; value: LocalEntitlementsToken }
+  | { kind: "not-ready" }
+  | { kind: "refused" };
+
 export class RiotClientLocalApi {
   private readonly port: number;
   private readonly authorization: string;
@@ -67,56 +72,59 @@ export class RiotClientLocalApi {
   async entitlementsToken(): Promise<LocalEntitlementsToken> {
     const maxRetries = 5;
     const retryDelayMs = 1500;
-    const url = `https://127.0.0.1:${this.port}/entitlements/v1/token`;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        const response = await this.fetchFn(url, {
-          headers: { Authorization: this.authorization },
-          dispatcher: this.agent,
-        });
-
-        if (response.ok) {
-          const data = (await response.json()) as {
-            accessToken?: string;
-            token?: string;
-            subject?: string;
-          };
-          if (data.accessToken && data.token && data.subject) {
-            return {
-              accessToken: data.accessToken,
-              token: data.token,
-              subject: data.subject,
-            };
-          }
-        }
-
-        const bodyText = await response.text();
-        const isNotReady =
-          response.status === 404 || bodyText.includes("Entitlements token is not ready yet");
-
-        if (isNotReady && attempt < maxRetries) {
-          await this.sleepFn(retryDelayMs);
-          continue;
-        }
-
-        throw new RiotClientNotReadyError();
-      } catch (error) {
-        if (error instanceof RiotClientNotReadyError) {
-          throw error;
-        }
-        if (this.isConnectionRefused(error)) {
+      const result = await this.requestToken();
+      switch (result.kind) {
+        case "token":
+          return result.value;
+        case "refused":
           throw new RiotClientNotRunningError();
-        }
-        if (attempt < maxRetries) {
-          await this.sleepFn(retryDelayMs);
-          continue;
-        }
-        throw new RiotClientNotReadyError();
+        case "not-ready":
+          if (attempt < maxRetries) {
+            await this.sleepFn(retryDelayMs);
+            break;
+          }
+          throw new RiotClientNotReadyError();
       }
     }
 
     throw new RiotClientNotReadyError();
+  }
+
+  private async requestToken(): Promise<TokenResult> {
+    const url = `https://127.0.0.1:${this.port}/entitlements/v1/token`;
+    try {
+      const response = await this.fetchFn(url, {
+        headers: { Authorization: this.authorization },
+        dispatcher: this.agent,
+      });
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          accessToken?: string;
+          token?: string;
+          subject?: string;
+        };
+        if (data.accessToken && data.token && data.subject) {
+          return {
+            kind: "token",
+            value: {
+              accessToken: data.accessToken,
+              token: data.token,
+              subject: data.subject,
+            },
+          };
+        }
+      }
+
+      return { kind: "not-ready" };
+    } catch (error) {
+      if (this.isConnectionRefused(error)) {
+        return { kind: "refused" };
+      }
+      return { kind: "not-ready" };
+    }
   }
 
   async valorantSession(): Promise<LocalSessionInfo | null> {
