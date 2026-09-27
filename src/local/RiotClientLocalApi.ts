@@ -34,10 +34,7 @@ interface ExternalSessionEntry {
   };
 }
 
-type AttemptResult<T> =
-  | { kind: "ok"; value: T }
-  | { kind: "not-ready" }
-  | { kind: "refused" };
+type AttemptResult<T> = { kind: "ok"; value: T } | { kind: "not-ready" } | { kind: "refused" };
 
 export class RiotClientLocalApi {
   private readonly port: number;
@@ -73,38 +70,39 @@ export class RiotClientLocalApi {
     return this.withWarmupRetry<LocalEntitlementsToken>(
       async (): Promise<AttemptResult<LocalEntitlementsToken>> => {
         const url = `https://127.0.0.1:${this.port}/entitlements/v1/token`;
-      try {
-        const response = await this.fetchFn(url, {
-          headers: { Authorization: this.authorization },
-          dispatcher: this.agent,
-        });
+        try {
+          const response = await this.fetchFn(url, {
+            headers: { Authorization: this.authorization },
+            dispatcher: this.agent,
+          });
 
-        if (response.ok) {
-          const data = (await response.json()) as {
-            accessToken?: string;
-            token?: string;
-            subject?: string;
-          };
-          if (data.accessToken && data.token && data.subject) {
-            return {
-              kind: "ok",
-              value: {
-                accessToken: data.accessToken,
-                token: data.token,
-                subject: data.subject,
-              },
+          if (response.ok) {
+            const data = (await response.json()) as {
+              accessToken?: string;
+              token?: string;
+              subject?: string;
             };
+            if (data.accessToken && data.token && data.subject) {
+              return {
+                kind: "ok",
+                value: {
+                  accessToken: data.accessToken,
+                  token: data.token,
+                  subject: data.subject,
+                },
+              };
+            }
           }
-        }
 
-        return { kind: "not-ready" };
-      } catch (error) {
-        if (this.isConnectionRefused(error)) {
-          return { kind: "refused" };
+          return { kind: "not-ready" };
+        } catch (error) {
+          if (this.isConnectionRefused(error)) {
+            return { kind: "refused" };
+          }
+          return { kind: "not-ready" };
         }
-        return { kind: "not-ready" };
-      }
-    });
+      },
+    );
   }
 
   async get<T>(path: string): Promise<T | null> {

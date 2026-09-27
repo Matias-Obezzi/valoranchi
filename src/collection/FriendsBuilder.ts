@@ -23,11 +23,7 @@ export class FriendsBuilder {
   private readonly rawPresences: RawChatPresence[];
   private readonly catalogue?: Catalogue;
 
-  constructor(
-    friends: RawChatFriend[],
-    presences: RawChatPresence[],
-    catalogue?: Catalogue,
-  ) {
+  constructor(friends: RawChatFriend[], presences: RawChatPresence[], catalogue?: Catalogue) {
     this.rawFriends = friends;
     this.rawPresences = presences;
     this.catalogue = catalogue;
@@ -36,7 +32,8 @@ export class FriendsBuilder {
   build(): Friend[] {
     const presenceByPuuid = new Map<string, RawChatPresence>();
     for (const p of this.rawPresences) {
-      if (p.puuid) {
+      const current = presenceByPuuid.get(p.puuid);
+      if (p.puuid && (!current || p.product === "valorant")) {
         presenceByPuuid.set(p.puuid, p);
       }
     }

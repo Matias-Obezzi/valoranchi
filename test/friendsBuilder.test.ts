@@ -179,4 +179,40 @@ describe("FriendsBuilder", () => {
     expect(alpha.presence.valorant).toBeNull();
     expect(alpha.note).toBe("Old friend");
   });
+
+  it("prefers the Valorant presence when a friend is present in several products", () => {
+    const friend: RawChatFriend = {
+      puuid: "p-multi",
+      game_name: "Multi",
+      game_tag: "9999",
+      name: "Multi#9999",
+      note: null,
+      pid: "pid-multi",
+      region: "na",
+      group: "VALORANT",
+      displayGroup: "VALORANT",
+      activePlatform: null,
+      last_online_ts: null,
+    };
+    const base = {
+      puuid: "p-multi",
+      game_name: "Multi",
+      game_tag: "9999",
+      pid: "pid-multi",
+      state: "chat",
+    };
+    const presences: RawChatPresence[] = [
+      {
+        ...base,
+        product: "valorant",
+        private: Buffer.from(JSON.stringify({ sessionLoopState: "INGAME" })).toString("base64"),
+        time: 1,
+      },
+      { ...base, product: "riot_client", private: null, time: 2 },
+    ];
+
+    const [built] = new FriendsBuilder([friend], presences).build();
+    expect(built!.presence.product).toBe("valorant");
+    expect(built!.presence.valorant?.state).toBe("ingame");
+  });
 });

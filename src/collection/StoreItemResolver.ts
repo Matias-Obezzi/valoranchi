@@ -2,9 +2,7 @@ import type { Catalogue } from "../catalogue/Catalogue.js";
 import type { StoreItem, Tier } from "../model/index.js";
 import { CURRENCY_UUIDS, ENTITLEMENT_ITEM_TYPES } from "../riot/types.js";
 
-const KNOWN_CURRENCIES = new Set(
-  Object.values(CURRENCY_UUIDS).map((id) => id.toLowerCase()),
-);
+const KNOWN_CURRENCIES = new Set(Object.values(CURRENCY_UUIDS).map((id) => id.toLowerCase()));
 
 export class StoreItemResolver {
   private readonly catalogue: Catalogue;
@@ -14,7 +12,10 @@ export class StoreItemResolver {
   }
 
   resolve(
-    reward: { ItemTypeID?: string; ItemID?: string; Quantity?: number; Amount?: number } | null | undefined,
+    reward:
+      | { ItemTypeID?: string; ItemID?: string; Quantity?: number; Amount?: number }
+      | null
+      | undefined,
   ): StoreItem {
     const itemTypeId = (reward?.ItemTypeID ?? "").toLowerCase();
     const itemId = (reward?.ItemID ?? "").toLowerCase();
@@ -37,7 +38,12 @@ export class StoreItemResolver {
     if (itemTypeId === ENTITLEMENT_ITEM_TYPES.skinLevel.toLowerCase()) {
       const match = this.catalogue.findSkinAndWeaponByLevel(itemId);
       if (match) {
-        return this.buildSkinItem(match.weapon.displayName, match.skin, match.level.displayIcon, match.level.uuid);
+        return this.buildSkinItem(
+          match.weapon.displayName,
+          match.skin,
+          match.level.displayIcon,
+          match.level.uuid,
+        );
       }
       return { kind: "other", uuid: itemId, typeUuid: itemTypeId, name: null };
     }
@@ -45,7 +51,12 @@ export class StoreItemResolver {
     if (itemTypeId === ENTITLEMENT_ITEM_TYPES.skinChroma.toLowerCase()) {
       const match = this.catalogue.findSkinAndWeaponByChroma(itemId);
       if (match) {
-        return this.buildSkinItem(match.weapon.displayName, match.skin, match.chroma.displayIcon, itemId);
+        return this.buildSkinItem(
+          match.weapon.displayName,
+          match.skin,
+          match.chroma.displayIcon,
+          itemId,
+        );
       }
       return { kind: "other", uuid: itemId, typeUuid: itemTypeId, name: null };
     }
@@ -138,7 +149,12 @@ export class StoreItemResolver {
 
   private buildSkinItem(
     weaponName: string,
-    skin: { uuid: string; displayName: string; contentTierUuid: string | null; displayIcon: string | null },
+    skin: {
+      uuid: string;
+      displayName: string;
+      contentTierUuid: string | null;
+      displayIcon: string | null;
+    },
     icon: string | null,
     levelUuid: string,
   ): StoreItem {

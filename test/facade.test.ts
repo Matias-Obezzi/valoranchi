@@ -207,12 +207,34 @@ describe("RiotClient facade", () => {
     const mockLocalApi = {
       entitlementsToken: tokenSpy,
       get: vi.fn().mockImplementation(async (path: string) => {
-        if (path.includes("/chat/v4/friends")) return { friends: [{ puuid: "f1", game_name: "Friend1", game_tag: "001" }] };
+        if (path.includes("/chat/v4/friends"))
+          return { friends: [{ puuid: "f1", game_name: "Friend1", game_tag: "001" }] };
         if (path.includes("/chat/v4/presences")) return { presences: [] };
-        if (path.includes("/chat/v4/friendrequests")) return { requests: [{ puuid: "r1", game_name: "Req", game_tag: "002", subscription: "pending_in" }] };
-        if (path.includes("/chat/v4/blocked")) return { blocked: [{ puuid: "b1", game_name: "Block", game_tag: "003" }] };
-        if (path.includes("/chat/v6/conversations")) return { conversations: [{ cid: "f1@la1.pvp.net", type: "chat" }] };
-        if (path.includes("/chat/v6/messages")) return { messages: [{ id: "m1", cid: "f1@la1.pvp.net", body: "hi", time: "1000", type: "chat", puuid: "f1", game_name: "Friend1", game_tag: "001" }] };
+        if (path.includes("/chat/v4/friendrequests"))
+          return {
+            requests: [
+              { puuid: "r1", game_name: "Req", game_tag: "002", subscription: "pending_in" },
+            ],
+          };
+        if (path.includes("/chat/v4/blocked"))
+          return { blocked: [{ puuid: "b1", game_name: "Block", game_tag: "003" }] };
+        if (path.includes("/chat/v6/conversations"))
+          return { conversations: [{ cid: "f1@la1.pvp.net", type: "chat" }] };
+        if (path.includes("/chat/v6/messages"))
+          return {
+            messages: [
+              {
+                id: "m1",
+                cid: "f1@la1.pvp.net",
+                body: "hi",
+                time: "1000",
+                type: "chat",
+                puuid: "f1",
+                game_name: "Friend1",
+                game_tag: "001",
+              },
+            ],
+          };
         return null;
       }),
       close: vi.fn(),
@@ -266,7 +288,9 @@ describe("RiotClient facade", () => {
         if (url.includes("/account-xp/")) return { Progress: { Level: 25, XP: 100 } };
         return {};
       }),
-      put: vi.fn().mockResolvedValue([{ Subject: "puuid-store", GameName: "Buyer", TagLine: "0000" }]),
+      put: vi
+        .fn()
+        .mockResolvedValue([{ Subject: "puuid-store", GameName: "Buyer", TagLine: "0000" }]),
       post: vi.fn().mockResolvedValue(storefrontFixture),
     } as unknown as HttpGateway;
 

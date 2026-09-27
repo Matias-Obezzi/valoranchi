@@ -57,7 +57,11 @@ export class StoreBuilder {
   }
 
   private deadline(durationSeconds: number | null | undefined): string | null {
-    if (typeof durationSeconds !== "number" || !Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    if (
+      typeof durationSeconds !== "number" ||
+      !Number.isFinite(durationSeconds) ||
+      durationSeconds <= 0
+    ) {
       return null;
     }
     return new Date(this.fetchedAtMs + durationSeconds * 1000).toISOString();
@@ -80,7 +84,9 @@ export class StoreBuilder {
     };
   }
 
-  private buildDaily(panel?: RiotSkinsPanelLayout): { endsAt: string; offers: DailyOffer[] } | null {
+  private buildDaily(
+    panel?: RiotSkinsPanelLayout,
+  ): { endsAt: string; offers: DailyOffer[] } | null {
     const endsAt = this.deadline(panel?.SingleItemOffersRemainingDurationInSeconds);
     if (!endsAt || !panel?.SingleItemStoreOffers?.length) {
       return null;
@@ -95,7 +101,9 @@ export class StoreBuilder {
     return { endsAt, offers };
   }
 
-  private buildNightMarket(store?: RiotBonusStore): { endsAt: string; offers: NightMarketOffer[] } | null {
+  private buildNightMarket(
+    store?: RiotBonusStore,
+  ): { endsAt: string; offers: NightMarketOffer[] } | null {
     const endsAt = this.deadline(store?.BonusStoreRemainingDurationInSeconds);
     if (!endsAt || !store?.BonusStoreOffers?.length) {
       return null;
@@ -113,7 +121,9 @@ export class StoreBuilder {
     return { endsAt, offers };
   }
 
-  private buildBundles(featured?: RiotFeaturedBundle): { endsAt: string | null; items: Bundle[] } | null {
+  private buildBundles(
+    featured?: RiotFeaturedBundle,
+  ): { endsAt: string | null; items: Bundle[] } | null {
     const rawBundles = featured?.Bundles ?? (featured?.Bundle ? [featured.Bundle] : []);
     if (!rawBundles.length) {
       return null;
@@ -142,7 +152,9 @@ export class StoreBuilder {
         promoImage: cat?.verticalPromoImage ?? cat?.displayIcon ?? null,
         currency: currency?.displayName ?? b.CurrencyID,
         totalBase: b.TotalBaseCost ? this.parseCost(b.TotalBaseCost).amount : null,
-        totalDiscounted: b.TotalDiscountedCost ? this.parseCost(b.TotalDiscountedCost).amount : null,
+        totalDiscounted: b.TotalDiscountedCost
+          ? this.parseCost(b.TotalDiscountedCost).amount
+          : null,
         discountPercent: b.TotalDiscountPercent ?? 0,
         wholesaleOnly: Boolean(b.WholesaleOnly),
         endsAt,
@@ -163,7 +175,9 @@ export class StoreBuilder {
     return { endsAt, items: bundleItems };
   }
 
-  private buildAccessories(acc?: RiotAccessoryStore): { endsAt: string; offers: AccessoryOffer[] } | null {
+  private buildAccessories(
+    acc?: RiotAccessoryStore,
+  ): { endsAt: string; offers: AccessoryOffer[] } | null {
     const endsAt = this.deadline(acc?.AccessoryStoreRemainingDurationInSeconds);
     if (!endsAt || !acc?.AccessoryStoreOffers?.length) {
       return null;

@@ -5,11 +5,15 @@ import { decodeValorantPresence } from "../src/local/Presence.js";
 const sampleCatalogueData = {
   weapons: [],
   playerCards: [
-    { uuid: "card-1", displayName: "Card One", smallArt: "card-1-sm", wideArt: null, largeArt: null },
+    {
+      uuid: "card-1",
+      displayName: "Card One",
+      smallArt: "card-1-sm",
+      wideArt: null,
+      largeArt: null,
+    },
   ],
-  playerTitles: [
-    { uuid: "title-1", displayName: "Title One", titleText: "Text One" },
-  ],
+  playerTitles: [{ uuid: "title-1", displayName: "Title One", titleText: "Text One" }],
   sprays: [],
   buddies: [],
   agents: [],

@@ -45,7 +45,8 @@ export function decodeValorantPresence(
     const partyData = (raw.partyPresenceData as Record<string, unknown> | undefined) ?? {};
     const playerData = (raw.playerPresenceData as Record<string, unknown> | undefined) ?? {};
 
-    const rawState = raw.sessionLoopState ?? matchData.sessionLoopState ?? partyData.partyOwnerSessionLoopState;
+    const rawState =
+      raw.sessionLoopState ?? matchData.sessionLoopState ?? partyData.partyOwnerSessionLoopState;
     const rawQueue = raw.queueId ?? matchData.queueId;
     const rawMap = raw.matchMap ?? matchData.matchMap ?? partyData.partyOwnerMatchMap;
 
@@ -68,7 +69,11 @@ export function decodeValorantPresence(
           ? (() => {
               const entity = catalogue.getCard(rawCardId);
               return entity
-                ? { uuid: entity.uuid.toLowerCase(), name: entity.displayName, small: entity.smallArt }
+                ? {
+                    uuid: entity.uuid.toLowerCase(),
+                    name: entity.displayName,
+                    small: entity.smallArt,
+                  }
                 : { uuid: rawCardId.toLowerCase(), name: "", small: null };
             })()
           : { uuid: rawCardId.toLowerCase(), name: "", small: null }
@@ -80,7 +85,11 @@ export function decodeValorantPresence(
           ? (() => {
               const entity = catalogue.getTitle(rawTitleId);
               return entity
-                ? { uuid: entity.uuid.toLowerCase(), name: entity.displayName, text: entity.titleText }
+                ? {
+                    uuid: entity.uuid.toLowerCase(),
+                    name: entity.displayName,
+                    text: entity.titleText,
+                  }
                 : { uuid: rawTitleId.toLowerCase(), name: "", text: null };
             })()
           : { uuid: rawTitleId.toLowerCase(), name: "", text: null }

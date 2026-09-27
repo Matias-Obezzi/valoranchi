@@ -1,7 +1,9 @@
 import type { RawChatMessage, RawConversation } from "../local/chatTypes.js";
 import type { Conversation, Friend, Message } from "../model/index.js";
 
-export function classifyConversationKind(cid: string): "whisper" | "party" | "pregame" | "team" | "all" {
+export function classifyConversationKind(
+  cid: string,
+): "whisper" | "party" | "pregame" | "team" | "all" {
   const [room, host = ""] = cid.split("@");
   if (host.startsWith("ares-parties.")) return "party";
   if (host.startsWith("ares-pregame.")) return "pregame";
