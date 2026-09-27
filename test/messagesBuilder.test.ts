@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MessagesBuilder } from "../src/collection/MessagesBuilder.js";
-import type { RawChatMessage, RawConversation } from "../src/local/chatTypes.js";
+import type { RawChatMessage, RawChatSession, RawConversation } from "../src/local/chatTypes.js";
 import type { Friend } from "../src/model/index.js";
 
 describe("MessagesBuilder", () => {
@@ -148,5 +148,77 @@ describe("MessagesBuilder", () => {
         kind: "room",
       },
     ]);
+  });
+
+  it("fills sender identity on own message when game_name is empty", () => {
+    const session: RawChatSession = {
+      puuid: "my-puuid",
+      game_name: "MyPlayer",
+      game_tag: "ME1",
+    };
+
+    const rawMessages: RawChatMessage[] = [
+      {
+        id: "own-1",
+        cid: "conv-1@la1.pvp.net",
+        puuid: "my-puuid",
+        game_name: "",
+        game_tag: "",
+        name: "",
+        pid: "pid-own",
+        region: "na",
+        body: "my own message",
+        read: true,
+        time: "1700000000000",
+        type: "chat",
+      },
+      {
+        id: "friend-empty-name",
+        cid: "conv-2@la1.pvp.net",
+        puuid: "puuid-friend-1",
+        game_name: "",
+        game_tag: "",
+        name: "",
+        pid: "pid-friend",
+        region: "na",
+        body: "friend with empty name",
+        read: true,
+        time: "1700000000000",
+        type: "chat",
+      },
+      {
+        id: "stranger-empty-name",
+        cid: "conv-3@la1.pvp.net",
+        puuid: "stranger-puuid",
+        game_name: "",
+        game_tag: "",
+        name: "",
+        pid: "pid-stranger",
+        region: "na",
+        body: "stranger with empty name",
+        read: true,
+        time: "1700000000000",
+        type: "chat",
+      },
+    ];
+
+    const builder = new MessagesBuilder(friends, session);
+    const messages = builder.buildMessages(rawMessages);
+
+    expect(messages[0]?.from).toEqual({
+      puuid: "my-puuid",
+      gameName: "MyPlayer",
+      tagLine: "ME1",
+    });
+    expect(messages[1]?.from).toEqual({
+      puuid: "puuid-friend-1",
+      gameName: "Bestie",
+      tagLine: "1111",
+    });
+    expect(messages[2]?.from).toEqual({
+      puuid: "stranger-puuid",
+      gameName: "",
+      tagLine: "",
+    });
   });
 });

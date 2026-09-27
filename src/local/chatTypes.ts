@@ -97,3 +97,16 @@ export interface RawChatMessage {
 export interface RawMessagesResponse {
   messages?: RawChatMessage[];
 }
+
+export interface RawChatSession {
+  puuid: string;
+  game_name: string;
+  game_tag: string;
+  name?: string;
+  pid?: string;
+  region?: string;
+  resource?: string;
+  state?: string;
+  loaded?: boolean;
+  federated?: boolean;
+}

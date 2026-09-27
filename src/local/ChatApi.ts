@@ -12,6 +12,7 @@ import type {
   RawFriendsResponse,
   RawMessagesResponse,
   RawPresencesResponse,
+  RawChatSession,
 } from "./chatTypes.js";
 
 export class ChatApi {
@@ -74,5 +75,14 @@ export class ChatApi {
     const path = cid ? `/chat/v6/messages?cid=${encodeURIComponent(cid)}` : "/chat/v6/messages";
     const res = await this.localApi.get<RawMessagesResponse>(path);
     return res?.messages ?? [];
+  }
+
+  async session(): Promise<RawChatSession | null> {
+    try {
+      const res = await this.localApi.get<RawChatSession>("/chat/v1/session");
+      return res ?? null;
+    } catch {
+      return null;
+    }
   }
 }

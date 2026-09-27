@@ -1,4 +1,4 @@
-import type { RawChatMessage, RawConversation } from "../local/chatTypes.js";
+import type { RawChatMessage, RawChatSession, RawConversation } from "../local/chatTypes.js";
 import type { Conversation, Friend, Message } from "../model/index.js";
 
 export function classifyConversationKind(
@@ -15,13 +15,15 @@ export function classifyConversationKind(
 
 export class MessagesBuilder {
   private readonly friendsByPuuid = new Map<string, Friend>();
+  private readonly session: RawChatSession | null;
 
-  constructor(friends: Friend[] = []) {
+  constructor(friends: Friend[] = [], session: RawChatSession | null = null) {
     for (const f of friends) {
       if (f.puuid) {
         this.friendsByPuuid.set(f.puuid, f);
       }
     }
+    this.session = session;
   }
 
   buildConversations(rawConversations: RawConversation[]): Conversation[] {
@@ -37,6 +39,12 @@ export class MessagesBuilder {
             puuid: friend.puuid,
             gameName: friend.gameName,
             tagLine: friend.tagLine,
+          };
+        } else if (puuid && this.session && this.session.puuid === puuid) {
+          participant = {
+            puuid: this.session.puuid,
+            gameName: this.session.game_name,
+            tagLine: this.session.game_tag,
           };
         }
       }
@@ -55,14 +63,30 @@ export class MessagesBuilder {
     return rawMessages.map((msg) => {
       const isRoom = msg.type === "groupchat" || classifyConversationKind(msg.cid) !== "whisper";
       const at = msg.time ? new Date(Number(msg.time)).toISOString() : new Date().toISOString();
+      const isOwn = Boolean(this.session?.puuid && msg.puuid === this.session.puuid);
+      const isRawEmpty = !msg.game_name;
+
+      let gameName = msg.game_name || "";
+      let tagLine = msg.game_tag || "";
+
+      if (isRawEmpty) {
+        if (isOwn && this.session) {
+          gameName = this.session.game_name;
+          tagLine = this.session.game_tag;
+        } else {
+          const friend = this.friendsByPuuid.get(msg.puuid);
+          gameName = friend?.gameName ?? "";
+          tagLine = friend?.tagLine ?? "";
+        }
+      }
 
       return {
         id: msg.id || msg.mid || "",
         conversationId: msg.cid,
         from: {
           puuid: msg.puuid,
-          gameName: msg.game_name,
-          tagLine: msg.game_tag,
+          gameName,
+          tagLine,
         },
         body: msg.body,
         at,

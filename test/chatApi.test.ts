@@ -136,4 +136,38 @@ describe("ChatApi", () => {
     const missing = await chatApi.messages("non-existent");
     expect(missing).toEqual([]);
   });
+
+  it("fetches chat session or returns null on failure", async () => {
+    const mockFetch = async (url: string) => {
+      if (url.includes("/chat/v1/session")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            puuid: "my-puuid",
+            game_name: "MyName",
+            game_tag: "TAG",
+          }),
+          text: async () => "",
+        };
+      }
+      return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+    };
+
+    const localApi = new RiotClientLocalApi(5678, "pass", { fetchFn: mockFetch });
+    const chatApi = new ChatApi(localApi);
+
+    const session = await chatApi.session();
+    expect(session).toEqual({
+      puuid: "my-puuid",
+      game_name: "MyName",
+      game_tag: "TAG",
+    });
+
+    const failingApi = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: async () => ({ ok: false, status: 404, json: async () => ({}), text: async () => "" }),
+    });
+    const failingChatApi = new ChatApi(failingApi);
+    expect(await failingChatApi.session()).toBeNull();
+  });
 });

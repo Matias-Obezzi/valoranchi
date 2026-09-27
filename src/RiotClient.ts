@@ -172,17 +172,23 @@ export class RiotClient {
   async conversations(): Promise<Conversation[]> {
     const localApi = this.getLocalApi();
     const chatApi = new ChatApi(localApi);
-    const [rawConversations, friends] = await Promise.all([
+    const [rawConversations, friends, session] = await Promise.all([
       chatApi.conversations(),
       this.friends(),
+      chatApi.session(),
     ]);
-    return new MessagesBuilder(friends).buildConversations(rawConversations);
+    return new MessagesBuilder(friends, session).buildConversations(rawConversations);
   }
 
   async messages(conversationId?: string): Promise<Message[]> {
     const localApi = this.getLocalApi();
-    const rawMessages = await new ChatApi(localApi).messages(conversationId);
-    return new MessagesBuilder().buildMessages(rawMessages);
+    const chatApi = new ChatApi(localApi);
+    const [rawMessages, friends, session] = await Promise.all([
+      chatApi.messages(conversationId),
+      this.friends(),
+      chatApi.session(),
+    ]);
+    return new MessagesBuilder(friends, session).buildMessages(rawMessages);
   }
 
   async store(options?: { language?: string }): Promise<Store> {
