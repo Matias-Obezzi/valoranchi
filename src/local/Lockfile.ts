@@ -17,11 +17,10 @@ export function defaultLockfilePath(): string | null {
 }
 
 export function parseLockfile(text: string): LockfileData | null {
-  const parts = text.trim().split(":");
-  if (parts.length !== 4) {
+  const [name, pidStr, portStr, password] = text.trim().split(":");
+  if (password === undefined) {
     return null;
   }
-  const [name, pidStr, portStr, password] = parts;
   const pid = Number.parseInt(pidStr, 10);
   const port = Number.parseInt(portStr, 10);
   if (!name || Number.isNaN(pid) || Number.isNaN(port) || !password) {

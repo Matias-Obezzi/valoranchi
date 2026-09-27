@@ -1,11 +1,5 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
-import type {
-  Loadout,
-  LoadoutGun,
-  OwnedCard,
-  OwnedTitle,
-  Player,
-} from "../model/index.js";
+import type { Loadout, LoadoutGun, OwnedCard, OwnedTitle, Player } from "../model/index.js";
 import type { RiotLoadoutGun, RiotLoadoutResponse } from "../riot/types.js";
 
 export class LoadoutBuilder {

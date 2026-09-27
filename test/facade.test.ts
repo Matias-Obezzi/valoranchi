@@ -57,6 +57,9 @@ describe("RiotClient facade", () => {
             },
           };
         }
+        if (url.includes("/account-xp/v1/players/")) {
+          return { Progress: { Level: 50, XP: 0 } };
+        }
         if (url.includes("/personalization/v3/players/")) {
           return {
             Guns: [],
@@ -128,6 +131,9 @@ describe("RiotClient facade", () => {
     let loadoutCalls = 0;
     const mockGateway = {
       get: vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/account-xp/v1/players/")) {
+          return { Progress: { Level: 50, XP: 0 } };
+        }
         if (url.includes("/personalization/v3/players/")) {
           loadoutCalls++;
           return {

@@ -35,9 +35,7 @@ interface ExternalSessionEntry {
 }
 
 type TokenResult =
-  | { kind: "token"; value: LocalEntitlementsToken }
-  | { kind: "not-ready" }
-  | { kind: "refused" };
+  { kind: "token"; value: LocalEntitlementsToken } | { kind: "not-ready" } | { kind: "refused" };
 
 export class RiotClientLocalApi {
   private readonly port: number;

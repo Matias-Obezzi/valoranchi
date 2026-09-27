@@ -63,6 +63,10 @@ export interface RiotLoadoutResponse {
   Incognito: boolean;
 }
 
+export interface RiotAccountXpResponse {
+  Progress: { Level: number; XP: number };
+}
+
 export interface RiotWalletResponse {
   Balances: Record<string, number>;
 }

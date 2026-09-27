@@ -9,11 +9,7 @@ import type { Loadout, OwnedItems, Player, Wallet } from "./model/index.js";
 import { HttpGateway } from "./riot/HttpGateway.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import { Session } from "./riot/Session.js";
-import {
-  CURRENCY_UUIDS,
-  type RiotLoadoutResponse,
-  type RiotNameResponse,
-} from "./riot/types.js";
+import { CURRENCY_UUIDS, type RiotAccountXpResponse, type RiotNameResponse } from "./riot/types.js";
 
 export interface RiotClientOptions {
   language?: string;
@@ -55,12 +51,9 @@ export class RiotClient {
   async whoami(): Promise<Player> {
     const session = await this.getSession();
     const api = this.api(session);
-    const [names, rawLoadout] = await Promise.all([
-      api.names([session.puuid]),
-      api.loadout(),
-    ]);
+    const [names, accountXp] = await Promise.all([api.names([session.puuid]), api.accountXp()]);
 
-    return this.playerFrom(session, names, rawLoadout);
+    return this.playerFrom(session, names, accountXp);
   }
 
   async ownedItems(options?: { language?: string }): Promise<OwnedItems> {
@@ -68,14 +61,14 @@ export class RiotClient {
     const session = await this.getSession();
     const api = this.api(session);
 
-    const [names, rawLoadout, entitlements, catalogue] = await Promise.all([
+    const [names, accountXp, entitlements, catalogue] = await Promise.all([
       api.names([session.puuid]),
-      api.loadout(),
+      api.accountXp(),
       api.entitlements(),
       this.valorantApi.getCatalogue(lang),
     ]);
 
-    const player = this.playerFrom(session, names, rawLoadout);
+    const player = this.playerFrom(session, names, accountXp);
     return new CollectionBuilder(player, entitlements, catalogue, lang).build();
   }
 
@@ -83,13 +76,14 @@ export class RiotClient {
     const session = await this.getSession();
     const api = this.api(session);
 
-    const [names, rawLoadout, catalogue] = await Promise.all([
+    const [names, accountXp, rawLoadout, catalogue] = await Promise.all([
       api.names([session.puuid]),
+      api.accountXp(),
       api.loadout(),
       this.valorantApi.getCatalogue(this.language),
     ]);
 
-    const player = this.playerFrom(session, names, rawLoadout);
+    const player = this.playerFrom(session, names, accountXp);
     return new LoadoutBuilder(player, rawLoadout, catalogue).build();
   }
 
@@ -148,7 +142,7 @@ export class RiotClient {
   private playerFrom(
     session: Session,
     names: RiotNameResponse[],
-    rawLoadout: RiotLoadoutResponse,
+    accountXp: RiotAccountXpResponse,
   ): Player {
     return {
       puuid: session.puuid,
@@ -156,7 +150,7 @@ export class RiotClient {
       tagLine: names[0]?.TagLine ?? "",
       region: session.region,
       shard: session.shard,
-      accountLevel: rawLoadout.Identity?.AccountLevel ?? 0,
+      accountLevel: accountXp.Progress?.Level ?? 0,
     };
   }
 

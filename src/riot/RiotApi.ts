@@ -1,6 +1,7 @@
 import type { HttpGateway } from "./HttpGateway.js";
 import type { Session } from "./Session.js";
 import type {
+  RiotAccountXpResponse,
   RiotEntitlementsResponse,
   RiotLoadoutResponse,
   RiotNameResponse,
@@ -24,6 +25,11 @@ export class RiotApi {
   async loadout(): Promise<RiotLoadoutResponse> {
     const url = `${this.session.endpoints.pd}/personalization/v3/players/${this.session.puuid}/playerloadout`;
     return this.gateway.get<RiotLoadoutResponse>(url, this.session.headers());
+  }
+
+  async accountXp(): Promise<RiotAccountXpResponse> {
+    const url = `${this.session.endpoints.pd}/account-xp/v1/players/${this.session.puuid}`;
+    return this.gateway.get<RiotAccountXpResponse>(url, this.session.headers());
   }
 
   async wallet(): Promise<RiotWalletResponse> {

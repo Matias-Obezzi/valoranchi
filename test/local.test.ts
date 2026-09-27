@@ -10,7 +10,7 @@ import {
 
 describe("Lockfile", () => {
   it("parses valid lockfile content", () => {
-    const parsed = parseLockfile("Riot Client:1234:5678:secret_pass");
+    const parsed = parseLockfile("Riot Client:1234:5678:secret_pass:https");
     expect(parsed).toEqual({
       name: "Riot Client",
       pid: 1234,
