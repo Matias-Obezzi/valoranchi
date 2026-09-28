@@ -59,7 +59,7 @@ export class CollectionBuilder {
     return this.catalogue.weapons.map((weapon) => {
       const skins: OwnedSkin[] = [];
       for (const skin of weapon.skins) {
-        if (skin.displayName.includes("Standard") || skin.displayName.includes("Random")) {
+        if (!skin.contentTierUuid) {
           continue;
         }
 
