@@ -46,3 +46,23 @@ export class RiotApiError extends RiotClientError {
     this.url = sanitizedUrl;
   }
 }
+
+export class ValidationError extends RiotClientError {
+  readonly reason: string;
+  readonly details: Record<string, unknown>;
+
+  constructor(
+    reason: string,
+    messageOrDetails?: string | Record<string, unknown>,
+    details?: Record<string, unknown>,
+  ) {
+    const message = typeof messageOrDetails === "string" ? messageOrDetails : reason;
+    const finalDetails =
+      typeof messageOrDetails === "object" && messageOrDetails !== null
+        ? messageOrDetails
+        : (details ?? {});
+    super(message, "VALIDATION");
+    this.reason = reason;
+    this.details = finalDetails;
+  }
+}

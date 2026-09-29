@@ -19,6 +19,7 @@ export {
   RiotClientError,
   RiotClientNotReadyError,
   RiotClientNotRunningError,
+  ValidationError,
 } from "./errors.js";
 
 export type {

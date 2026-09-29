@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { RiotClientError } from "./errors.js";
+import { RiotClientError, ValidationError } from "./errors.js";
 import { RiotClient } from "./RiotClient.js";
 
 export const USAGE = `Usage: riotclient <command> [options]
@@ -48,6 +48,7 @@ const ERROR_EXIT_CODES: Record<string, number> = {
   RIOT_CLIENT_NOT_READY: 3,
   REGION_UNKNOWN: 4,
   RIOT_API_ERROR: 5,
+  VALIDATION: 6,
 };
 
 export function exitCodeForError(error: unknown): number {
@@ -57,7 +58,24 @@ export function exitCodeForError(error: unknown): number {
   return 1;
 }
 
-export function formatError(error: unknown): { error: { code: string; message: string } } {
+export function formatError(error: unknown): {
+  error: {
+    code: string;
+    message: string;
+    reason?: string;
+    details?: Record<string, unknown>;
+  };
+} {
+  if (error instanceof ValidationError) {
+    return {
+      error: {
+        code: error.code,
+        reason: error.reason,
+        message: error.message,
+        details: error.details,
+      },
+    };
+  }
   if (error instanceof RiotClientError) {
     return {
       error: {

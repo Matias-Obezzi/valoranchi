@@ -6,6 +6,7 @@ import {
   RiotClientError,
   RiotClientNotReadyError,
   RiotClientNotRunningError,
+  ValidationError,
 } from "../src/errors.js";
 
 describe("errors", () => {
@@ -15,6 +16,20 @@ describe("errors", () => {
     expect(error.code).toBe("CUSTOM_CODE");
     expect(error.name).toBe("RiotClientError");
     expect(error instanceof Error).toBe(true);
+  });
+
+  it("creates ValidationError with reason, code VALIDATION and details", () => {
+    const err = new ValidationError("skin-not-owned", "Skin is not owned", { skin: "abc" });
+    expect(err.code).toBe("VALIDATION");
+    expect(err.reason).toBe("skin-not-owned");
+    expect(err.message).toBe("Skin is not owned");
+    expect(err.details).toEqual({ skin: "abc" });
+    expect(err instanceof RiotClientError).toBe(true);
+
+    const simple = new ValidationError("not-a-friend");
+    expect(simple.reason).toBe("not-a-friend");
+    expect(simple.message).toBe("not-a-friend");
+    expect(simple.details).toEqual({});
   });
 
   it("creates specific error types with default codes", () => {

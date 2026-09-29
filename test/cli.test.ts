@@ -9,6 +9,7 @@ import {
   RiotApiError,
   RiotClientNotReadyError,
   RiotClientNotRunningError,
+  ValidationError,
 } from "../src/errors.js";
 
 describe("CLI error mapping", () => {
@@ -28,10 +29,28 @@ describe("CLI error mapping", () => {
     expect(exitCodeForError(new RiotApiError(500, "https://pd.na.a.pvp.net"))).toBe(5);
   });
 
+  it("maps ValidationError to exit code 6", () => {
+    expect(exitCodeForError(new ValidationError("skin-not-owned"))).toBe(6);
+  });
+
   it("maps ForbiddenHostError and generic errors to exit code 1", () => {
     expect(exitCodeForError(new ForbiddenHostError("evil.com"))).toBe(1);
     expect(exitCodeForError(new Error("Something went wrong"))).toBe(1);
     expect(exitCodeForError("String error")).toBe(1);
+  });
+
+  it("formats ValidationError with reason and details", () => {
+    const formatted = formatError(
+      new ValidationError("skin-not-owned", "Skin is not owned", { skin: "abc" }),
+    );
+    expect(formatted).toEqual({
+      error: {
+        code: "VALIDATION",
+        reason: "skin-not-owned",
+        message: "Skin is not owned",
+        details: { skin: "abc" },
+      },
+    });
   });
 
   it("formats errors matching { error: { code, message } }", () => {
