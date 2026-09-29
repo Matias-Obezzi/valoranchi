@@ -474,4 +474,190 @@ describe("CLI write commands and dry-run", () => {
       vi.restoreAllMocks();
     }
   });
+
+  it("handles party write commands with dry-run and --yes", async () => {
+    let output = "";
+    const originalStdout = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    const valInviteSpy = vi
+      .spyOn(RiotClient.prototype, "validateInvite")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/invites/name/Bob/tag/1" });
+    const inviteSpy = vi.spyOn(RiotClient.prototype, "invite").mockResolvedValue({} as never);
+
+    const valKickSpy = vi
+      .spyOn(RiotClient.prototype, "validateKick")
+      .mockResolvedValue({ method: "DELETE", path: "/parties/v1/parties/p1/members/target" });
+    const kickSpy = vi.spyOn(RiotClient.prototype, "kick").mockResolvedValue({} as never);
+
+    const valPromoteSpy = vi
+      .spyOn(RiotClient.prototype, "validatePromote")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/members/target/owner" });
+    const promoteSpy = vi.spyOn(RiotClient.prototype, "promote").mockResolvedValue({} as never);
+
+    const valCreateCodeSpy = vi
+      .spyOn(RiotClient.prototype, "validateCreateInviteCode")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/invitecode" });
+    const createCodeSpy = vi.spyOn(RiotClient.prototype, "createInviteCode").mockResolvedValue({} as never);
+
+    const valRevokeCodeSpy = vi
+      .spyOn(RiotClient.prototype, "validateRevokeInviteCode")
+      .mockResolvedValue({ method: "DELETE", path: "/parties/v1/parties/p1/invitecode" });
+    const revokeCodeSpy = vi.spyOn(RiotClient.prototype, "revokeInviteCode").mockResolvedValue({} as never);
+
+    const valJoinSpy = vi
+      .spyOn(RiotClient.prototype, "validateJoinByCode")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/players/joinbycode/CODE1" });
+    const joinSpy = vi.spyOn(RiotClient.prototype, "joinByCode").mockResolvedValue({} as never);
+
+    const valReadySpy = vi
+      .spyOn(RiotClient.prototype, "validateSetReady")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/members/self/setReady", body: { ready: true } });
+    const readySpy = vi.spyOn(RiotClient.prototype, "setReady").mockResolvedValue({} as never);
+
+    const valQueueSpy = vi
+      .spyOn(RiotClient.prototype, "validateSetQueue")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/queue", body: { queueID: "competitive" } });
+    const queueSpy = vi.spyOn(RiotClient.prototype, "setQueue").mockResolvedValue({} as never);
+
+    const valAccessSpy = vi
+      .spyOn(RiotClient.prototype, "validateSetAccessibility")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/accessibility", body: { accessibility: "OPEN" } });
+    const accessSpy = vi.spyOn(RiotClient.prototype, "setAccessibility").mockResolvedValue({} as never);
+
+    const valStartSpy = vi
+      .spyOn(RiotClient.prototype, "validateStartMatchmaking")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/join" });
+    const startSpy = vi.spyOn(RiotClient.prototype, "startMatchmaking").mockResolvedValue({} as never);
+
+    const valStopSpy = vi
+      .spyOn(RiotClient.prototype, "validateStopMatchmaking")
+      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/leave" });
+    const stopSpy = vi.spyOn(RiotClient.prototype, "stopMatchmaking").mockResolvedValue({} as never);
+
+    const valLeaveSpy = vi
+      .spyOn(RiotClient.prototype, "validateLeave")
+      .mockResolvedValue({ method: "DELETE", path: "/parties/v1/players/self" });
+    const leaveSpy = vi.spyOn(RiotClient.prototype, "leave").mockResolvedValue({} as never);
+
+    try {
+      expect(await runCli(["party-invite", "Bob#1"])).toBe(0);
+      expect(valInviteSpy).toHaveBeenCalledWith("Bob#1");
+      expect(inviteSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-kick", "target-puuid"])).toBe(0);
+      expect(valKickSpy).toHaveBeenCalledWith("target-puuid");
+      expect(kickSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-promote", "target-puuid"])).toBe(0);
+      expect(valPromoteSpy).toHaveBeenCalledWith("target-puuid");
+      expect(promoteSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-code"])).toBe(0);
+      expect(valCreateCodeSpy).toHaveBeenCalledTimes(1);
+      expect(createCodeSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-code", "--revoke"])).toBe(0);
+      expect(valRevokeCodeSpy).toHaveBeenCalledTimes(1);
+      expect(revokeCodeSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-join", "CODE1"])).toBe(0);
+      expect(valJoinSpy).toHaveBeenCalledWith("CODE1");
+      expect(joinSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-ready", "on"])).toBe(0);
+      expect(valReadySpy).toHaveBeenCalledWith(true);
+      expect(readySpy).not.toHaveBeenCalled();
+
+      output = "";
+      expect(await runCli(["party-queue", "competitive"])).toBe(0);
+      expect(valQueueSpy).toHaveBeenCalledWith("competitive");
+      expect(queueSpy).not.toHaveBeenCalled();
+      expect(JSON.parse(output.trim())).toEqual({
+        method: "POST",
+        path: "/parties/v1/parties/p1/queue",
+        body: { queueID: "competitive" },
+      });
+
+      expect(await runCli(["party-access", "open"])).toBe(0);
+      expect(valAccessSpy).toHaveBeenCalledWith("open");
+      expect(accessSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-start"])).toBe(0);
+      expect(valStartSpy).toHaveBeenCalledTimes(1);
+      expect(startSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-stop"])).toBe(0);
+      expect(valStopSpy).toHaveBeenCalledTimes(1);
+      expect(stopSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-leave"])).toBe(0);
+      expect(valLeaveSpy).toHaveBeenCalledTimes(1);
+      expect(leaveSpy).not.toHaveBeenCalled();
+
+      // Executing with --yes
+      expect(await runCli(["party-invite", "Bob#1", "--yes"])).toBe(0);
+      expect(inviteSpy).toHaveBeenCalledWith("Bob#1");
+
+      expect(await runCli(["party-kick", "target-puuid", "--yes"])).toBe(0);
+      expect(kickSpy).toHaveBeenCalledWith("target-puuid");
+
+      expect(await runCli(["party-promote", "target-puuid", "--yes"])).toBe(0);
+      expect(promoteSpy).toHaveBeenCalledWith("target-puuid");
+
+      expect(await runCli(["party-code", "--yes"])).toBe(0);
+      expect(createCodeSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["party-code", "--revoke", "--yes"])).toBe(0);
+      expect(revokeCodeSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["party-join", "CODE1", "--yes"])).toBe(0);
+      expect(joinSpy).toHaveBeenCalledWith("CODE1");
+
+      expect(await runCli(["party-ready", "off", "--yes"])).toBe(0);
+      expect(readySpy).toHaveBeenCalledWith(false);
+
+      expect(await runCli(["party-queue", "competitive", "--yes"])).toBe(0);
+      expect(queueSpy).toHaveBeenCalledWith("competitive");
+
+      expect(await runCli(["party-access", "closed", "--yes"])).toBe(0);
+      expect(accessSpy).toHaveBeenCalledWith("closed");
+
+      expect(await runCli(["party-start", "--yes"])).toBe(0);
+      expect(startSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["party-stop", "--yes"])).toBe(0);
+      expect(stopSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["party-leave", "--yes"])).toBe(0);
+      expect(leaveSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("fails with exit code 6 when missing required arguments for party commands", async () => {
+    const originalStderr = process.stderr.write;
+    process.stderr.write = (() => true) as typeof process.stderr.write;
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    try {
+      expect(await runCli(["party-invite"])).toBe(6);
+      expect(await runCli(["party-kick"])).toBe(6);
+      expect(await runCli(["party-promote"])).toBe(6);
+      expect(await runCli(["party-join"])).toBe(6);
+      expect(await runCli(["party-ready"])).toBe(6);
+      expect(await runCli(["party-queue"])).toBe(6);
+      expect(await runCli(["party-access"])).toBe(6);
+    } finally {
+      process.stderr.write = originalStderr;
+      vi.restoreAllMocks();
+    }
+  });
 });

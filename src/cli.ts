@@ -35,9 +35,21 @@ Write Commands (dry-run by default, add --yes to execute):
   unblock          Unblock player (<puuid>)
   equip            Equip skins, buddies, sprays, card, title, border, flex
   equip-collection Equip a collection of skins (<skinUuid,...>)
+  party-invite     Invite player to party (<name#tag>)
+  party-kick       Kick member from party (<puuid>)
+  party-promote    Promote member to party owner (<puuid>)
+  party-code       Generate or revoke party invite code [--revoke]
+  party-join       Join party by invite code (<code>)
+  party-ready      Set party ready state (on|off)
+  party-queue      Change party queue (<queue>)
+  party-access     Set party accessibility (open|closed)
+  party-start      Start party matchmaking
+  party-stop       Stop party matchmaking
+  party-leave      Leave current party
 
 Options:
   --yes              Execute write command (default is dry-run)
+  --revoke           Revoke party invite code (used with party-code)
   --to <target>      Message recipient (puuid, name#tag, or cid)
   --text <msg>       Message text
   --gun <spec>       Gun to equip: <weapon>=<skin>[:level[:chroma]] (repeatable)
@@ -444,6 +456,75 @@ async function executeWriteCommand(
   }
 }
 
+function requirePositional(pos: string[], index: number, usage: string): string {
+  const val = pos[index];
+  if (!val) throw new ValidationError("invalid-argument", usage);
+  return val;
+}
+
+async function executePartyCommand(
+  client: RiotClient,
+  command: string,
+  options?: CliCommandOptions,
+): Promise<unknown> {
+  const yes = Boolean(options?.yes);
+  const pos = options?.positionals ?? [];
+  const vals = options?.rawValues ?? {};
+
+  switch (command) {
+    case "party-invite": {
+      const riotId = requirePositional(pos, 1, "Usage: riotclient party-invite <name#tag>");
+      return yes ? client.invite(riotId) : client.validateInvite(riotId);
+    }
+    case "party-kick": {
+      const puuid = requirePositional(pos, 1, "Usage: riotclient party-kick <puuid>");
+      return yes ? client.kick(puuid) : client.validateKick(puuid);
+    }
+    case "party-promote": {
+      const puuid = requirePositional(pos, 1, "Usage: riotclient party-promote <puuid>");
+      return yes ? client.promote(puuid) : client.validatePromote(puuid);
+    }
+    case "party-code":
+      return vals.revoke
+        ? (yes ? client.revokeInviteCode() : client.validateRevokeInviteCode())
+        : (yes ? client.createInviteCode() : client.validateCreateInviteCode());
+    case "party-join": {
+      const code = requirePositional(pos, 1, "Usage: riotclient party-join <code>");
+      return yes ? client.joinByCode(code) : client.validateJoinByCode(code);
+    }
+    case "party-ready": {
+      const ready = parseBooleanFlag(
+        "ready",
+        requirePositional(pos, 1, "Usage: riotclient party-ready on|off"),
+      );
+      return yes ? client.setReady(Boolean(ready)) : client.validateSetReady(Boolean(ready));
+    }
+    case "party-queue": {
+      const queue = requirePositional(pos, 1, "Usage: riotclient party-queue <queue>");
+      return yes ? client.setQueue(queue) : client.validateSetQueue(queue);
+    }
+    case "party-access": {
+      const access = requirePositional(
+        pos,
+        1,
+        "Usage: riotclient party-access open|closed",
+      ).toLowerCase();
+      if (access !== "open" && access !== "closed") {
+        throw new ValidationError("invalid-argument", "Usage: riotclient party-access open|closed");
+      }
+      return yes ? client.setAccessibility(access) : client.validateSetAccessibility(access);
+    }
+    case "party-start":
+      return yes ? client.startMatchmaking() : client.validateStartMatchmaking();
+    case "party-stop":
+      return yes ? client.stopMatchmaking() : client.validateStopMatchmaking();
+    case "party-leave":
+      return yes ? client.leave() : client.validateLeave();
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
 async function executeCommand(
   client: RiotClient,
   command: string,
@@ -453,6 +534,8 @@ async function executeCommand(
   if (std !== UNKNOWN_COMMAND) return std;
   const game = await executeGameCommand(client, command, options);
   if (game !== UNKNOWN_COMMAND) return game;
+  const party = await executePartyCommand(client, command, options);
+  if (party !== UNKNOWN_COMMAND) return party;
   return executeWriteCommand(client, command, options);
 }
 
@@ -474,6 +557,7 @@ export async function runCli(args: string[]): Promise<number> {
       help: { type: "boolean", default: false },
       version: { type: "boolean", default: false },
       yes: { type: "boolean", default: false },
+      revoke: { type: "boolean", default: false },
       to: { type: "string" },
       text: { type: "string" },
       gun: { type: "string", multiple: true },
