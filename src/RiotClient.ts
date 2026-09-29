@@ -6,10 +6,12 @@ import { LoadoutBuilder } from "./collection/LoadoutBuilder.js";
 import { MessagesBuilder } from "./collection/MessagesBuilder.js";
 import { StoreBuilder } from "./collection/StoreBuilder.js";
 import { RiotClientNotRunningError } from "./errors.js";
+import { RiotEvents, toFriendRequest } from "./events/RiotEvents.js";
 import { ChatApi } from "./local/ChatApi.js";
 import { defaultLockfilePath, readLockfile } from "./local/Lockfile.js";
 import { resolveRegion } from "./local/RegionResolver.js";
 import { RiotClientLocalApi } from "./local/RiotClientLocalApi.js";
+import { RiotSocket } from "./local/RiotSocket.js";
 import type {
   BlockedPlayer,
   Conversation,
@@ -64,6 +66,7 @@ export class RiotClient {
   private cachedSession: CachedSession | null = null;
   private inFlightSession: Promise<Session> | null = null;
   private cachedLocalApi: CachedLocalApi | null = null;
+  private cachedEvents: RiotEvents | null = null;
 
   constructor(options: RiotClientOptions = {}) {
     this.language = options.language ?? "en-US";
@@ -79,10 +82,58 @@ export class RiotClient {
   }
 
   async close(): Promise<void> {
+    if (this.cachedEvents) {
+      this.cachedEvents.stop();
+      this.cachedEvents = null;
+    }
     if (this.cachedLocalApi) {
       const api = this.cachedLocalApi.api;
       this.cachedLocalApi = null;
       await api.close();
+    }
+  }
+
+  events(): RiotEvents {
+    if (this.cachedEvents) {
+      return this.cachedEvents;
+    }
+
+    const socket = new RiotSocket(() => {
+      const lockfile = readLockfile(this.lockfilePath);
+      return lockfile ? { port: lockfile.port, password: lockfile.password } : null;
+    });
+
+    const dynamicLocalApi = {
+      get: <T>(path: string) => {
+        try {
+          return this.getLocalApi().get<T>(path);
+        } catch {
+          return Promise.resolve(null);
+        }
+      },
+    } as unknown as RiotClientLocalApi;
+
+    const chatApi = new ChatApi(dynamicLocalApi);
+    const catalogueLoader = () => this.valorantApi.getCatalogue(this.language);
+    const puuidResolver = () => this.resolveEventPuuid(chatApi);
+
+    this.cachedEvents = new RiotEvents(socket, chatApi, catalogueLoader, puuidResolver);
+    this.cachedEvents.start();
+    return this.cachedEvents;
+  }
+
+  private async resolveEventPuuid(chatApi: ChatApi): Promise<string | null> {
+    try {
+      const session = await chatApi.session();
+      if (session?.puuid) return session.puuid;
+    } catch {
+      // ignore session error
+    }
+    try {
+      const session = await this.getSession();
+      return session.puuid;
+    } catch {
+      return null;
     }
   }
 
@@ -151,12 +202,7 @@ export class RiotClient {
   async friendRequests(): Promise<FriendRequest[]> {
     const localApi = this.getLocalApi();
     const rawRequests = await new ChatApi(localApi).friendRequests();
-    return rawRequests.map((r) => ({
-      puuid: r.puuid,
-      gameName: r.game_name,
-      tagLine: r.game_tag,
-      direction: r.subscription === "pending_in" ? "incoming" : "outgoing",
-    }));
+    return rawRequests.map(toFriendRequest);
   }
 
   async blocked(): Promise<BlockedPlayer[]> {

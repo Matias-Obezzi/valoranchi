@@ -313,4 +313,17 @@ describe("RiotClient facade", () => {
 
     fs.rmSync(tempDir, { recursive: true, force: true });
   });
+
+  it("creates and caches RiotEvents without throwing when lockfile is absent", async () => {
+    const client = new RiotClient({
+      lockfilePath: "non-existent-path/lockfile",
+    });
+
+    const events1 = client.events();
+    expect(events1).toBeDefined();
+    const events2 = client.events();
+    expect(events2).toBe(events1);
+
+    await client.close();
+  });
 });
