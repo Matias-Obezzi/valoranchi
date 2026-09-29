@@ -144,6 +144,26 @@ export class RiotApi {
     return this.gateway.get(url, this.session.headers());
   }
 
+  async selectAgent(matchId: string, agentUuid: string): Promise<RiotPregameMatchResponse> {
+    const url = `${this.session.endpoints.glz}/pregame/v1/matches/${encodeURIComponent(matchId)}/select/${encodeURIComponent(agentUuid)}`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async lockAgent(matchId: string, agentUuid: string): Promise<RiotPregameMatchResponse> {
+    const url = `${this.session.endpoints.glz}/pregame/v1/matches/${encodeURIComponent(matchId)}/lock/${encodeURIComponent(agentUuid)}`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async quitPregameMatch(matchId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/pregame/v1/matches/${encodeURIComponent(matchId)}/quit`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async pregameLoadouts(matchId: string): Promise<RiotCoreGameLoadoutsResponse> {
+    const url = `${this.session.endpoints.glz}/pregame/v1/matches/${encodeURIComponent(matchId)}/loadouts`;
+    return this.gateway.get(url, this.session.headers());
+  }
+
   async coreGamePlayer(): Promise<RiotCoreGamePlayerResponse | null> {
     const url = `${this.session.endpoints.glz}/core-game/v1/players/${this.session.puuid}`;
     return this.gateway.getOrNull(url, this.session.headers());
@@ -157,6 +177,11 @@ export class RiotApi {
   async coreGameLoadouts(id: string): Promise<RiotCoreGameLoadoutsResponse> {
     const url = `${this.session.endpoints.glz}/core-game/v1/matches/${id}/loadouts`;
     return this.gateway.get(url, this.session.headers());
+  }
+
+  async disassociatePlayer(matchId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/core-game/v1/players/${encodeURIComponent(puuid)}/disassociate/${encodeURIComponent(matchId)}`;
+    return this.gateway.post(url, undefined, this.session.headers());
   }
 
   async partyPlayer(): Promise<RiotPartyPlayerResponse | null> {
@@ -227,6 +252,85 @@ export class RiotApi {
   async leaveParty(puuid: string): Promise<unknown> {
     const url = `${this.session.endpoints.glz}/parties/v1/players/${encodeURIComponent(puuid)}`;
     return this.gateway.delete(url, this.session.headers());
+  }
+
+  async joinParty(partyId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/players/${encodeURIComponent(puuid)}/joinparty/${encodeURIComponent(partyId)}`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async declinePartyInvite(partyId: string, inviteId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/invites/decline`;
+    return this.gateway.post(url, { InviteID: inviteId }, this.session.headers());
+  }
+
+  async requestPartyJoin(partyId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/request`;
+    return this.gateway.post(url, { Subjects: [puuid] }, this.session.headers());
+  }
+
+  async declinePartyRequest(partyId: string, requestId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/request/${encodeURIComponent(requestId)}/decline`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async makePartyCustomGame(partyId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/makecustomgame`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async makePartyDefault(partyId: string, queue: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/makedefault?queueID=${encodeURIComponent(queue)}`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async setPartyCustomGameSettings(partyId: string, settings: unknown): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/customgamesettings`;
+    return this.gateway.post(url, settings, this.session.headers());
+  }
+
+  async setPartyCustomGameTeam(partyId: string, team: string, puuid: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/customgamemembership/${encodeURIComponent(team)}`;
+    return this.gateway.post(url, { playerToPutOnTeam: puuid }, this.session.headers());
+  }
+
+  async startPartyCustomGame(partyId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/startcustomgame`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async balancePartyTeams(partyId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/balance`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async setPreferredGamePods(partyId: string, gamePodIds: string[]): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/preferredgamepods`;
+    return this.gateway.post(url, { GamePodIDs: gamePodIds }, this.session.headers());
+  }
+
+  async setPlayerModeratorStatus(
+    partyId: string,
+    puuid: string,
+    isModerator: boolean,
+  ): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/setplayermoderatorstatus`;
+    return this.gateway.post(url, { Subject: puuid, IsModerator: isModerator }, this.session.headers());
+  }
+
+  async refreshPartyPings(partyId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/members/${encodeURIComponent(puuid)}/refreshPings`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async refreshPartyCompetitiveTier(partyId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/members/${encodeURIComponent(puuid)}/refreshCompetitiveTier`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async refreshPartyPlayerIdentity(partyId: string, puuid = this.session.puuid): Promise<unknown> {
+    const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/members/${encodeURIComponent(puuid)}/refreshPlayerIdentity`;
+    return this.gateway.post(url, undefined, this.session.headers());
   }
 
   async contracts(puuid = this.session.puuid): Promise<RiotContractsResponse> {

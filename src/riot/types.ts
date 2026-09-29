@@ -477,9 +477,23 @@ export interface RiotCoreGameLoadoutsResponse {
   Loadouts: RiotCoreGameLoadoutEntry[];
 }
 
+export interface RiotPartyPlayerInvite {
+  ID: string;
+  PartyID: string;
+  RequestedBy?: string;
+  CreatedAt?: string;
+  [key: string]: unknown;
+}
+
 export interface RiotPartyPlayerResponse {
   Subject: string;
+  Version?: number;
   CurrentPartyID: string;
+  Invites?: RiotPartyPlayerInvite[] | null;
+  Requests?: unknown[] | null;
+  PlatformInfo?: unknown;
+  PingMap?: Record<string, number>;
+  [key: string]: unknown;
 }
 
 export interface RiotPartyMember {
@@ -496,6 +510,32 @@ export interface RiotPartyMember {
   IsModerator?: boolean;
 }
 
+export interface RiotPartyRequestItem {
+  ID: string;
+  RequestedBy?: string;
+  CreatedAt?: string;
+  [key: string]: unknown;
+}
+
+export interface RiotPartyCustomGameMembership {
+  TeamOne?: Array<{ Subject: string }>;
+  TeamTwo?: Array<{ Subject: string }>;
+  TeamSpectate?: Array<{ Subject: string }>;
+  TeamOneCoaches?: Array<{ Subject: string }>;
+  TeamTwoCoaches?: Array<{ Subject: string }>;
+}
+
+export interface RiotPartyCustomGameData {
+  Settings?: {
+    Map?: string;
+    Mode?: string;
+    UseBots?: boolean;
+    GamePod?: string;
+    GameRules?: Record<string, string>;
+  };
+  Membership?: RiotPartyCustomGameMembership;
+}
+
 export interface RiotPartyResponse {
   ID: string;
   State: string;
@@ -507,7 +547,8 @@ export interface RiotPartyResponse {
   QueueIneligibilities?: unknown[];
   InviteCode?: string | null;
   Invites?: unknown[] | null;
-  Requests?: unknown[] | null;
+  Requests?: RiotPartyRequestItem[] | null;
+  CustomGameData?: RiotPartyCustomGameData | null;
   RestrictedSeconds?: number;
   QueueEntryTime?: string | null;
   Members: RiotPartyMember[];

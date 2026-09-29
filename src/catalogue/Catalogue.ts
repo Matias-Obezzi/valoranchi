@@ -178,6 +178,16 @@ export class Catalogue {
     return this.agentsByUuid.get(uuid.toLowerCase());
   }
 
+  findAgent(query: string): ValorantApiAgent | undefined {
+    const q = query.trim().toLowerCase();
+    const byUuid = this.agentsByUuid.get(q);
+    if (byUuid) return byUuid;
+    for (const agent of this.agentsByUuid.values()) {
+      if (agent.displayName.toLowerCase() === q) return agent;
+    }
+    return undefined;
+  }
+
   getTier(uuid: string): ValorantApiContentTier | undefined {
     return this.tiersByUuid.get(uuid.toLowerCase());
   }
@@ -192,6 +202,16 @@ export class Catalogue {
 
   getMapByPath(path: string): ValorantApiMap | undefined {
     return this.mapsByPath.get(path.toLowerCase());
+  }
+
+  findMap(query: string): ValorantApiMap | undefined {
+    const q = query.trim().toLowerCase();
+    const byPath = this.mapsByPath.get(q);
+    if (byPath) return byPath;
+    for (const map of this.mapsByPath.values()) {
+      if (map.displayName.toLowerCase() === q || map.uuid.toLowerCase() === q) return map;
+    }
+    return undefined;
   }
 
   getTierByNumber(tier: number): ValorantApiTier | undefined {
