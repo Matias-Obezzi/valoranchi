@@ -63,4 +63,25 @@ describe("FileResponseCache", () => {
     await cache.through("custom-ttl", fetcher, { ttlMs: 10_000 });
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+
+  it("invalidates cache entries by keyPrefix using forget", async () => {
+    const cache = new FileResponseCache(60_000, dir);
+    const fetcherA = vi.fn().mockResolvedValue({ a: 1 });
+    const fetcherB = vi.fn().mockResolvedValue({ b: 2 });
+    const fetcherC = vi.fn().mockResolvedValue({ c: 3 });
+
+    await cache.through("player-1:loadout", fetcherA);
+    await cache.through("player-1:entitlements", fetcherB);
+    await cache.through("player-2:loadout", fetcherC);
+
+    cache.forget("player-1");
+
+    await cache.through("player-1:loadout", fetcherA);
+    await cache.through("player-1:entitlements", fetcherB);
+    await cache.through("player-2:loadout", fetcherC);
+
+    expect(fetcherA).toHaveBeenCalledTimes(2);
+    expect(fetcherB).toHaveBeenCalledTimes(2);
+    expect(fetcherC).toHaveBeenCalledTimes(1);
+  });
 });

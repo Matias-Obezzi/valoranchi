@@ -52,6 +52,20 @@ export class RiotApi {
     );
   }
 
+  async putLoadout(body: unknown): Promise<RiotLoadoutResponse> {
+    const url = `${this.session.endpoints.pd}/personalization/v3/players/${this.session.puuid}/playerloadout`;
+    return this.gateway.put<RiotLoadoutResponse>(url, body, this.session.headers());
+  }
+
+  invalidateLoadout(): void {
+    if (this.cache) {
+      const loadoutUrl = `${this.session.endpoints.pd}/personalization/v3/players/${this.session.puuid}/playerloadout`;
+      const entitlementsUrl = `${this.session.endpoints.pd}/store/v1/entitlements/${this.session.puuid}`;
+      this.cache.forget(`${this.session.puuid} GET ${loadoutUrl}`);
+      this.cache.forget(`${this.session.puuid} GET ${entitlementsUrl}`);
+    }
+  }
+
   async accountXp(): Promise<RiotAccountXpResponse> {
     return this.get(`${this.session.endpoints.pd}/account-xp/v1/players/${this.session.puuid}`);
   }

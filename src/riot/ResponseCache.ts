@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 
 interface Entry<T> {
+  key?: string;
   at: number;
   value: T;
 }
@@ -42,6 +43,27 @@ export class FileResponseCache {
     return value;
   }
 
+  forget(keyPrefix: string): void {
+    try {
+      if (!fs.existsSync(this.dir)) return;
+      const files = fs.readdirSync(this.dir);
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        const fullPath = path.join(this.dir, file);
+        try {
+          const content = JSON.parse(fs.readFileSync(fullPath, "utf-8")) as Partial<Entry<unknown>>;
+          if (content.key && content.key.startsWith(keyPrefix)) {
+            fs.unlinkSync(fullPath);
+          }
+        } catch {
+          // ignore corrupted or unreadable cache file
+        }
+      }
+    } catch {
+      return;
+    }
+  }
+
   private read<T>(key: string, ttlMs: number = this.ttlMs): T | undefined {
     try {
       const entry = JSON.parse(fs.readFileSync(this.fileFor(key), "utf-8")) as Entry<T>;
@@ -55,7 +77,7 @@ export class FileResponseCache {
     try {
       fs.mkdirSync(this.dir, { recursive: true });
       const file = this.fileFor(key);
-      fs.writeFileSync(`${file}.tmp`, JSON.stringify({ at: this.now(), value }));
+      fs.writeFileSync(`${file}.tmp`, JSON.stringify({ key, at: this.now(), value }));
       fs.renameSync(`${file}.tmp`, file);
     } catch {
       return;
