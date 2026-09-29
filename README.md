@@ -81,6 +81,30 @@ console.log(live);
 const party = await client.party.current();
 console.log(party);
 
+// 15. Progression and account data
+const xp = await client.account.xp();
+const contracts = await client.account.contracts();
+const missions = await client.account.missions();
+const penalties = await client.account.penalties();
+const favourites = await client.account.favourites();
+const session = await client.account.session();
+const config = await client.account.config();
+
+// 16. Store catalog and orders
+const offers = await client.store.offers();
+
+// 17. Matches for other players & competitive leaderboard
+const otherMatches = await client.matches.listFor(puuid, { count: 5 });
+const otherMmr = await client.matches.mmrFor(puuid);
+const otherRankHistory = await client.matches.rankHistoryFor(puuid);
+const leaderboard = await client.matches.leaderboard({ size: 10 });
+const content = await client.matches.content();
+const premier = await client.matches.premier();
+
+// 18. Matchmaking queues and custom game configs
+const queues = await client.party.queues();
+const customGameConfigs = await client.party.customGameConfigs();
+
 // Close the local loopback client agent when finished
 await client.close();
 ```
@@ -150,18 +174,34 @@ riotclient whoami
 riotclient owned-items --language en-US --pretty
 riotclient loadout
 riotclient wallet
+riotclient xp
+riotclient contracts
+riotclient missions
+riotclient penalties
+riotclient favourites
+riotclient session
+riotclient config
 riotclient friends
 riotclient friend-requests
 riotclient blocked
 riotclient conversations
 riotclient messages --cid <conversation-id>
 riotclient store --pretty
+riotclient offers
+riotclient order <order-id>
 riotclient matches --count 5
 riotclient match <match-id>
+riotclient matches-for <puuid>
 riotclient mmr --pretty
+riotclient mmr-for <puuid>
 riotclient rank-history --count 5
-riotclient live --ranks
+riotclient rank-history-for <puuid>
+riotclient leaderboard --size 10
+riotclient content
+riotclient premier
 riotclient party
+riotclient queues
+riotclient custom-game-configs
 riotclient watch
 ```
 
@@ -311,8 +351,16 @@ All writes are validated locally against your inventory and catalogue before any
 
 ### Available Methods
 
+#### Account Writes
 - `client.account.equip(change: LoadoutChange): Promise<Loadout>`: Update equipped skins, skin levels, chromas, buddies, sprays, player card, title, level border, and incognito status.
 - `client.account.equipCollection(skinUuids: string[]): Promise<Loadout>`: Equip a list of skin UUIDs (one per weapon) at their highest owned level and base chroma.
+- `client.account.activateContract(contractId: string): Promise<ContractProgress[]>`: Activate an agent contract.
+- `client.account.addFavourite(skinUuid: string): Promise<Favourite[]>`: Add weapon skin to favourites.
+- `client.account.removeFavourite(skinUuid: string): Promise<Favourite[]>`: Remove weapon skin from favourites.
+- `client.account.setActRankBadgeHidden(hidden: boolean): Promise<PlayerPrivacy>`: Hide or reveal act rank badge.
+- `client.account.setLeaderboardAnonymized(anonymized: boolean): Promise<PlayerPrivacy>`: Anonymize or reveal leaderboard presence.
+
+#### Social Writes
 - `client.social.sendMessage(to, text): Promise<Message>`: Send a whisper or room message (target can be `{ puuid }`, `{ conversationId }`, or `{ riotId }`).
 - `client.social.sendFriendRequest(riotId): Promise<FriendRequest[]>`: Send a friend request by `Name#Tag`.
 - `client.social.acceptFriendRequest(puuid): Promise<Friend[]>`: Accept an incoming friend request.
@@ -321,6 +369,16 @@ All writes are validated locally against your inventory and catalogue before any
 - `client.social.removeFriend(puuid): Promise<Friend[]>`: Remove a friend.
 - `client.social.blockPlayer(target): Promise<BlockedPlayer[]>`: Block a player by PUUID or `Name#Tag`.
 - `client.social.unblockPlayer(puuid): Promise<BlockedPlayer[]>`: Unblock a player.
+
+> **Note on social player lookup**: Arbitrary player lookup by `Name#Tag` (`social.lookup`) is not supported because Riot's player-data (`pd`) service does not offer an endpoint for resolving Riot IDs without mutual friend presence or match history; this was intentionally omitted.
+
+#### Store Writes
+- `client.store.revealNightMarket(): Promise<Storefront>`: Reveal night market offers.
+- `client.store.buy(target: { offerId: string } | { bundleId: string }, options: { confirm: boolean }): Promise<Order>`: Purchase a store offer or bundle.
+
+> **WARNING: Purchasing spends real money or in-game currency (VP, Radianite, Kingdom Credits). All purchases require explicit confirmation: `{ confirm: true }` in code, or both `--yes` and `--confirm` in the CLI.**
+
+#### Party Writes
 - `client.party.invite(riotId): Promise<Party>`: Invite a player to the party by `Name#Tag`.
 - `client.party.kick(puuid): Promise<Party>`: Remove a member from the party (owner only).
 - `client.party.promote(puuid): Promise<Party>`: Transfer party ownership to another member.
@@ -333,6 +391,21 @@ All writes are validated locally against your inventory and catalogue before any
 - `client.party.startMatchmaking(): Promise<Party>`: Enter matchmaking queue (requires all members ready and idle party).
 - `client.party.stopMatchmaking(): Promise<Party>`: Cancel matchmaking queue.
 - `client.party.leave(): Promise<Party>`: Leave your current party.
+
+### Account Validation Rules
+- `contract-not-agent`: Thrown when attempting to activate a contract that is not an agent contract (e.g. battlepass, event).
+- `agent-owned`: Thrown when activating a contract for an agent that is already unlocked.
+- `contract-active`: Thrown when activating a contract that is already active.
+- `not-favourite`: Thrown when removing a favourite that is not favorited.
+- `already-favourite`: Thrown when adding a favourite that is already favorited.
+
+### Store Validation Rules
+- `offer-not-in-store`: Thrown when purchasing an item/bundle not currently available in daily rotation, night market, or featured bundles.
+- `already-owned`: Thrown when purchasing an item that is already owned.
+- `insufficient-funds`: Thrown when account balance is lower than the offer cost.
+- `confirm-required`: Thrown when purchasing without explicit confirmation (`--confirm`).
+- `night-market-missing`: Thrown when revealing night market offers when no night market is active.
+- `night-market-revealed`: Thrown when all night market offers are already revealed.
 
 ### Party Validation Rules
 
@@ -365,6 +438,12 @@ riotclient equip --card 0819fbcd-4bd4-c379-5384-52803440f2b2
 
 # Execute the write
 riotclient equip --card 0819fbcd-4bd4-c379-5384-52803440f2b2 --yes
+
+# Store dry run: validates availability, ownership, and funds, printing purchase details
+riotclient buy --offer 4324a482-47da-4521-b3b0-4dbfcfefd779
+
+# Execute purchase (requires BOTH --yes and --confirm)
+riotclient buy --offer 4324a482-47da-4521-b3b0-4dbfcfefd779 --yes --confirm
 ```
 
 If validation fails, the command exits with code `6` and writes the validation error to stderr:
@@ -440,10 +519,9 @@ Access tokens and entitlements JWTs are strictly scoped. They may only ever be s
 
 ## What It Does Not Do
 
-- No store purchases, radianite upgrades, or transactional operations
-- No automation, bots, or match orchestration
-- No custom games, tournaments, or premier orchestration
-- No telemetry or credential logging
+- No automated gameplay, bots, or match orchestration
+- No background telemetry or credential logging
+- No unconfirmed store purchases (all purchases require explicit dual confirmation)
 
 ## Disclaimer
 

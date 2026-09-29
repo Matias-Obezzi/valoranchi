@@ -5,26 +5,31 @@ import { RiotClient, type LoadoutChange, type LoadoutGunChange } from "./RiotCli
 
 export const USAGE = `Usage: riotclient <command> [options]
 
-Commands:
+Account:
   whoami           Print signed-in player profile and region
   owned-items      Print owned inventory items
   loadout          Print currently equipped loadout
   wallet           Print VP, Radianite, and Kingdom Credits balances
+  xp               Print account level, XP progression and recent match XP history
+  contracts        Print progression across agent, battlepass and event contracts
+  missions         Print active daily and weekly missions and objectives
+  penalties        Print active penalties and restrictions
+  favourites       Print favorited weapon skins
+  session          Print current client session loop state and playtime
+  config           Print shared client configuration mapping
+  equip            Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply)
+  equip-collection Equip a collection of skins (<skinUuid,...>) (dry-run, --yes to apply)
+  contract-activate Activate an agent contract (<uuid>) (dry-run, --yes to apply)
+  favourite-add    Add skin to favourites (<skin>) (dry-run, --yes to apply)
+  favourite-remove Remove skin from favourites (<skin>) (dry-run, --yes to apply)
+  privacy          Update account privacy toggles (--badge on|off, --leaderboard on|off)
+
+Social:
   friends          Print friends roster and presence
   friend-requests  Print incoming and outgoing friend requests
   blocked          Print blocked players
   conversations    Print whisper and match chat conversations
   messages         Print chat messages (filter with --cid <id>)
-  store            Print daily, night market, bundle, and accessory offers
-  matches          Print recent match history summaries
-  match <id>       Print full match details by ID
-  mmr              Print current rank, rating, and MMR breakdown
-  rank-history     Print competitive rating adjustments and tier changes
-  live             Print live pregame or in-game lobby status and loadouts
-  party            Print current party details and members
-  watch            Stream real-time events as JSON lines until interrupted
-
-Write Commands (dry-run by default, add --yes to execute):
   send             Send chat message (--to <puuid|name#tag|cid> --text <msg>)
   friend-request   Send friend request (<name#tag>)
   friend-accept    Accept friend request (<puuid>)
@@ -33,8 +38,31 @@ Write Commands (dry-run by default, add --yes to execute):
   friend-remove    Remove friend (<puuid>)
   block            Block player (<puuid|name#tag>)
   unblock          Unblock player (<puuid>)
-  equip            Equip skins, buddies, sprays, card, title, border, flex
-  equip-collection Equip a collection of skins (<skinUuid,...>)
+
+Store:
+  store            Print storefront (daily, night market, bundles, accessories)
+  offers           Print full item offers catalog and pricing
+  order <id>       Print store order details
+  night-market-reveal Reveal night market offers (dry-run, --yes to apply)
+  buy              Purchase offer or bundle (--offer <id> | --bundle <id>, requires --yes --confirm)
+
+Matches:
+  matches          Print recent match history summaries
+  match <id>       Print full match details by ID
+  mmr              Print current rank, rating, and MMR breakdown
+  rank-history     Print competitive rating adjustments and tier changes
+  live             Print live pregame or in-game lobby status and loadouts
+  matches-for <puuid> Print recent match history summaries for player
+  mmr-for <puuid>  Print rank, rating, and MMR for player
+  rank-history-for <puuid> Print competitive updates for player
+  leaderboard      Print competitive leaderboard [--season] [--start] [--size] [--query]
+  content          Print active act, episode and live events
+  premier          Print premier eligibility, roster, and season info
+
+Party:
+  party            Print current party details and members
+  queues           Print matchmaking queue configurations
+  custom-game-configs Print custom game configuration options
   party-invite     Invite player to party (<name#tag>)
   party-kick       Kick member from party (<puuid>)
   party-promote    Promote member to party owner (<puuid>)
@@ -47,8 +75,20 @@ Write Commands (dry-run by default, add --yes to execute):
   party-stop       Stop party matchmaking
   party-leave      Leave current party
 
+Events:
+  watch            Stream real-time events as JSON lines until interrupted
+
 Options:
   --yes              Execute write command (default is dry-run)
+  --confirm          Confirm purchase (required with buy --yes)
+  --offer <id>       Store offer ID to purchase
+  --bundle <id>      Store bundle ID to purchase
+  --badge <on|off>   Hide or show act rank badge
+  --leaderboard <on|off> Anonymize or reveal leaderboard presence
+  --season <uuid>    Season ID for leaderboard
+  --start <n>        Leaderboard starting index
+  --size <n>         Leaderboard page size (max 510)
+  --query <text>     Leaderboard player search query
   --revoke           Revoke party invite code (used with party-code)
   --to <target>      Message recipient (puuid, name#tag, or cid)
   --text <msg>       Message text
@@ -74,6 +114,7 @@ Options:
   --help             Show usage instructions
   --version          Show version number
 `;
+
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
@@ -311,11 +352,18 @@ function parseEquipChange(values: Record<string, unknown>): LoadoutChange {
   };
 }
 
+function requirePositional(pos: string[], index: number, usage: string): string {
+  const val = pos[index];
+  if (!val) throw new ValidationError("invalid-argument", usage);
+  return val;
+}
+
 async function executeStandardCommand(
   client: RiotClient,
   command: string,
   options?: CliCommandOptions,
 ): Promise<unknown> {
+  const pos = options?.positionals ?? [];
   switch (command) {
     case "whoami":
       return client.account.whoami();
@@ -325,6 +373,20 @@ async function executeStandardCommand(
       return client.account.loadout();
     case "wallet":
       return client.account.wallet();
+    case "xp":
+      return client.account.xp();
+    case "contracts":
+      return client.account.contracts();
+    case "missions":
+      return client.account.missions();
+    case "penalties":
+      return client.account.penalties();
+    case "favourites":
+      return client.account.favourites();
+    case "session":
+      return client.account.session();
+    case "config":
+      return client.account.config();
     case "friends":
       return client.social.friends();
     case "friend-requests":
@@ -337,6 +399,10 @@ async function executeStandardCommand(
       return client.social.messages(options?.cid);
     case "store":
       return client.store.current({ language: options?.language });
+    case "offers":
+      return client.store.offers();
+    case "order":
+      return client.store.order(requirePositional(pos, 1, "Usage: riotclient order <id>"));
     default:
       return UNKNOWN_COMMAND;
   }
@@ -347,13 +413,13 @@ async function executeGameCommand(
   command: string,
   options?: CliCommandOptions,
 ): Promise<unknown> {
+  const pos = options?.positionals ?? [];
+  const vals = options?.rawValues ?? {};
   switch (command) {
     case "matches":
       return client.matches.list({ count: options?.count, queue: options?.queue });
     case "match":
-      if (!options?.matchId) {
-        throw new Error("Missing match ID: riotclient match <id>");
-      }
+      if (!options?.matchId) throw new Error("Missing match ID: riotclient match <id>");
       return client.matches.get(options.matchId);
     case "mmr":
       return client.matches.mmr();
@@ -361,22 +427,47 @@ async function executeGameCommand(
       return client.matches.rankHistory({ count: options?.count });
     case "live":
       return client.matches.live({ ranks: options?.ranks, loadouts: options?.loadouts });
+    case "matches-for":
+      return client.matches.listFor(
+        requirePositional(pos, 1, "Usage: riotclient matches-for <puuid>"),
+        { count: options?.count, queue: options?.queue },
+      );
+    case "mmr-for":
+      return client.matches.mmrFor(requirePositional(pos, 1, "Usage: riotclient mmr-for <puuid>"));
+    case "rank-history-for":
+      return client.matches.rankHistoryFor(
+        requirePositional(pos, 1, "Usage: riotclient rank-history-for <puuid>"),
+        { count: options?.count },
+      );
+    case "leaderboard":
+      return client.matches.leaderboard({
+        season: vals.season as string | undefined,
+        start: vals.start ? Number(vals.start) : undefined,
+        size: vals.size ? Number(vals.size) : undefined,
+        query: vals.query as string | undefined,
+      });
+    case "content":
+      return client.matches.content();
+    case "premier":
+      return client.matches.premier();
     case "party":
       return client.party.current();
+    case "queues":
+      return client.party.queues();
+    case "custom-game-configs":
+      return client.party.customGameConfigs();
     default:
       return UNKNOWN_COMMAND;
   }
 }
 
-async function executeWriteCommand(
+async function executeSocialWriteCommand(
   client: RiotClient,
   command: string,
-  options?: CliCommandOptions,
+  yes: boolean,
+  pos: string[],
+  vals: Record<string, unknown>,
 ): Promise<unknown> {
-  const yes = Boolean(options?.yes);
-  const pos = options?.positionals ?? [];
-  const vals = options?.rawValues ?? {};
-
   switch (command) {
     case "send": {
       const to = vals.to as string | undefined;
@@ -391,54 +482,73 @@ async function executeWriteCommand(
       return yes ? client.social.sendMessage(target, text) : client.social.validateSendMessage(target, text);
     }
     case "friend-request": {
-      const riotId = pos[1];
-      if (!riotId) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient friend-request <name#tag>");
-      }
+      const riotId = requirePositional(pos, 1, "Usage: riotclient friend-request <name#tag>");
       return yes ? client.social.sendFriendRequest(riotId) : client.social.validateSendFriendRequest(riotId);
     }
     case "friend-accept": {
-      const puuid = pos[1];
-      if (!puuid) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient friend-accept <puuid>");
-      }
+      const puuid = requirePositional(pos, 1, "Usage: riotclient friend-accept <puuid>");
       return yes ? client.social.acceptFriendRequest(puuid) : client.social.validateAcceptFriendRequest(puuid);
     }
     case "friend-decline": {
-      const puuid = pos[1];
-      if (!puuid) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient friend-decline <puuid>");
-      }
+      const puuid = requirePositional(pos, 1, "Usage: riotclient friend-decline <puuid>");
       return yes ? client.social.declineFriendRequest(puuid) : client.social.validateDeclineFriendRequest(puuid);
     }
     case "friend-cancel": {
-      const puuid = pos[1];
-      if (!puuid) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient friend-cancel <puuid>");
-      }
+      const puuid = requirePositional(pos, 1, "Usage: riotclient friend-cancel <puuid>");
       return yes ? client.social.cancelFriendRequest(puuid) : client.social.validateCancelFriendRequest(puuid);
     }
     case "friend-remove": {
-      const puuid = pos[1];
-      if (!puuid) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient friend-remove <puuid>");
-      }
+      const puuid = requirePositional(pos, 1, "Usage: riotclient friend-remove <puuid>");
       return yes ? client.social.removeFriend(puuid) : client.social.validateRemoveFriend(puuid);
     }
     case "block": {
-      const target = pos[1];
-      if (!target) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient block <puuid|name#tag>");
-      }
+      const target = requirePositional(pos, 1, "Usage: riotclient block <puuid|name#tag>");
       return yes ? client.social.blockPlayer(target) : client.social.validateBlockPlayer(target);
     }
     case "unblock": {
-      const puuid = pos[1];
-      if (!puuid) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient unblock <puuid>");
-      }
+      const puuid = requirePositional(pos, 1, "Usage: riotclient unblock <puuid>");
       return yes ? client.social.unblockPlayer(puuid) : client.social.validateUnblockPlayer(puuid);
     }
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
+async function executePrivacyCommand(
+  client: RiotClient,
+  yes: boolean,
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  const badgeVal = vals.badge ? parseBooleanFlag("badge", vals.badge) : undefined;
+  const lbVal = vals.leaderboard ? parseBooleanFlag("leaderboard", vals.leaderboard) : undefined;
+  if (badgeVal === undefined && lbVal === undefined) {
+    throw new ValidationError(
+      "invalid-argument",
+      "Usage: riotclient privacy [--badge on|off] [--leaderboard on|off]",
+    );
+  }
+  const result: Record<string, unknown> = {};
+  if (badgeVal !== undefined) {
+    result.badge = yes
+      ? await client.account.setActRankBadgeHidden(badgeVal)
+      : await client.account.validateSetActRankBadgeHidden(badgeVal);
+  }
+  if (lbVal !== undefined) {
+    result.leaderboard = yes
+      ? await client.account.setLeaderboardAnonymized(lbVal)
+      : await client.account.validateSetLeaderboardAnonymized(lbVal);
+  }
+  return result;
+}
+
+async function executeAccountWriteCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  switch (command) {
     case "equip": {
       const change = parseEquipChange(vals);
       return yes ? client.account.equip(change) : client.account.validateEquip(change);
@@ -451,15 +561,65 @@ async function executeWriteCommand(
       }
       return yes ? client.account.equipCollection(skinUuids) : client.account.validateEquipCollection(skinUuids);
     }
+    case "contract-activate": {
+      const uuid = requirePositional(pos, 1, "Usage: riotclient contract-activate <uuid>");
+      return yes ? client.account.activateContract(uuid) : client.account.validateActivateContract(uuid);
+    }
+    case "favourite-add": {
+      const skin = requirePositional(pos, 1, "Usage: riotclient favourite-add <skin>");
+      return yes ? client.account.addFavourite(skin) : client.account.validateAddFavourite(skin);
+    }
+    case "favourite-remove": {
+      const skin = requirePositional(pos, 1, "Usage: riotclient favourite-remove <skin>");
+      return yes ? client.account.removeFavourite(skin) : client.account.validateRemoveFavourite(skin);
+    }
+    case "privacy":
+      return executePrivacyCommand(client, yes, vals);
     default:
       return UNKNOWN_COMMAND;
   }
 }
 
-function requirePositional(pos: string[], index: number, usage: string): string {
-  const val = pos[index];
-  if (!val) throw new ValidationError("invalid-argument", usage);
-  return val;
+async function executeBuyCommand(
+  client: RiotClient,
+  yes: boolean,
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  const offer = vals.offer as string | undefined;
+  const bundle = vals.bundle as string | undefined;
+  if (!offer && !bundle) {
+    throw new ValidationError(
+      "invalid-argument",
+      "Usage: riotclient buy (--offer <id> | --bundle <id>) [--yes --confirm]",
+    );
+  }
+  const target = offer ? { offerId: offer } : { bundleId: bundle! };
+  if (!yes) {
+    return client.store.validateBuy(target, { confirm: true });
+  }
+  if (!vals.confirm) {
+    throw new ValidationError(
+      "confirm-required",
+      "Purchase confirmation required: pass --confirm with --yes",
+    );
+  }
+  return client.store.buy(target, { confirm: true });
+}
+
+async function executeStoreWriteCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  switch (command) {
+    case "night-market-reveal":
+      return yes ? client.store.revealNightMarket() : client.store.validateRevealNightMarket();
+    case "buy":
+      return executeBuyCommand(client, yes, vals);
+    default:
+      return UNKNOWN_COMMAND;
+  }
 }
 
 async function executePartyCommand(
@@ -525,6 +685,22 @@ async function executePartyCommand(
   }
 }
 
+async function executeWriteCommand(
+  client: RiotClient,
+  command: string,
+  options?: CliCommandOptions,
+): Promise<unknown> {
+  const yes = Boolean(options?.yes);
+  const pos = options?.positionals ?? [];
+  const vals = options?.rawValues ?? {};
+
+  const acc = await executeAccountWriteCommand(client, command, yes, pos, vals);
+  if (acc !== UNKNOWN_COMMAND) return acc;
+  const soc = await executeSocialWriteCommand(client, command, yes, pos, vals);
+  if (soc !== UNKNOWN_COMMAND) return soc;
+  return executeStoreWriteCommand(client, command, yes, vals);
+}
+
 async function executeCommand(
   client: RiotClient,
   command: string,
@@ -538,6 +714,7 @@ async function executeCommand(
   if (party !== UNKNOWN_COMMAND) return party;
   return executeWriteCommand(client, command, options);
 }
+
 
 export async function runCli(args: string[]): Promise<number> {
   const parsed = parseArgs({
@@ -571,6 +748,15 @@ export async function runCli(args: string[]): Promise<number> {
       incognito: { type: "string" },
       "hide-level": { type: "string" },
       "hide-account-level": { type: "string" },
+      season: { type: "string" },
+      start: { type: "string" },
+      size: { type: "string" },
+      query: { type: "string" },
+      offer: { type: "string" },
+      bundle: { type: "string" },
+      confirm: { type: "boolean", default: false },
+      badge: { type: "string" },
+      leaderboard: { type: "string" },
     },
     allowPositionals: true,
   });
