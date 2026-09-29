@@ -115,14 +115,41 @@ export class RiotClient {
   async friendRequests(): Promise<FriendRequest[]> {
     return this.socialService.friendRequests();
   }
+  async sendFriendRequest(riotId: string): Promise<FriendRequest[]> {
+    return this.socialService.sendFriendRequest(riotId);
+  }
+  async acceptFriendRequest(puuid: string): Promise<Friend[]> {
+    return this.socialService.acceptFriendRequest(puuid);
+  }
+  async declineFriendRequest(puuid: string): Promise<FriendRequest[]> {
+    return this.socialService.declineFriendRequest(puuid);
+  }
+  async cancelFriendRequest(puuid: string): Promise<FriendRequest[]> {
+    return this.socialService.cancelFriendRequest(puuid);
+  }
+  async removeFriend(puuid: string): Promise<Friend[]> {
+    return this.socialService.removeFriend(puuid);
+  }
   async blocked(): Promise<BlockedPlayer[]> {
     return this.socialService.blocked();
+  }
+  async blockPlayer(target: string): Promise<BlockedPlayer[]> {
+    return this.socialService.blockPlayer(target);
+  }
+  async unblockPlayer(puuid: string): Promise<BlockedPlayer[]> {
+    return this.socialService.unblockPlayer(puuid);
   }
   async conversations(): Promise<Conversation[]> {
     return this.socialService.conversations();
   }
   async messages(conversationId?: string): Promise<Message[]> {
     return this.socialService.messages(conversationId);
+  }
+  async sendMessage(
+    to: { puuid: string } | { conversationId: string },
+    text: string,
+  ): Promise<Message> {
+    return this.socialService.sendMessage(to, text);
   }
   async store(options?: { language?: string }): Promise<Store> {
     return this.storeService.store(options);

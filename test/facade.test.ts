@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { RiotClient } from "../src/RiotClient.js";
-import { RiotClientNotRunningError } from "../src/errors.js";
+import { RiotClientNotRunningError, ValidationError } from "../src/errors.js";
 import type { HttpGateway } from "../src/riot/HttpGateway.js";
 import type { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
@@ -606,6 +606,132 @@ describe("RiotClient facade", () => {
         });
         const noParty = await noPartyClient.party();
         expect(noParty).toBeNull();
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("validates social writes locally and sends network requests only when valid", async () => {
+      const tempDir = path.join(__dirname, "tmp-test-social-writes");
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      const lockfilePath = path.join(tempDir, "lockfile");
+      fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+      const postSpy = vi.fn().mockResolvedValue({ id: "sent-1", time: "12345" });
+      const deleteSpy = vi.fn().mockResolvedValue({});
+
+      const mockLocalApi = {
+        entitlementsToken: async () => ({ accessToken: "a", token: "t", subject: "self-puuid" }),
+        valorantSession: async () => ({ region: "na", shard: "na" }),
+        get: vi.fn().mockImplementation(async (path: string) => {
+          if (path.includes("/chat/v4/friends"))
+            return {
+              friends: [
+                {
+                  puuid: "f1",
+                  game_name: "Friend1",
+                  game_tag: "001",
+                  region: "la1",
+                },
+              ],
+            };
+          if (path.includes("/chat/v4/presences")) return { presences: [] };
+          if (path.includes("/chat/v4/friendrequests"))
+            return {
+              requests: [
+                { puuid: "r1", game_name: "Req", game_tag: "002", subscription: "pending_in" },
+                { puuid: "r2", game_name: "Sent", game_tag: "003", subscription: "pending_out" },
+              ],
+            };
+          if (path.includes("/chat/v4/blocked"))
+            return { blocked: [{ puuid: "b1", game_name: "Block", game_tag: "004" }] };
+          if (path.includes("/chat/v6/conversations"))
+            return { conversations: [{ cid: "f1@la1.pvp.net", type: "chat" }] };
+          if (path.includes("/chat/v1/session"))
+            return { puuid: "self-puuid", game_name: "Me", game_tag: "000" };
+          return null;
+        }),
+        post: postSpy,
+        delete: deleteSpy,
+        close: vi.fn(),
+      } as unknown as RiotClientLocalApi;
+
+      const mockValorantApi = {
+        getCatalogue: async () => new Catalogue(catalogueData),
+      } as unknown as ValorantApi;
+
+      const client = new RiotClient({
+        lockfilePath,
+        valorantApi: mockValorantApi,
+        localApiFactory: () => mockLocalApi,
+      });
+
+      try {
+        // 1. sendMessage validation failure: not a friend -> no post
+        await expect(client.sendMessage({ puuid: "unknown" }, "hi")).rejects.toThrow(
+          ValidationError,
+        );
+        expect(postSpy).not.toHaveBeenCalled();
+
+        // 2. sendMessage success: sends post and returns message
+        const msg = await client.sendMessage({ puuid: "f1" }, "hi friend");
+        expect(msg.body).toBe("hi friend");
+        expect(postSpy).toHaveBeenCalledWith("/chat/v6/messages", {
+          cid: "f1@la1.pvp.net",
+          message: "hi friend",
+          type: "chat",
+        });
+        postSpy.mockClear();
+
+        // 3. sendFriendRequest failure: already friends -> no post
+        await expect(client.sendFriendRequest("Friend1#001")).rejects.toThrow(ValidationError);
+        expect(postSpy).not.toHaveBeenCalled();
+
+        // 4. sendFriendRequest success: sends post and returns requests
+        await client.sendFriendRequest("NewGuy#999");
+        expect(postSpy).toHaveBeenCalledWith("/chat/v4/friendrequests", {
+          game_name: "NewGuy",
+          game_tag: "999",
+        });
+        postSpy.mockClear();
+
+        // 5. acceptFriendRequest failure: missing request -> no post
+        await expect(client.acceptFriendRequest("missing-puuid")).rejects.toThrow(ValidationError);
+        expect(postSpy).not.toHaveBeenCalled();
+
+        // 6. acceptFriendRequest success: sends request with player's name & tag
+        await client.acceptFriendRequest("r1");
+        expect(postSpy).toHaveBeenCalledWith("/chat/v4/friendrequests", {
+          game_name: "Req",
+          game_tag: "002",
+        });
+        postSpy.mockClear();
+
+        // 7. removeFriend failure: not a friend -> no delete
+        await expect(client.removeFriend("not-friend")).rejects.toThrow(ValidationError);
+        expect(deleteSpy).not.toHaveBeenCalled();
+
+        // 8. removeFriend success: sends delete
+        await client.removeFriend("f1");
+        expect(deleteSpy).toHaveBeenCalledWith("/chat/v4/friends", { puuid: "f1" });
+        deleteSpy.mockClear();
+
+        // 9. blockPlayer failure: unknown player -> no post
+        await expect(client.blockPlayer("UnknownGuy#000")).rejects.toThrow(ValidationError);
+        expect(postSpy).not.toHaveBeenCalled();
+
+        // 10. blockPlayer success: resolves name#tag through friends or requests
+        await client.blockPlayer("Req#002");
+        expect(postSpy).toHaveBeenCalledWith("/chat/v4/blocked", { puuid: "r1" });
+        postSpy.mockClear();
+
+        // 11. unblockPlayer failure: not blocked -> no delete
+        await expect(client.unblockPlayer("not-blocked")).rejects.toThrow(ValidationError);
+        expect(deleteSpy).not.toHaveBeenCalled();
+
+        // 12. unblockPlayer success: sends delete
+        await client.unblockPlayer("b1");
+        expect(deleteSpy).toHaveBeenCalledWith("/chat/v4/blocked", { puuid: "b1" });
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
