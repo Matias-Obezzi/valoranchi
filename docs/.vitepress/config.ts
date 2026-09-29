@@ -1,0 +1,64 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig, type DefaultTheme } from "vitepress";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const typedocSidebarPath = path.resolve(__dirname, "../reference/typedoc-sidebar.json");
+
+let typedocSidebar: DefaultTheme.SidebarItem[] = [];
+if (fs.existsSync(typedocSidebarPath)) {
+  try {
+    typedocSidebar = JSON.parse(fs.readFileSync(typedocSidebarPath, "utf-8")) as DefaultTheme.SidebarItem[];
+  } catch {
+    typedocSidebar = [];
+  }
+}
+
+export default defineConfig({
+  title: "@valoranchi/riot-client",
+  description: "TypeScript client and CLI for local Riot Client integration and Valorant inventory inspection.",
+  base: "/valoranchi/",
+  cleanUrls: true,
+  themeConfig: {
+    nav: [
+      { text: "Guide", link: "/guide/getting-started" },
+      { text: "Reference", link: "/reference/" },
+      { text: "npm", link: "https://www.npmjs.com/package/@valoranchi/riot-client" },
+      { text: "GitHub", link: "https://github.com/Matias-Obezzi/valoranchi" },
+    ],
+    sidebar: [
+      {
+        text: "Guide",
+        items: [
+          { text: "Getting Started", link: "/guide/getting-started" },
+          { text: "How It Works", link: "/guide/how-it-works" },
+          { text: "Account", link: "/guide/account" },
+          { text: "Social", link: "/guide/social" },
+          { text: "Store", link: "/guide/store" },
+          { text: "Matches", link: "/guide/matches" },
+          { text: "Party", link: "/guide/party" },
+          { text: "Real-Time Events", link: "/guide/events" },
+          { text: "Writes & Safety", link: "/guide/writes-and-safety" },
+          { text: "Other Languages", link: "/guide/other-languages" },
+          { text: "Raw Layer", link: "/guide/raw-layer" },
+          { text: "CLI Reference", link: "/guide/cli" },
+          { text: "Releasing", link: "/guide/releasing" },
+        ],
+      },
+      {
+        text: "API Reference",
+        items: [
+          { text: "Overview", link: "/reference/" },
+          ...typedocSidebar,
+        ],
+      },
+    ],
+    search: {
+      provider: "local",
+    },
+    footer: {
+      message: "Not affiliated with Riot Games",
+    },
+  },
+});
