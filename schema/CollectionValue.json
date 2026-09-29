@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CollectionValue",
+  "definitions": {
+    "CollectionValue": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "object",
+          "properties": {
+            "vp": {
+              "type": "number"
+            },
+            "radianite": {
+              "type": "number"
+            },
+            "priced": {
+              "type": "number"
+            },
+            "totalItems": {
+              "type": "number"
+            }
+          },
+          "required": ["vp", "radianite", "priced", "totalItems"],
+          "additionalProperties": false
+        },
+        "byWeapon": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CollectionValueGroup"
+          }
+        },
+        "byTier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CollectionValueGroup"
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CollectionValueItem"
+          }
+        }
+      },
+      "required": ["total", "byWeapon", "byTier", "items"],
+      "additionalProperties": false
+    },
+    "CollectionValueGroup": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "uuid": {
+          "type": ["string", "null"]
+        },
+        "vp": {
+          "type": "number"
+        },
+        "radianite": {
+          "type": "number"
+        },
+        "items": {
+          "type": "number"
+        },
+        "priced": {
+          "type": "number"
+        }
+      },
+      "required": ["name", "uuid", "vp", "radianite", "items", "priced"],
+      "additionalProperties": false
+    },
+    "CollectionValueItem": {
+      "type": "object",
+      "properties": {
+        "skin": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            }
+          },
+          "required": ["uuid", "name", "icon"],
+          "additionalProperties": false
+        },
+        "weapon": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["uuid", "name"],
+          "additionalProperties": false
+        },
+        "tier": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Tier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "vp": {
+          "type": ["number", "null"]
+        },
+        "radianite": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["offer", "bundle", "unknown"]
+        }
+      },
+      "required": ["skin", "weapon", "tier", "vp", "radianite", "source"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "Tier": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "number"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "rank", "icon"],
+      "additionalProperties": false
+    }
+  }
+}

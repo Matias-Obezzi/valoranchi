@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/StoreHistory",
+  "definitions": {
+    "StoreHistory": {
+      "type": "object",
+      "properties": {
+        "days": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StoreHistoryDay"
+          }
+        }
+      },
+      "required": ["days"],
+      "additionalProperties": false
+    },
+    "StoreHistoryDay": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "string"
+        },
+        "daily": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nightMarket": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bundles": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": ["day", "daily", "nightMarket", "bundles"],
+      "additionalProperties": false
+    }
+  }
+}

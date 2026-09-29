@@ -1,0 +1,284 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PerformanceSummary",
+  "definitions": {
+    "PerformanceSummary": {
+      "type": "object",
+      "properties": {
+        "overall": {
+          "$ref": "#/definitions/PerformanceStats"
+        },
+        "byAgent": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AgentPerformance"
+          }
+        },
+        "byMap": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MapPerformance"
+          }
+        },
+        "best": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/AgentPerformance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "map": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/MapPerformance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["agent", "map"],
+          "additionalProperties": false
+        },
+        "worst": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/AgentPerformance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "map": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/MapPerformance"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["agent", "map"],
+          "additionalProperties": false
+        },
+        "consistency": {
+          "$ref": "#/definitions/PerformanceConsistency"
+        }
+      },
+      "required": ["overall", "byAgent", "byMap", "best", "worst", "consistency"],
+      "additionalProperties": false
+    },
+    "PerformanceStats": {
+      "type": "object",
+      "properties": {
+        "games": {
+          "type": "number"
+        },
+        "wins": {
+          "type": "number"
+        },
+        "winRate": {
+          "type": "number"
+        },
+        "kd": {
+          "type": "number"
+        },
+        "kda": {
+          "type": "number"
+        },
+        "headshotRate": {
+          "type": "number"
+        },
+        "averageScore": {
+          "type": "number"
+        },
+        "averageDamagePerRound": {
+          "type": "number"
+        },
+        "firstBloodsPerGame": {
+          "type": "number"
+        },
+        "plantsPerGame": {
+          "type": "number"
+        },
+        "defusesPerGame": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "games",
+        "wins",
+        "winRate",
+        "kd",
+        "kda",
+        "headshotRate",
+        "averageScore",
+        "averageDamagePerRound",
+        "firstBloodsPerGame",
+        "plantsPerGame",
+        "defusesPerGame"
+      ],
+      "additionalProperties": false
+    },
+    "AgentPerformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "games": {
+          "type": "number"
+        },
+        "wins": {
+          "type": "number"
+        },
+        "winRate": {
+          "type": "number"
+        },
+        "kd": {
+          "type": "number"
+        },
+        "kda": {
+          "type": "number"
+        },
+        "headshotRate": {
+          "type": "number"
+        },
+        "averageScore": {
+          "type": "number"
+        },
+        "averageDamagePerRound": {
+          "type": "number"
+        },
+        "firstBloodsPerGame": {
+          "type": "number"
+        },
+        "plantsPerGame": {
+          "type": "number"
+        },
+        "defusesPerGame": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "averageDamagePerRound",
+        "averageScore",
+        "defusesPerGame",
+        "firstBloodsPerGame",
+        "games",
+        "headshotRate",
+        "icon",
+        "kd",
+        "kda",
+        "name",
+        "plantsPerGame",
+        "uuid",
+        "winRate",
+        "wins"
+      ]
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "MapPerformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uuid": {
+          "type": ["string", "null"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "games": {
+          "type": "number"
+        },
+        "wins": {
+          "type": "number"
+        },
+        "winRate": {
+          "type": "number"
+        },
+        "kd": {
+          "type": "number"
+        },
+        "kda": {
+          "type": "number"
+        },
+        "headshotRate": {
+          "type": "number"
+        },
+        "averageScore": {
+          "type": "number"
+        },
+        "averageDamagePerRound": {
+          "type": "number"
+        },
+        "firstBloodsPerGame": {
+          "type": "number"
+        },
+        "plantsPerGame": {
+          "type": "number"
+        },
+        "defusesPerGame": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "averageDamagePerRound",
+        "averageScore",
+        "defusesPerGame",
+        "firstBloodsPerGame",
+        "games",
+        "headshotRate",
+        "icon",
+        "kd",
+        "kda",
+        "name",
+        "plantsPerGame",
+        "uuid",
+        "winRate",
+        "wins"
+      ]
+    },
+    "PerformanceConsistency": {
+      "type": "object",
+      "properties": {
+        "scoreStdDev": {
+          "type": "number"
+        },
+        "gamesNonNegative": {
+          "type": "number"
+        },
+        "longestNonNegativeStreak": {
+          "type": "number"
+        }
+      },
+      "required": ["scoreStdDev", "gamesNonNegative", "longestNonNegativeStreak"],
+      "additionalProperties": false
+    }
+  }
+}

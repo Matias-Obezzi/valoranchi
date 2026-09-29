@@ -242,6 +242,12 @@
               "type": "null"
             }
           ]
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -257,7 +263,8 @@
         "title",
         "rank",
         "partyId",
-        "loadout"
+        "loadout",
+        "warnings"
       ],
       "additionalProperties": false
     },

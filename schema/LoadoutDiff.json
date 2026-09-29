@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/LoadoutDiff",
+  "definitions": {
+    "LoadoutDiff": {
+      "type": "object",
+      "properties": {
+        "guns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoadoutDiffItem"
+          }
+        },
+        "sprays": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoadoutDiffItem"
+          }
+        },
+        "identity": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoadoutDiffItem"
+          }
+        },
+        "totalChanges": {
+          "type": "number"
+        }
+      },
+      "required": ["guns", "sprays", "identity", "totalChanges"],
+      "additionalProperties": false
+    },
+    "LoadoutDiffItem": {
+      "type": "object",
+      "properties": {
+        "slot": {
+          "type": "string"
+        },
+        "slotId": {
+          "type": "string"
+        },
+        "from": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        },
+        "to": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["slot", "slotId", "from", "to"],
+      "additionalProperties": false
+    }
+  }
+}

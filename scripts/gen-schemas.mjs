@@ -40,6 +40,13 @@ const types = [
   "PlayerSettings",
   "ClientInfo",
   "Participant",
+  "RatingTrend",
+  "PerformanceSummary",
+  "PlayerAssessment",
+  "LoadoutDiff",
+  "CollectionValue",
+  "StoreHistory",
+  "MatchSyncResult",
 ];
 
 const schemaDir = path.resolve("schema");

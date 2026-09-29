@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PlayerAssessment",
+  "definitions": {
+    "PlayerAssessment": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "accountLevel": {
+          "type": "number"
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssessmentWarning"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["puuid", "accountLevel", "flags", "warnings"],
+      "additionalProperties": false
+    },
+    "AssessmentWarning": {
+      "type": "object",
+      "properties": {
+        "flag": {
+          "$ref": "#/definitions/AssessmentFlag"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": ["flag", "reason"],
+      "additionalProperties": false
+    },
+    "AssessmentFlag": {
+      "type": "string",
+      "enum": ["low-level-high-rank", "inflated", "underranked", "long-streak", "new-act"]
+    }
+  }
+}

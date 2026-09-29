@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RatingTrend",
+  "definitions": {
+    "RatingTrend": {
+      "type": "object",
+      "properties": {
+        "streak": {
+          "$ref": "#/definitions/RatingStreak"
+        },
+        "net": {
+          "$ref": "#/definitions/RatingNet"
+        },
+        "winRate": {
+          "type": "number"
+        },
+        "perGame": {
+          "$ref": "#/definitions/RatingAverages"
+        },
+        "toNextRank": {
+          "$ref": "#/definitions/RatingTarget"
+        },
+        "toDemotion": {
+          "$ref": "#/definitions/DemotionTarget"
+        },
+        "pace": {
+          "$ref": "#/definitions/RatingPace"
+        }
+      },
+      "required": ["streak", "net", "winRate", "perGame", "toNextRank", "toDemotion", "pace"],
+      "additionalProperties": false
+    },
+    "RatingStreak": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": ["string", "null"],
+          "enum": ["win", "loss", null]
+        },
+        "length": {
+          "type": "number"
+        }
+      },
+      "required": ["kind", "length"],
+      "additionalProperties": false
+    },
+    "RatingNet": {
+      "type": "object",
+      "properties": {
+        "last5": {
+          "type": "number"
+        },
+        "last10": {
+          "type": "number"
+        },
+        "last20": {
+          "type": "number"
+        }
+      },
+      "required": ["last5", "last10", "last20"],
+      "additionalProperties": false
+    },
+    "RatingAverages": {
+      "type": "object",
+      "properties": {
+        "averageGain": {
+          "type": ["number", "null"]
+        },
+        "averageLoss": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["averageGain", "averageLoss"],
+      "additionalProperties": false
+    },
+    "RatingTarget": {
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number"
+        },
+        "winsAtCurrentPace": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["rating", "winsAtCurrentPace"],
+      "additionalProperties": false
+    },
+    "DemotionTarget": {
+      "type": "object",
+      "properties": {
+        "rating": {
+          "type": "number"
+        },
+        "lossesAtCurrentPace": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["rating", "lossesAtCurrentPace"],
+      "additionalProperties": false
+    },
+    "RatingPace": {
+      "type": "string",
+      "enum": ["climbing", "holding", "falling"]
+    }
+  }
+}
