@@ -15,10 +15,7 @@ export interface ClientContext {
 }
 
 export async function createPlayer(api: RiotApi, session: Session): Promise<Player> {
-  const [names, accountXp] = await Promise.all([
-    api.names([session.puuid]),
-    api.accountXp(),
-  ]);
+  const [names, accountXp] = await Promise.all([api.names([session.puuid]), api.accountXp()]);
   return {
     puuid: session.puuid,
     gameName: names[0]?.GameName ?? "",

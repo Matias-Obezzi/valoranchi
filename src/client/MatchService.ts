@@ -62,10 +62,7 @@ export class MatchService {
   async mmr(): Promise<Mmr> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
-    const [rawMmr, catalogue] = await Promise.all([
-      api.mmr(),
-      this.context.catalogue(),
-    ]);
+    const [rawMmr, catalogue] = await Promise.all([api.mmr(), this.context.catalogue()]);
     return new MmrBuilder(catalogue).buildMmr(rawMmr);
   }
 

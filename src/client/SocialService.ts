@@ -2,7 +2,13 @@ import { FriendsBuilder } from "../collection/FriendsBuilder.js";
 import { MessagesBuilder } from "../collection/MessagesBuilder.js";
 import { toFriendRequest } from "../events/RiotEvents.js";
 import { ChatApi } from "../local/ChatApi.js";
-import type { BlockedPlayer, Conversation, Friend, FriendRequest, Message } from "../model/index.js";
+import type {
+  BlockedPlayer,
+  Conversation,
+  Friend,
+  FriendRequest,
+  Message,
+} from "../model/index.js";
 import type { ClientContext } from "./ClientContext.js";
 
 export class SocialService {

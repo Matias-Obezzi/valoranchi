@@ -71,14 +71,14 @@ export class RiotClient {
       localApiFactory: options.localApiFactory,
     });
 
+    const api = (session: Session) => new RiotApi(gateway, session, responseCache);
     const context: ClientContext = {
       language,
       sessions: this.sessions,
       valorantApi,
-      api: (session: Session) => new RiotApi(gateway, session, responseCache),
+      api,
       catalogue: (lang?: string) => valorantApi.getCatalogue(lang ?? language),
-      player: (session: Session) =>
-        createPlayer(new RiotApi(gateway, session, responseCache), session),
+      player: (session: Session) => createPlayer(api(session), session),
     };
 
     this.accountService = new AccountService(context);
@@ -97,67 +97,51 @@ export class RiotClient {
   events(): RiotEvents {
     return this.eventsService.events();
   }
-
   async whoami(): Promise<Player> {
     return this.accountService.whoami();
   }
-
   async ownedItems(options?: { language?: string }): Promise<OwnedItems> {
     return this.accountService.ownedItems(options);
   }
-
   async loadout(): Promise<Loadout> {
     return this.accountService.loadout();
   }
-
   async wallet(): Promise<Wallet> {
     return this.accountService.wallet();
   }
-
   async friends(): Promise<Friend[]> {
     return this.socialService.friends();
   }
-
   async friendRequests(): Promise<FriendRequest[]> {
     return this.socialService.friendRequests();
   }
-
   async blocked(): Promise<BlockedPlayer[]> {
     return this.socialService.blocked();
   }
-
   async conversations(): Promise<Conversation[]> {
     return this.socialService.conversations();
   }
-
   async messages(conversationId?: string): Promise<Message[]> {
     return this.socialService.messages(conversationId);
   }
-
   async store(options?: { language?: string }): Promise<Store> {
     return this.storeService.store(options);
   }
-
   async matches(options?: { count?: number; queue?: string }): Promise<MatchSummary[]> {
     return this.matchService.matches(options);
   }
-
   async match(id: string): Promise<Match> {
     return this.matchService.match(id);
   }
-
   async mmr(): Promise<Mmr> {
     return this.matchService.mmr();
   }
-
   async rankHistory(options?: { count?: number }): Promise<RankChange[]> {
     return this.matchService.rankHistory(options);
   }
-
   async liveMatch(options?: { ranks?: boolean; loadouts?: boolean }): Promise<LiveMatch> {
     return this.liveMatchService.liveMatch(options);
   }
-
   async party(): Promise<Party> {
     return this.liveMatchService.party();
   }
