@@ -5,6 +5,8 @@
 
 A TypeScript library and command-line tool for reading the local signed-in Riot Client session and retrieving player inventory, loadout, wallet balances, friends roster, presence, chat messages, and storefront offers for VALORANT.
 
+Documentation: [https://matias-obezzi.github.io/valoranchi/](https://matias-obezzi.github.io/valoranchi/)
+
 ## Installation
 
 ```bash
