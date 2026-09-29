@@ -13,3 +13,18 @@ export interface ClientContext {
   catalogue(language?: string): Promise<Catalogue>;
   player(session: Session): Promise<Player>;
 }
+
+export async function createPlayer(api: RiotApi, session: Session): Promise<Player> {
+  const [names, accountXp] = await Promise.all([
+    api.names([session.puuid]),
+    api.accountXp(),
+  ]);
+  return {
+    puuid: session.puuid,
+    gameName: names[0]?.GameName ?? "",
+    tagLine: names[0]?.TagLine ?? "",
+    region: session.region,
+    shard: session.shard,
+    accountLevel: accountXp.Progress?.Level ?? 0,
+  };
+}
