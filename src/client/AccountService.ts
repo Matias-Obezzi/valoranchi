@@ -12,6 +12,7 @@ import type {
   Favourite,
   GameSession,
   Loadout,
+  LoadoutDiff,
   Mission,
   OwnedItems,
   Penalty,
@@ -19,6 +20,7 @@ import type {
   PlayerSettings,
   Wallet,
 } from "../model/index.js";
+import { diffLoadout, exportLoadout } from "../analysis/loadoutDiff.js";
 import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
 import { AccountValidator } from "./AccountValidator.js";
 import type { AccountApi } from "./api.js";
@@ -114,6 +116,27 @@ export class AccountService implements AccountApi {
     }
     const gunChanges = await this.resolveCollectionGunChanges(skinUuids);
     return this.equip({ guns: gunChanges });
+  }
+
+  async diffLoadout(target: LoadoutChange | Loadout): Promise<LoadoutDiff> {
+    const [current, catalogue] = await Promise.all([
+      this.loadout(),
+      this.context.catalogue(),
+    ]);
+    return diffLoadout(current, target, catalogue);
+  }
+
+  async equipPreset(preset: LoadoutChange): Promise<Loadout> {
+    return this.equip(preset);
+  }
+
+  async validateEquipPreset(preset: LoadoutChange): Promise<RiotLoadoutResponse> {
+    return this.validateEquip(preset);
+  }
+
+  async exportLoadout(): Promise<LoadoutChange> {
+    const current = await this.loadout();
+    return exportLoadout(current);
   }
 
   private async resolveCollectionGunChanges(skinUuids: string[]): Promise<LoadoutGunChange[]> {

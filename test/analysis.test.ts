@@ -4,18 +4,19 @@ import { describe, expect, it } from "vitest";
 import { ratingTrend } from "../src/analysis/ratingTrend.js";
 import { performanceSummary } from "../src/analysis/performanceSummary.js";
 import { playerAssessment } from "../src/analysis/playerAssessment.js";
+import { diffLoadout, exportLoadout } from "../src/analysis/loadoutDiff.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
-import type { Mmr } from "../src/model/index.js";
+import type { Loadout, Mmr } from "../src/model/index.js";
+import type { LoadoutChange } from "../src/client/LoadoutValidator.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
-const catalogue = new Catalogue(
-  JSON.parse(
-    fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
-  ) as ValorantApiCatalogueData,
-);
+const catalogueData = JSON.parse(
+  fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
+) as ValorantApiCatalogueData;
+const catalogue = new Catalogue(catalogueData);
 const resolver = new RankResolver(catalogue);
 
 const twentyUpdates = JSON.parse(
@@ -318,5 +319,124 @@ describe("playerAssessment", () => {
     expect(assessment.warnings).toHaveLength(0);
   });
 });
+
+function createTestLoadout(): Loadout {
+  const vandal = catalogue.weapons.find((w) => w.displayName === "Vandal")!;
+  const primeSkin = vandal.skins.find((s) => s.displayName === "Prime Vandal")!;
+
+  return {
+    player: {
+      puuid: "p1",
+      gameName: "Player",
+      tagLine: "1234",
+      region: "na",
+      shard: "na",
+      accountLevel: 50,
+    },
+    guns: [
+      {
+        weapon: { uuid: vandal.uuid, name: vandal.displayName },
+        skin: { uuid: primeSkin.uuid, name: primeSkin.displayName, icon: primeSkin.displayIcon ?? null },
+        level: { uuid: primeSkin.levels[0]!.uuid, name: primeSkin.levels[0]!.displayName },
+        chroma: { uuid: primeSkin.chromas[0]!.uuid, name: primeSkin.chromas[0]!.displayName },
+        buddy: null,
+      },
+    ],
+    sprays: [
+      {
+        slot: "0",
+        uuid: catalogueData.sprays[0]!.uuid,
+        name: catalogueData.sprays[0]!.displayName,
+        icon: catalogueData.sprays[0]!.displayIcon ?? null,
+      },
+    ],
+    flex: null,
+    card: {
+      uuid: catalogueData.playerCards[0]!.uuid,
+      name: catalogueData.playerCards[0]!.displayName,
+      small: catalogueData.playerCards[0]!.smallArt,
+      wide: catalogueData.playerCards[0]!.wideArt,
+      large: catalogueData.playerCards[0]!.largeArt,
+    },
+    title: {
+      uuid: catalogueData.playerTitles[0]!.uuid,
+      name: catalogueData.playerTitles[0]!.displayName,
+      text: catalogueData.playerTitles[0]!.titleText,
+    },
+    incognito: false,
+  };
+}
+
+describe("loadoutDiff and exportLoadout", () => {
+  it("diffLoadout with identical loadouts produces 0 changes", () => {
+    const current = createTestLoadout();
+    const diff = diffLoadout(current, current, catalogue);
+    expect(diff.totalChanges).toBe(0);
+    expect(diff.guns).toHaveLength(0);
+    expect(diff.sprays).toHaveLength(0);
+    expect(diff.identity).toHaveLength(0);
+  });
+
+  it("diffLoadout detects different guns", () => {
+    const current = createTestLoadout();
+    const vandal = catalogue.weapons.find((w) => w.displayName === "Vandal")!;
+    const reaverSkin = vandal.skins.find((s) => s.displayName === "Reaver Vandal")!;
+    const target: LoadoutChange = {
+      guns: [{ weapon: "Vandal", skin: reaverSkin.uuid }],
+    };
+    const diff = diffLoadout(current, target, catalogue);
+    expect(diff.totalChanges).toBe(1);
+    expect(diff.guns).toHaveLength(1);
+    expect(diff.guns[0]?.slot).toBe("Vandal");
+    expect(diff.guns[0]?.from.name).toBe("Prime Vandal");
+    expect(diff.guns[0]?.to.name).toBe("Reaver Vandal");
+  });
+
+  it("diffLoadout detects different sprays", () => {
+    const current = createTestLoadout();
+    const target: LoadoutChange = {
+      sprays: ["other-spray-uuid"],
+    };
+    const diff = diffLoadout(current, target, catalogue);
+    expect(diff.totalChanges).toBe(1);
+    expect(diff.sprays).toHaveLength(1);
+    expect(diff.sprays[0]?.slot).toBe("Spray (Round Start)");
+  });
+
+  it("diffLoadout detects different identity", () => {
+    const current = createTestLoadout();
+    const target: LoadoutChange = {
+      card: "diff-card-uuid",
+      incognito: true,
+    };
+    const diff = diffLoadout(current, target, catalogue);
+    expect(diff.totalChanges).toBe(2);
+    expect(diff.identity).toHaveLength(2);
+    expect(diff.identity.find((i) => i.slot === "Card")).toBeDefined();
+    expect(diff.identity.find((i) => i.slot === "Incognito")).toBeDefined();
+  });
+
+  it("exportLoadout produces valid LoadoutChange matching schema", () => {
+    const current = createTestLoadout();
+    const exported = exportLoadout(current);
+    expect(exported.guns).toHaveLength(1);
+    expect(exported.guns?.[0]?.weapon).toBe(current.guns[0]?.weapon.uuid);
+    expect(exported.sprays).toHaveLength(1);
+    expect(exported.card).toBe(current.card?.uuid);
+    expect(exported.title).toBe(current.title?.uuid);
+    expect(exported.incognito).toBe(false);
+  });
+
+  it("round-trip exportLoadout -> diffLoadout produces 0 changes", () => {
+    const current = createTestLoadout();
+    const exported = exportLoadout(current);
+    const diff = diffLoadout(current, exported, catalogue);
+    expect(diff.totalChanges).toBe(0);
+    expect(diff.guns).toHaveLength(0);
+    expect(diff.sprays).toHaveLength(0);
+    expect(diff.identity).toHaveLength(0);
+  });
+});
+
 
 

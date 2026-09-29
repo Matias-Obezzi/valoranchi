@@ -22,6 +22,9 @@ Account:
   settings-save    Save player settings from JSON file (<file.json>, requires --yes --confirm)
   equip            Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply)
   equip-collection Equip a collection of skins (<skinUuid,...>) (dry-run, --yes to apply)
+  loadout-export   Export current loadout as a preset JSON
+  loadout-diff     Compare current loadout against preset JSON file (<preset.json>)
+  loadout-apply    Apply loadout preset from JSON file (<preset.json>, dry-run, --yes to apply)
   contract-activate Activate an agent contract (<uuid>) (dry-run, --yes to apply)
   favourite-add    Add skin to favourites (<skin>) (dry-run, --yes to apply)
   favourite-remove Remove skin from favourites (<skin>) (dry-run, --yes to apply)
@@ -644,6 +647,20 @@ async function executeAccountWriteCommand(
       return yes
         ? client.account.equipCollection(skinUuids)
         : client.account.validateEquipCollection(skinUuids);
+    }
+    case "loadout-export":
+      return client.account.exportLoadout();
+    case "loadout-diff": {
+      const file = requirePositional(pos, 1, "Usage: riotclient loadout-diff <preset.json>");
+      const content = JSON.parse(readFileSync(file, "utf-8")) as LoadoutChange;
+      return client.account.diffLoadout(content);
+    }
+    case "loadout-apply": {
+      const file = requirePositional(pos, 1, "Usage: riotclient loadout-apply <preset.json> [--yes]");
+      const content = JSON.parse(readFileSync(file, "utf-8")) as LoadoutChange;
+      return yes
+        ? client.account.equipPreset(content)
+        : client.account.validateEquipPreset(content);
     }
     case "contract-activate": {
       const uuid = requirePositional(pos, 1, "Usage: riotclient contract-activate <uuid>");

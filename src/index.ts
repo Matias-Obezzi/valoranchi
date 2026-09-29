@@ -82,6 +82,7 @@ export type {
   PerformanceSummary,
   PlayerAssessment,
   LoadoutDiff,
+  LoadoutDiffItem,
   CollectionValue,
   StoreHistory,
   StoreSeen,
@@ -95,3 +96,5 @@ export type {
 export { ratingTrend } from "./analysis/ratingTrend.js";
 export { performanceSummary } from "./analysis/performanceSummary.js";
 export { playerAssessment } from "./analysis/playerAssessment.js";
+export { diffLoadout, exportLoadout } from "./analysis/loadoutDiff.js";
+

@@ -125,6 +125,13 @@ describe("refused writes never reach Riot", () => {
     expect(put.mock.calls.some(([url]) => String(url).includes("/personalization/"))).toBe(false);
   });
 
+  it("does not put a loadout preset with a card the account does not own", async () => {
+    await expect(
+      client.account.equipPreset({ card: "00000000-0000-0000-0000-000000000000" }),
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(put.mock.calls.some(([url]) => String(url).includes("/personalization/"))).toBe(false);
+  });
+
   it("does not post a message to someone who is not a friend", async () => {
     await expect(
       client.social.sendMessage({ puuid: "00000000-0000-0000-0000-000000000000" }, "hi"),

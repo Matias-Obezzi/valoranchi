@@ -792,31 +792,20 @@ export type PlayerAssessment = {
   warnings: string[];
 };
 
-export type LoadoutGunDiff = {
-  weapon: { uuid: string; name: string };
-  from: {
-    skin: { uuid: string; name: string };
-    level: { uuid: string; name: string };
-    chroma: { uuid: string; name: string };
-    buddy: { uuid: string; name: string } | null;
-  };
-  to: {
-    skin: { uuid: string; name: string };
-    level: { uuid: string; name: string };
-    chroma: { uuid: string; name: string };
-    buddy: { uuid: string; name: string } | null;
-  };
+export type LoadoutDiffItem = {
+  slot: string;
+  slotId: string;
+  from: { id: string; name?: string };
+  to: { id: string; name?: string };
 };
 
 export type LoadoutDiff = {
-  guns: LoadoutGunDiff[];
-  sprays: Array<{ slot: string; from: string | null; to: string | null }>;
-  flex: { from: string | null; to: string | null } | null;
-  card: { from: string | null; to: string | null } | null;
-  title: { from: string | null; to: string | null } | null;
-  border: { from: string | null; to: string | null } | null;
-  incognito: { from: boolean; to: boolean } | null;
+  guns: LoadoutDiffItem[];
+  sprays: LoadoutDiffItem[];
+  identity: LoadoutDiffItem[];
+  totalChanges: number;
 };
+
 
 export type CollectionValueItem = {
   skin: { uuid: string; name: string; icon: Image };

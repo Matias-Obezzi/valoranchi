@@ -14,6 +14,7 @@ import type {
   Leaderboard,
   LiveMatch,
   Loadout,
+  LoadoutDiff,
   Match,
   MatchSummary,
   Message,
@@ -51,6 +52,10 @@ export interface AccountApi {
   validateEquip(change: LoadoutChange): Promise<RiotLoadoutResponse>;
   equipCollection(skinUuids: string[]): Promise<Loadout>;
   validateEquipCollection(skinUuids: string[]): Promise<RiotLoadoutResponse>;
+  diffLoadout(target: LoadoutChange | Loadout): Promise<LoadoutDiff>;
+  equipPreset(preset: LoadoutChange): Promise<Loadout>;
+  validateEquipPreset(preset: LoadoutChange): Promise<RiotLoadoutResponse>;
+  exportLoadout(): Promise<LoadoutChange>;
   wallet(): Promise<Wallet>;
   xp(): Promise<AccountXp>;
   contracts(): Promise<ContractProgress[]>;
