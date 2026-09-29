@@ -1,5 +1,8 @@
 # @valoranchi/riot-client
 
+[![CI](https://github.com/Matias-Obezzi/valoranchi/actions/workflows/ci.yml/badge.svg)](https://github.com/Matias-Obezzi/valoranchi/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/@valoranchi/riot-client.svg)](https://www.npmjs.com/package/@valoranchi/riot-client)
+
 A TypeScript library and command-line tool for reading the local signed-in Riot Client session and retrieving player inventory, loadout, wallet balances, friends roster, presence, chat messages, and storefront offers for VALORANT.
 
 ## Installation
@@ -154,6 +157,7 @@ await client.close();
 In 0.2.0, every method moved under its namespace (`account`, `social`, `store`, `matches`, `party`).
 
 Five methods were also renamed:
+
 - `client.store()` → `client.store.current()`
 - `client.matches()` → `client.matches.list()`
 - `client.match(id)` → `client.matches.get(id)`
@@ -392,6 +396,7 @@ All writes are validated locally against your inventory and catalogue before any
 ### Available Methods
 
 #### Account Writes
+
 - `client.account.equip(change: LoadoutChange): Promise<Loadout>`: Update equipped skins, skin levels, chromas, buddies, sprays, player card, title, level border, and incognito status.
 - `client.account.equipCollection(skinUuids: string[]): Promise<Loadout>`: Equip a list of skin UUIDs (one per weapon) at their highest owned level and base chroma.
 - `client.account.activateContract(contractId: string): Promise<ContractProgress[]>`: Activate an agent contract.
@@ -401,6 +406,7 @@ All writes are validated locally against your inventory and catalogue before any
 - `client.account.setLeaderboardAnonymized(anonymized: boolean): Promise<PlayerPrivacy>`: Anonymize or reveal leaderboard presence.
 
 #### Social Writes
+
 - `client.social.sendMessage(to, text): Promise<Message>`: Send a whisper or room message (target can be `{ puuid }`, `{ conversationId }`, or `{ riotId }`).
 - `client.social.sendFriendRequest(riotId): Promise<FriendRequest[]>`: Send a friend request by `Name#Tag`.
 - `client.social.acceptFriendRequest(puuid): Promise<Friend[]>`: Accept an incoming friend request.
@@ -413,12 +419,14 @@ All writes are validated locally against your inventory and catalogue before any
 > **Note on social player lookup**: Arbitrary player lookup by `Name#Tag` (`social.lookup`) is not supported because Riot's player-data (`pd`) service does not offer an endpoint for resolving Riot IDs without mutual friend presence or match history; this was intentionally omitted.
 
 #### Store Writes
+
 - `client.store.revealNightMarket(): Promise<Storefront>`: Reveal night market offers.
 - `client.store.buy(target: { offerId: string } | { bundleId: string }, options: { confirm: boolean }): Promise<Order>`: Purchase a store offer or bundle.
 
 > **WARNING: Purchasing spends real money or in-game currency (VP, Radianite, Kingdom Credits). All purchases require explicit confirmation: `{ confirm: true }` in code, or both `--yes` and `--confirm` in the CLI.**
 
 #### Party Writes
+
 - `client.party.invite(riotId): Promise<Party>`: Invite a player to the party by `Name#Tag`.
 - `client.party.kick(puuid): Promise<Party>`: Remove a member from the party (owner only).
 - `client.party.promote(puuid): Promise<Party>`: Transfer party ownership to another member.
@@ -433,6 +441,7 @@ All writes are validated locally against your inventory and catalogue before any
 - `client.party.leave(): Promise<Party>`: Leave your current party.
 
 ### Account Validation Rules
+
 - `contract-not-agent`: Thrown when attempting to activate a contract that is not an agent contract (e.g. battlepass, event).
 - `agent-owned`: Thrown when activating a contract for an agent that is already unlocked.
 - `contract-active`: Thrown when activating a contract that is already active.
@@ -440,6 +449,7 @@ All writes are validated locally against your inventory and catalogue before any
 - `already-favourite`: Thrown when adding a favourite that is already favorited.
 
 ### Store Validation Rules
+
 - `offer-not-in-store`: Thrown when purchasing an item/bundle not currently available in daily rotation, night market, or featured bundles.
 - `already-owned`: Thrown when purchasing an item that is already owned.
 - `insufficient-funds`: Thrown when account balance is lower than the offer cost.
@@ -580,6 +590,17 @@ Chat data (friends, presence, friend requests, blocked players, conversations, a
 ## Token Host Rule
 
 Access tokens and entitlements JWTs are strictly scoped. They may only ever be sent to hosts matching `*.pvp.net`, `*.riotgames.com`, or loopback `127.0.0.1`. The HTTP gateway enforces this policy and throws a `ForbiddenHostError` before sending any request that would transmit credentials to an unauthorized host. Requests to public endpoints such as `valorant-api.com` never carry authorization headers.
+
+## Releasing
+
+Releases are published automatically to npm and GitHub Releases via GitHub Actions:
+
+1. Navigate to the **Actions** tab on GitHub and select the **Release** workflow.
+2. Click **Run workflow** (dispatch).
+3. Select the version bump (`patch`, `minor`, or `major`). You can optionally provide additional release notes.
+4. The workflow runs the full verification suite (lint, typecheck, tests, build, JSON schemas, and tarball contents).
+5. The `## [Unreleased]` section from `CHANGELOG.md` is automatically converted into the new version entry (`## [X.Y.Z] - YYYY-MM-DD`).
+6. The version commit and tag (`vX.Y.Z`) are created and pushed, `@valoranchi/riot-client` is published to npm with provenance, and a GitHub Release is created with the changelog notes.
 
 ## What It Does Not Do
 
