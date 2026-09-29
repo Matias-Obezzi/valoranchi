@@ -16,6 +16,8 @@ import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 import { LiveMatchService } from "./LiveMatchService.js";
+import { MatchValidator } from "./MatchValidator.js";
+import { ValidationError } from "../errors.js";
 
 export class MatchService implements MatchesApi {
   private readonly liveMatchService: LiveMatchService;
@@ -174,5 +176,72 @@ export class MatchService implements MatchesApi {
       season: activeSeason,
       conferences,
     };
+  }
+
+  async validateSelectAgent(agent: string): Promise<{ matchId: string; agentUuid: string }> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+    const pregame = await api.pregamePlayer();
+    if (!pregame?.MatchID) {
+      throw new ValidationError("not-in-pregame", "Not currently in pregame agent select");
+    }
+    const [pregameMatch, entitlements] = await Promise.all([
+      api.pregameMatch(pregame.MatchID),
+      api.entitlements(),
+    ]);
+    return MatchValidator.validateSelectOrLock(
+      pregameMatch,
+      catalogue,
+      entitlements,
+      agent,
+      session.puuid,
+    );
+  }
+
+  async selectAgent(agent: string): Promise<LiveMatch> {
+    const validated = await this.validateSelectAgent(agent);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).selectAgent(validated.matchId, validated.agentUuid);
+    return this.live();
+  }
+
+  async validateLockAgent(agent: string): Promise<{ matchId: string; agentUuid: string }> {
+    return this.validateSelectAgent(agent);
+  }
+
+  async lockAgent(agent: string): Promise<LiveMatch> {
+    const validated = await this.validateLockAgent(agent);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).lockAgent(validated.matchId, validated.agentUuid);
+    return this.live();
+  }
+
+  async validateDodge(options?: { confirm?: boolean }): Promise<{ matchId: string }> {
+    const session = await this.context.sessions.session();
+    const pregame = await this.context.api(session).pregamePlayer();
+    return MatchValidator.validateDodge(pregame, options);
+  }
+
+  async dodge(options?: { confirm?: boolean }): Promise<{ dodged: boolean; matchId: string }> {
+    const validated = await this.validateDodge(options);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).quitPregameMatch(validated.matchId);
+    return { dodged: true, matchId: validated.matchId };
+  }
+
+  async validateLeaveMatch(
+    options?: { confirm?: boolean },
+  ): Promise<{ matchId: string; puuid: string }> {
+    const session = await this.context.sessions.session();
+    const core = await this.context.api(session).coreGamePlayer();
+    return MatchValidator.validateLeaveMatch(core, session.puuid, options);
+  }
+
+  async leaveMatch(options?: { confirm?: boolean }): Promise<{ left: boolean; matchId: string }> {
+    const validated = await this.validateLeaveMatch(options);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).disassociatePlayer(validated.matchId, session.puuid);
+    return { left: true, matchId: validated.matchId };
   }
 }

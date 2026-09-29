@@ -1,5 +1,12 @@
+import type { Catalogue } from "../catalogue/Catalogue.js";
 import { ValidationError } from "../errors.js";
-import type { RiotPartyMember, RiotPartyResponse } from "../riot/types.js";
+import type { CustomGameSettings } from "../model/index.js";
+import type {
+  RiotCustomGameConfigsResponse,
+  RiotPartyMember,
+  RiotPartyPlayerResponse,
+  RiotPartyResponse,
+} from "../riot/types.js";
 import { ChatValidator } from "./ChatValidator.js";
 
 export type PartyAction =
@@ -316,4 +323,242 @@ export class PartyValidator {
       path: `/parties/v1/players/${encodeURIComponent(selfPuuid)}`,
     };
   }
+
+  static validateJoin(
+    playerRecord: RiotPartyPlayerResponse | null | undefined,
+    partyId: string,
+  ): { partyId: string } {
+    const invite = playerRecord?.Invites?.find(
+      (i) => i.PartyID?.toLowerCase() === partyId.toLowerCase(),
+    );
+    if (!invite) {
+      throw new ValidationError("invite-missing", `No invite found for party ${partyId}`, {
+        partyId,
+      });
+    }
+    return { partyId: invite.PartyID };
+  }
+
+  static validateDeclineInvite(
+    playerRecord: RiotPartyPlayerResponse | null | undefined,
+    inviteId: string,
+  ): { partyId: string; inviteId: string } {
+    const invite = playerRecord?.Invites?.find((i) => i.ID === inviteId);
+    if (!invite) {
+      throw new ValidationError("invite-missing", `Invite ${inviteId} not found`, { inviteId });
+    }
+    return { partyId: invite.PartyID, inviteId };
+  }
+
+  static validateDeclineRequest(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+    requestId: string,
+  ): { partyId: string; requestId: string } {
+    if (!party || !party.ID) {
+      throw new ValidationError("no-party", "Not currently in a party");
+    }
+    const selfMember = (party.Members ?? []).find((m) => m.Subject === selfPuuid);
+    if (!selfMember) {
+      throw new ValidationError("not-a-member", "Caller is not a member of the party");
+    }
+    const req = party.Requests?.find((r) => r.ID === requestId);
+    if (!req) {
+      throw new ValidationError("request-missing", `Request ${requestId} not found`, { requestId });
+    }
+    return { partyId: party.ID, requestId };
+  }
+
+  static validateCustomGame(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+  ): RiotPartyMember {
+    if (!party || !party.ID) {
+      throw new ValidationError("no-party", "Not currently in a party");
+    }
+    const selfMember = (party.Members ?? []).find((m) => m.Subject === selfPuuid);
+    if (!selfMember) {
+      throw new ValidationError("not-a-member", "Caller is not a member of the party");
+    }
+    const isCustom =
+      party.State === "CUSTOM_GAME" ||
+      party.MatchmakingData?.QueueID?.toLowerCase() === "custom";
+    if (!isCustom) {
+      throw new ValidationError("not-custom-game", "Party is not in custom game mode");
+    }
+    return selfMember;
+  }
+
+  static validateSetCustomGameSettings(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+    settings: CustomGameSettings,
+    configs: RiotCustomGameConfigsResponse,
+    catalogue: Catalogue,
+  ): Record<string, unknown> {
+    const selfMember = this.validateCustomGame(party, selfPuuid);
+    this.assertOwner(selfMember);
+
+    let mapPath = settings.map;
+    if (mapPath) {
+      const match = configs.EnabledMaps.find(
+        (p) =>
+          p.toLowerCase() === mapPath.toLowerCase() ||
+          catalogue.getMapByPath(p)?.displayName.toLowerCase() === mapPath.toLowerCase() ||
+          catalogue.findMap(mapPath)?.mapUrl.toLowerCase() === p.toLowerCase(),
+      );
+      if (!match) {
+        throw new ValidationError("map-not-enabled", `Map '${settings.map}' is not enabled`, {
+          map: settings.map,
+        });
+      }
+      mapPath = match;
+    }
+
+    let modePath = settings.mode;
+    if (modePath) {
+      const match = configs.EnabledModes.find(
+        (p) =>
+          p.toLowerCase() === modePath.toLowerCase() ||
+          p.toLowerCase().includes(modePath.toLowerCase()),
+      );
+      if (!match) {
+        throw new ValidationError("mode-not-enabled", `Mode '${settings.mode}' is not enabled`, {
+          mode: settings.mode,
+        });
+      }
+      modePath = match;
+    }
+
+    if (settings.server) {
+      const pods = configs.GamePodPingServiceInfo as Record<string, unknown> | undefined;
+      const valid =
+        pods && Object.keys(pods).some((k) => k.toLowerCase() === settings.server!.toLowerCase());
+      if (!valid) {
+        throw new ValidationError("server-unknown", `Server '${settings.server}' is unknown`, {
+          server: settings.server,
+        });
+      }
+    }
+
+    return {
+      Map: mapPath,
+      Mode: modePath,
+      UseBots: false,
+      GamePod: settings.server ?? "",
+      GameRules: settings.rules ?? {},
+    };
+  }
+
+  static validateSetTeam(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+    targetPuuid: string,
+    team: string,
+  ): { partyId: string; team: string; puuid: string } {
+    this.validateCustomGame(party, selfPuuid);
+    const normalizedTeam = normalizeCustomGameTeam(team);
+    const exists = party!.Members.some((m) => m.Subject === targetPuuid);
+    if (!exists) {
+      throw new ValidationError("not-a-member", "Player is not a member of the party", {
+        puuid: targetPuuid,
+      });
+    }
+    return { partyId: party!.ID, team: normalizedTeam, puuid: targetPuuid };
+  }
+
+  static validateStartCustomGame(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+  ): { partyId: string } {
+    const selfMember = this.validateCustomGame(party, selfPuuid);
+    this.assertOwner(selfMember);
+    const membership = party!.CustomGameData?.Membership;
+    const teamOneCount = membership?.TeamOne?.length ?? 0;
+    const teamTwoCount = membership?.TeamTwo?.length ?? 0;
+    if (teamOneCount + teamTwoCount === 0) {
+      throw new ValidationError(
+        "no-team-players",
+        "At least one player must be on a team to start a custom game",
+      );
+    }
+    return { partyId: party!.ID };
+  }
+
+  static validateBalanceTeams(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+  ): { partyId: string } {
+    const selfMember = this.validateCustomGame(party, selfPuuid);
+    this.assertOwner(selfMember);
+    return { partyId: party!.ID };
+  }
+
+  static validateSetPreferredServers(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+    ids: string[],
+    validPods: string[],
+  ): { partyId: string; gamePodIds: string[] } {
+    if (!party || !party.ID) {
+      throw new ValidationError("no-party", "Not currently in a party");
+    }
+    const selfMember = (party.Members ?? []).find((m) => m.Subject === selfPuuid);
+    if (!selfMember) {
+      throw new ValidationError("not-a-member", "Caller is not a member of the party");
+    }
+    this.assertOwner(selfMember);
+    const validSet = new Set(validPods.map((p) => p.toLowerCase()));
+    for (const id of ids) {
+      if (!validSet.has(id.toLowerCase())) {
+        throw new ValidationError("server-unknown", `Server '${id}' is unknown`, { server: id });
+      }
+    }
+    return { partyId: party.ID, gamePodIds: ids };
+  }
+
+  static validateSetModerator(
+    party: RiotPartyResponse | null | undefined,
+    selfPuuid: string,
+    targetPuuid: string,
+    isModerator: boolean,
+  ): { partyId: string; puuid: string; isModerator: boolean } {
+    if (!party || !party.ID) {
+      throw new ValidationError("no-party", "Not currently in a party");
+    }
+    const selfMember = (party.Members ?? []).find((m) => m.Subject === selfPuuid);
+    if (!selfMember) {
+      throw new ValidationError("not-a-member", "Caller is not a member of the party");
+    }
+    this.assertOwner(selfMember);
+    const exists = party.Members.some((m) => m.Subject === targetPuuid);
+    if (!exists) {
+      throw new ValidationError("not-a-member", "Player is not a member of the party", {
+        puuid: targetPuuid,
+      });
+    }
+    return { partyId: party.ID, puuid: targetPuuid, isModerator };
+  }
+}
+
+export function normalizeCustomGameTeam(raw: string): string {
+  const lower = raw.trim().toLowerCase();
+  if (lower === "teamone" || lower === "one" || lower === "1" || lower === "blue") return "TeamOne";
+  if (lower === "teamtwo" || lower === "two" || lower === "2" || lower === "red") return "TeamTwo";
+  if (lower === "teamspectate" || lower === "spectate" || lower === "spec") return "TeamSpectate";
+  if (
+    lower === "teamonecoaches" ||
+    lower === "onecoaches" ||
+    lower === "coachone" ||
+    lower === "coach1"
+  )
+    return "TeamOneCoaches";
+  if (
+    lower === "teamtwocoaches" ||
+    lower === "twocoaches" ||
+    lower === "coachtwo" ||
+    lower === "coach2"
+  )
+    return "TeamTwoCoaches";
+  throw new ValidationError("invalid-argument", `Unknown custom game team: ${raw}`);
 }

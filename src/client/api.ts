@@ -5,6 +5,8 @@ import type {
   Content,
   ContractProgress,
   Conversation,
+  CustomGameConfigs,
+  CustomGameSettings,
   Favourite,
   Friend,
   FriendRequest,
@@ -22,6 +24,8 @@ import type {
   OwnedItems,
   Participant,
   Party,
+  PartyInvite,
+  PartyRequest,
   Penalty,
   Player,
   PlayerSettings,
@@ -31,7 +35,7 @@ import type {
   Store,
   Wallet,
 } from "../model/index.js";
-import type { RiotCustomGameConfigsResponse, RiotLoadoutResponse } from "../riot/types.js";
+import type { RiotLoadoutResponse } from "../riot/types.js";
 import type { LoadoutChange } from "./LoadoutValidator.js";
 import type { PartyActionRequest } from "./PartyValidator.js";
 import type { BuyTarget, BuyValidationResult } from "./StoreValidator.js";
@@ -129,6 +133,14 @@ export interface MatchesApi {
   }): Promise<Leaderboard>;
   content(): Promise<Content>;
   premier(): Promise<Premier>;
+  selectAgent(agent: string): Promise<LiveMatch>;
+  validateSelectAgent(agent: string): Promise<{ matchId: string; agentUuid: string }>;
+  lockAgent(agent: string): Promise<LiveMatch>;
+  validateLockAgent(agent: string): Promise<{ matchId: string; agentUuid: string }>;
+  dodge(options?: { confirm?: boolean }): Promise<{ dodged: boolean; matchId: string }>;
+  validateDodge(options?: { confirm?: boolean }): Promise<{ matchId: string }>;
+  leaveMatch(options?: { confirm?: boolean }): Promise<{ left: boolean; matchId: string }>;
+  validateLeaveMatch(options?: { confirm?: boolean }): Promise<{ matchId: string; puuid: string }>;
 }
 
 export interface PartyApi {
@@ -158,7 +170,39 @@ export interface PartyApi {
   leave(): Promise<Party>;
   validateLeave(): Promise<PartyActionRequest>;
   queues(): Promise<QueueConfig[]>;
-  customGameConfigs(): Promise<RiotCustomGameConfigsResponse>;
+  customGameConfigs(): Promise<CustomGameConfigs>;
+  join(partyId: string): Promise<Party>;
+  validateJoin(partyId: string): Promise<{ partyId: string }>;
+  declineInvite(inviteId: string): Promise<{ declined: boolean; inviteId: string }>;
+  validateDeclineInvite(inviteId: string): Promise<{ partyId: string; inviteId: string }>;
+  requestToJoin(partyId: string): Promise<{ requested: boolean; partyId: string }>;
+  declineRequest(requestId: string): Promise<{ declined: boolean; requestId: string }>;
+  validateDeclineRequest(requestId: string): Promise<{ partyId: string; requestId: string }>;
+  invites(): Promise<PartyInvite[]>;
+  requests(): Promise<PartyRequest[]>;
+  makeCustomGame(): Promise<Party>;
+  validateMakeCustomGame(): Promise<{ partyId: string }>;
+  makeDefault(queue: string): Promise<Party>;
+  validateMakeDefault(queue: string): Promise<{ partyId: string; queue: string }>;
+  setCustomGameSettings(settings: CustomGameSettings): Promise<Party>;
+  validateSetCustomGameSettings(settings: CustomGameSettings): Promise<Record<string, unknown>>;
+  setTeam(puuid: string, team: string): Promise<Party>;
+  validateSetTeam(
+    puuid: string,
+    team: string,
+  ): Promise<{ partyId: string; team: string; puuid: string }>;
+  startCustomGame(): Promise<Party>;
+  validateStartCustomGame(): Promise<{ partyId: string }>;
+  balanceTeams(): Promise<Party>;
+  validateBalanceTeams(): Promise<{ partyId: string }>;
+  setPreferredServers(ids: string[]): Promise<Party>;
+  validateSetPreferredServers(ids: string[]): Promise<{ partyId: string; gamePodIds: string[] }>;
+  setModerator(puuid: string, isModerator: boolean): Promise<Party>;
+  validateSetModerator(
+    puuid: string,
+    isModerator: boolean,
+  ): Promise<{ partyId: string; puuid: string; isModerator: boolean }>;
+  refresh(): Promise<Party>;
 }
 
 export interface LocalRawApi {
