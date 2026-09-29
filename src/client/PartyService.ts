@@ -27,6 +27,7 @@ export class PartyService {
   }
 
   async validateAction(action: PartyAction): Promise<PartyActionRequest> {
+    PartyValidator.validateActionParameters(action);
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
@@ -146,6 +147,7 @@ export class PartyService {
   }
 
   private async executeAction(action: PartyAction): Promise<void> {
+    PartyValidator.validateActionParameters(action);
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();

@@ -23,11 +23,26 @@ export interface PartyActionRequest {
 }
 
 export class PartyValidator {
+  static validateActionParameters(action: PartyAction): void {
+    if (action.type === "invite") {
+      ChatValidator.parseRiotId(action.riotId);
+    }
+    if (action.type === "join-by-code" && !/^[a-zA-Z0-9]{6,12}$/.test(action.code)) {
+      throw new ValidationError(
+        "invalid-code",
+        "Invite code must be 6 to 12 alphanumeric characters",
+        { code: action.code },
+      );
+    }
+  }
+
   static validate(
     party: RiotPartyResponse | null | undefined,
     selfPuuid: string,
     action: PartyAction,
   ): PartyActionRequest {
+    this.validateActionParameters(action);
+
     if (!party || !party.ID) {
       throw new ValidationError("no-party", "Not currently in a party");
     }
