@@ -631,7 +631,11 @@ Releases are published automatically to npm and GitHub Releases via GitHub Actio
 3. Select the version bump (`patch`, `minor`, or `major`). You can optionally provide additional release notes.
 4. The workflow runs the full verification suite (lint, typecheck, tests, build, JSON schemas, and tarball contents).
 5. The `## [Unreleased]` section from `CHANGELOG.md` is automatically converted into the new version entry (`## [X.Y.Z] - YYYY-MM-DD`).
-6. The version commit and tag (`vX.Y.Z`) are created and pushed, `@valoranchi/riot-client` is published to npm with provenance, and a GitHub Release is created with the changelog notes.
+6. `@valoranchi/riot-client` is published to npm with provenance first; only then the version commit and tag (`vX.Y.Z`) are pushed and a GitHub Release is created with the changelog notes. A failed publish leaves the repository untouched.
+
+If a publish failed after the version was already committed (for example the npm token could not reach the scope), fix the cause and run the workflow again with **Publish the version already in package.json** checked: it publishes the current version and creates the release without bumping.
+
+The token check at the start of the workflow expects a granular npm token with **Read and write** on all packages of the `@valoranchi` organization. An npm `404` on publish means the scope does not exist for that token: the organization is missing or the token is limited to selected packages.
 
 ## What It Does Not Do
 

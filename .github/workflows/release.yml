@@ -17,6 +17,11 @@ on:
         type: string
         required: false
         default: ""
+      publish_only:
+        description: "Publish the version already in package.json without bumping"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -36,18 +41,30 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: "npm"
-          registry-url: "https://registry.npmjs.org"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Check the npm token can publish to the scope
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -e
+          WHO=$(npm whoami)
+          echo "Publishing as $WHO"
+          SCOPE=$(node -p "require('./package.json').name.split('/')[0]")
+          if ! npm access list packages "$SCOPE" >/dev/null 2>&1 && ! npm org ls "${SCOPE#@}" >/dev/null 2>&1; then
+            echo "::error::The token for $WHO cannot see the scope $SCOPE. Create the npm organization '${SCOPE#@}' (or use your user as the scope) and give the granular token Read and write on all packages of that scope."
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -79,28 +96,53 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update changelog and extract release notes
+        if: ${{ !inputs.publish_only }}
         run: |
-          node scripts/release-notes.mjs --bump "${{ github.event.inputs.bump }}" --notes "${{ github.event.inputs.notes }}" --output RELEASE_NOTES.md
+          node scripts/release-notes.mjs --bump "${{ inputs.bump }}" --notes "${{ inputs.notes }}" --output RELEASE_NOTES.md
           git add CHANGELOG.md
 
       - name: Bump version and create tag
+        if: ${{ !inputs.publish_only }}
+        run: npm version ${{ inputs.bump }} --force -m "Release v%s"
+
+      - name: Resolve the version being released
         id: version
         run: |
-          NEW_TAG=$(npm version ${{ github.event.inputs.bump }} --force -m "Release v%s")
-          echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+          VERSION=$(node -p "require('./package.json').version")
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Push commit and tag
+      - name: Extract release notes for an existing version
+        if: ${{ inputs.publish_only }}
         run: |
-          git push origin main
-          git push origin ${{ steps.version.outputs.tag }}
+          node -e '
+            const fs = require("fs");
+            const version = process.argv[1];
+            const text = fs.readFileSync("CHANGELOG.md", "utf8");
+            const start = text.indexOf("## [" + version + "]");
+            if (start < 0) { fs.writeFileSync("RELEASE_NOTES.md", "Release v" + version); process.exit(0); }
+            const rest = text.slice(text.indexOf("\n", start) + 1);
+            const end = rest.search(/\n## \[/);
+            fs.writeFileSync("RELEASE_NOTES.md", (end < 0 ? rest : rest.slice(0, end)).trim() + "\n");
+          ' "${{ steps.version.outputs.version }}"
 
       - name: Publish package to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --provenance --access public
 
+      - name: Push commit and tag
+        if: ${{ !inputs.publish_only }}
+        run: |
+          git push origin main
+          git push origin ${{ steps.version.outputs.tag }}
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create ${{ steps.version.outputs.tag }} --title "${{ steps.version.outputs.tag }}" --notes-file RELEASE_NOTES.md
+          if gh release view ${{ steps.version.outputs.tag }} >/dev/null 2>&1; then
+            echo "Release ${{ steps.version.outputs.tag }} already exists"
+          else
+            gh release create ${{ steps.version.outputs.tag }} --title "${{ steps.version.outputs.tag }}" --notes-file RELEASE_NOTES.md
+          fi
