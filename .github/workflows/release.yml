@@ -90,19 +90,33 @@ jobs:
       - name: Verify package tarball
         run: npm pack --dry-run
 
+      - name: Decide whether to bump or republish the current version
+        id: mode
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          PUBLISH_ONLY="${{ inputs.publish_only }}"
+          if [ "$PUBLISH_ONLY" != "true" ] && git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null && ! npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "v$VERSION is tagged but not on npm: publishing it instead of bumping"
+            PUBLISH_ONLY=true
+          fi
+          echo "publish_only=$PUBLISH_ONLY" >> "$GITHUB_OUTPUT"
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update changelog and extract release notes
-        if: ${{ !inputs.publish_only }}
+        if: ${{ steps.mode.outputs.publish_only != 'true' }}
         run: |
           node scripts/release-notes.mjs --bump "${{ inputs.bump }}" --notes "${{ inputs.notes }}" --output RELEASE_NOTES.md
           git add CHANGELOG.md
 
       - name: Bump version and create tag
-        if: ${{ !inputs.publish_only }}
+        if: ${{ steps.mode.outputs.publish_only != 'true' }}
         run: npm version ${{ inputs.bump }} --force -m "Release v%s"
 
       - name: Resolve the version being released
@@ -113,7 +127,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Extract release notes for an existing version
-        if: ${{ inputs.publish_only }}
+        if: ${{ steps.mode.outputs.publish_only == 'true' }}
         run: |
           node -e '
             const fs = require("fs");
@@ -132,7 +146,7 @@ jobs:
         run: npm publish --provenance --access public
 
       - name: Push commit and tag
-        if: ${{ !inputs.publish_only }}
+        if: ${{ steps.mode.outputs.publish_only != 'true' }}
         run: |
           git push origin main
           git push origin ${{ steps.version.outputs.tag }}
