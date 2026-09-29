@@ -45,6 +45,7 @@
     "docs:dev": "node scripts/gen-cli-docs.mjs && typedoc && vitepress dev docs",
     "docs:build": "node scripts/gen-cli-docs.mjs && typedoc && vitepress build docs",
     "docs:preview": "vitepress preview docs",
+    "examples:check": "tsc -p examples/tsconfig.json --noEmit && node --check examples/node/read.mjs && node --check examples/node/read.cjs && node --check examples/node/write.mjs && node --check examples/node/events.mjs",
     "format": "prettier --write .",
     "prepublishOnly": "npm run build"
   },

@@ -38,6 +38,9 @@ jobs:
       - name: Build documentation
         run: npm run docs:build
 
+      - name: Check examples
+        run: npm run examples:check
+
       - name: Generate JSON schemas
         run: npm run schema
 
