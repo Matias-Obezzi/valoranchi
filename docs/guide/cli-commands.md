@@ -6,6 +6,7 @@
 | :--- | :--- |
 | `whoami` | Print signed-in player profile and region |
 | `owned-items` | Print owned inventory items |
+| `collection-value` | Calculate estimated VP and Radianite value of owned collection |
 | `loadout` | Print currently equipped loadout |
 | `wallet` | Print VP, Radianite, and Kingdom Credits balances |
 | `xp` | Print account level, XP progression and recent match XP history |
@@ -20,6 +21,9 @@
 | `settings-save` | Save player settings from JSON file (&lt;file.json&gt;, requires --yes --confirm) |
 | `equip` | Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply) |
 | `equip-collection` | Equip a collection of skins (&lt;skinUuid,...&gt;) (dry-run, --yes to apply) |
+| `loadout-export` | Export current loadout as a preset JSON |
+| `loadout-diff` | Compare current loadout against preset JSON file (&lt;preset.json&gt;) |
+| `loadout-apply` | Apply loadout preset from JSON file (&lt;preset.json&gt;, dry-run, --yes to apply) |
 | `contract-activate` | Activate an agent contract (&lt;uuid&gt;) (dry-run, --yes to apply) |
 | `favourite-add` | Add skin to favourites (&lt;skin&gt;) (dry-run, --yes to apply) |
 | `favourite-remove` | Remove skin from favourites (&lt;skin&gt;) (dry-run, --yes to apply) |
@@ -49,6 +53,8 @@
 | Command | Description |
 | :--- | :--- |
 | `store` | Print storefront (daily, night market, bundles, accessories) |
+| `store-history` | Print recorded daily store rotations [--days &lt;n&gt;] |
+| `store-seen` | Print when a skin was last seen in daily store (&lt;skin&gt;) |
 | `offers` | Print full item offers catalog and pricing |
 | `order <id>` | Print store order details |
 | `night-market-reveal` | Reveal night market offers (dry-run, --yes to apply) |
@@ -59,6 +65,7 @@
 | Command | Description |
 | :--- | :--- |
 | `matches` | Print recent match history summaries |
+| `matches-sync` | Synchronize match history to local cache [--pages &lt;n&gt;] |
 | `match <id>` | Print full match details by ID |
 | `mmr` | Print current rank, rating, and MMR breakdown |
 | `rank-history` | Print competitive rating adjustments and tier changes |
@@ -69,6 +76,9 @@
 | `leaderboard` | Print competitive leaderboard [--season] [--start] [--size] [--query] |
 | `content` | Print active act, episode and live events |
 | `premier` | Print premier eligibility, roster, and season info |
+| `trend` | Print competitive rating streak, net RR gains, and climbing pace |
+| `summary` | Print player performance summary across recent matches [--count n] [--queue q] |
+| `assess [puuid]` | Assess player rank anomalies, streaks, and warning flags |
 | `agent-select` | Select an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply) |
 | `agent-lock` | Lock in an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply) |
 | `dodge` | Dodge pregame agent select (requires --yes --confirm) |

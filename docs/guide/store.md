@@ -223,3 +223,55 @@ riotclient order order-uuid-1234
   "cost": null
 }
 ```
+
+### history
+
+Retrieves recorded store rotations from the local cache file (`storeHistory/<puuid>.json`).
+Each call to `client.store.current()` automatically logs the daily offers, bundles, and Night Market into this history, deduplicated per day and capped at 400 days.
+
+```ts
+const history = await client.store.history();
+console.log(`Recorded ${history.days.length} days of store rotations`);
+```
+
+```bash
+riotclient store-history
+```
+
+```json
+{
+  "days": [
+    {
+      "day": "2026-09-29",
+      "daily": [
+        "8908f237-47b2-031a-e905-1a89c93cc8f5",
+        "4324a482-47da-4521-b3b0-4dbfcfefd779"
+      ],
+      "nightMarket": null,
+      "bundles": [
+        "b1c8f420-410c-512b-b6d4-8d960f2df262"
+      ]
+    }
+  ]
+}
+```
+
+### seen
+
+Queries store history to determine when a specific skin UUID was last seen in the daily storefront and the total number of recorded appearances.
+
+```ts
+const seen = await client.store.seen("8908f237-47b2-031a-e905-1a89c93cc8f5");
+console.log(`Last seen on: ${seen.lastSeen}, appeared ${seen.times} times`);
+```
+
+```bash
+riotclient store-seen 8908f237-47b2-031a-e905-1a89c93cc8f5
+```
+
+```json
+{
+  "lastSeen": "2026-09-29",
+  "times": 3
+}
+```

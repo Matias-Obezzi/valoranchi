@@ -160,6 +160,90 @@ riotclient equip-collection 8908f237-47b2-031a-e905-1a89c93cc8f5 --yes
 }
 ```
 
+### exportLoadout
+
+Exports the currently equipped cosmetics as a portable `LoadoutChange` preset object that can be stored on disk and restored later.
+
+```ts
+const preset = await client.account.exportLoadout();
+console.log(preset);
+```
+
+```bash
+riotclient loadout-export > preset.json
+```
+
+```json
+{
+  "guns": [
+    {
+      "weapon": "ee61337c-4ab5-9b0f-3f90-46347473887c",
+      "skin": "8908f237-47b2-031a-e905-1a89c93cc8f5",
+      "level": "7209796e-4f76-88c9-04fa-fb81498b5e9d",
+      "chroma": "f90dfcb8-48dc-5db5-6490-67bb26ca9d9a"
+    }
+  ],
+  "card": "3329ec45-42f0-f94d-4467-31a895b6cb1e",
+  "title": "d0dc0ee7-40ff-4e78-2cbe-fa89a4253106",
+  "incognito": false
+}
+```
+
+### diffLoadout
+
+Compares the currently equipped loadout against a target preset or full loadout, returning only the items that differ across weapons, sprays, and identity cards/titles.
+
+```ts
+const diff = await client.account.diffLoadout(preset);
+console.log(`Total changes needed: ${diff.totalChanges}`);
+```
+
+```bash
+riotclient loadout-diff preset.json
+```
+
+```json
+{
+  "guns": [
+    {
+      "slot": "Vandal",
+      "slotId": "ee61337c-4ab5-9b0f-3f90-46347473887c",
+      "from": { "id": "8908f237-47b2-031a-e905-1a89c93cc8f5", "name": "Prime Vandal" },
+      "to": { "id": "9f2654da-4e44-177b-6c48-8b9a528657ea", "name": "Reaver Vandal" }
+    }
+  ],
+  "sprays": [],
+  "identity": [],
+  "totalChanges": 1
+}
+```
+
+### equipPreset
+
+Validates a loadout preset against owned inventory items, computes the minimal diff against the active loadout, and equips only the changed slots. Requires explicit confirmation (`{ confirm: true }` in code or `--yes` in CLI).
+
+```ts
+const updated = await client.account.equipPreset(preset, { confirm: true });
+```
+
+```bash
+riotclient loadout-apply preset.json --yes
+```
+
+```json
+{
+  "player": {
+    "puuid": "4a7b9c1d-1234-5678-9abc-def012345678",
+    "gameName": "Player",
+    "tagLine": "NA1",
+    "region": "na",
+    "shard": "na",
+    "accountLevel": 128
+  },
+  "incognito": false
+}
+```
+
 ### wallet
 
 Inspects current balances for Valorant Points, Radianite Points, and Kingdom Credits.

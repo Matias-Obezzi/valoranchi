@@ -525,3 +525,44 @@ riotclient leave-match --yes --confirm
   "matchId": "c9284241-1234-5678-9abc-def012345678"
 }
 ```
+
+### sync
+
+Synchronizes the player's match history into the local cache (`matches/<puuid>.json`).
+Pages through match history until it encounters an already-known match ID, saving newly seen matches and returning only the newly added items.
+
+```ts
+const syncResult = await client.matches.sync({ maxPages: 5 });
+console.log(`Added ${syncResult.added.length} new matches. Total cached: ${syncResult.total}`);
+```
+
+```bash
+riotclient matches-sync --pages 5
+```
+
+```json
+{
+  "added": [
+    {
+      "id": "c9284241-1234-5678-9abc-def012345678",
+      "startedAt": "2026-09-29T16:00:00.000Z",
+      "queue": "competitive",
+      "map": {
+        "uuid": "7eaecc1b-4337-bbf6-6ab9-04b8f06b3319",
+        "name": "Ascent",
+        "path": "/Game/Maps/Ascent/Ascent"
+      }
+    }
+  ],
+  "total": 42
+}
+```
+
+### known
+
+Returns the complete array of match summaries currently preserved in the local disk cache without making network requests.
+
+```ts
+const cachedMatches = await client.matches.known();
+console.log(`Found ${cachedMatches.length} matches in local cache`);
+```

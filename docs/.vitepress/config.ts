@@ -42,6 +42,7 @@ export default defineConfig({
           { text: "Store", link: "/guide/store" },
           { text: "Matches", link: "/guide/matches" },
           { text: "Party", link: "/guide/party" },
+          { text: "Analytics", link: "/guide/analytics" },
           { text: "Real-Time Events", link: "/guide/events" },
           { text: "Writes & Safety", link: "/guide/writes-and-safety" },
           { text: "Other Languages", link: "/guide/other-languages" },

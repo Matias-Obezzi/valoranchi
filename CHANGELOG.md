@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `matches.trend(options?)` calculates competitive rating trends, streaks, net RR movement over 5/10/20 games, win rate, pace (`climbing`, `holding`, `falling`), and distance to next rank or demotion (`RatingTrend`). CLI `trend`.
+- `matches.summary(options?)` aggregates performance stats across recent matches with by-agent and by-map breakdowns, best/worst highlights, and consistency metrics (`PerformanceSummary`). CLI `summary [--count n] [--queue q]`.
+- `matches.assess(puuid)` and live match warnings on `LiveMatchPlayer.warnings` detect rank anomalies (`low-level-high-rank`, `inflated`, `underranked`, `long-streak`, `new-act`) (`PlayerAssessment`). CLI `assess [puuid]`.
+- `account.diffLoadout()`, `account.equipPreset()`, and `account.exportLoadout()` calculate minimal loadout diffs, validate and equip preset changes, and export active loadouts (`LoadoutDiff`). CLI `loadout-export`, `loadout-diff`, `loadout-apply`.
+- `account.collectionValue()` computes total Valorant Points and estimated Radianite Points for owned skins grouped by weapon and tier (`CollectionValue`). CLI `collection-value`.
+- `store.history()` and `store.seen(skinUuid)` persist daily storefront rotations to local cache deduplicated per day and query skin appearance history (`StoreHistory`, `StoreSeen`). CLI `store-history`, `store-seen <skin>`.
+- `matches.sync(options?)` and `matches.known()` synchronize match history to disk cache paging until reaching known matches and list cached matches (`MatchSyncResult`). CLI `matches-sync`.
 - `mmr().fit` says whether the account sits at its right rank, judged by the rating won per victory over the last twenty competitive games: `above`, `fit` or `below`, with the expected rank and the average gain and loss.
 
 ## [0.3.0] - 2026-09-29
