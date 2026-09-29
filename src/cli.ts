@@ -318,25 +318,25 @@ async function executeStandardCommand(
 ): Promise<unknown> {
   switch (command) {
     case "whoami":
-      return client.whoami();
+      return client.account.whoami();
     case "owned-items":
-      return client.ownedItems({ language: options?.language });
+      return client.account.ownedItems({ language: options?.language });
     case "loadout":
-      return client.loadout();
+      return client.account.loadout();
     case "wallet":
-      return client.wallet();
+      return client.account.wallet();
     case "friends":
-      return client.friends();
+      return client.social.friends();
     case "friend-requests":
-      return client.friendRequests();
+      return client.social.friendRequests();
     case "blocked":
-      return client.blocked();
+      return client.social.blocked();
     case "conversations":
-      return client.conversations();
+      return client.social.conversations();
     case "messages":
-      return client.messages(options?.cid);
+      return client.social.messages(options?.cid);
     case "store":
-      return client.store({ language: options?.language });
+      return client.store.current({ language: options?.language });
     default:
       return UNKNOWN_COMMAND;
   }
@@ -349,20 +349,20 @@ async function executeGameCommand(
 ): Promise<unknown> {
   switch (command) {
     case "matches":
-      return client.matches({ count: options?.count, queue: options?.queue });
+      return client.matches.list({ count: options?.count, queue: options?.queue });
     case "match":
       if (!options?.matchId) {
         throw new Error("Missing match ID: riotclient match <id>");
       }
-      return client.match(options.matchId);
+      return client.matches.get(options.matchId);
     case "mmr":
-      return client.mmr();
+      return client.matches.mmr();
     case "rank-history":
-      return client.rankHistory({ count: options?.count });
+      return client.matches.rankHistory({ count: options?.count });
     case "live":
-      return client.liveMatch({ ranks: options?.ranks, loadouts: options?.loadouts });
+      return client.matches.live({ ranks: options?.ranks, loadouts: options?.loadouts });
     case "party":
-      return client.party();
+      return client.party.current();
     default:
       return UNKNOWN_COMMAND;
   }
@@ -388,60 +388,60 @@ async function executeWriteCommand(
         );
       }
       const target = parseTarget(to);
-      return yes ? client.sendMessage(target, text) : client.validateSendMessage(target, text);
+      return yes ? client.social.sendMessage(target, text) : client.social.validateSendMessage(target, text);
     }
     case "friend-request": {
       const riotId = pos[1];
       if (!riotId) {
         throw new ValidationError("invalid-argument", "Usage: riotclient friend-request <name#tag>");
       }
-      return yes ? client.sendFriendRequest(riotId) : client.validateSendFriendRequest(riotId);
+      return yes ? client.social.sendFriendRequest(riotId) : client.social.validateSendFriendRequest(riotId);
     }
     case "friend-accept": {
       const puuid = pos[1];
       if (!puuid) {
         throw new ValidationError("invalid-argument", "Usage: riotclient friend-accept <puuid>");
       }
-      return yes ? client.acceptFriendRequest(puuid) : client.validateAcceptFriendRequest(puuid);
+      return yes ? client.social.acceptFriendRequest(puuid) : client.social.validateAcceptFriendRequest(puuid);
     }
     case "friend-decline": {
       const puuid = pos[1];
       if (!puuid) {
         throw new ValidationError("invalid-argument", "Usage: riotclient friend-decline <puuid>");
       }
-      return yes ? client.declineFriendRequest(puuid) : client.validateDeclineFriendRequest(puuid);
+      return yes ? client.social.declineFriendRequest(puuid) : client.social.validateDeclineFriendRequest(puuid);
     }
     case "friend-cancel": {
       const puuid = pos[1];
       if (!puuid) {
         throw new ValidationError("invalid-argument", "Usage: riotclient friend-cancel <puuid>");
       }
-      return yes ? client.cancelFriendRequest(puuid) : client.validateCancelFriendRequest(puuid);
+      return yes ? client.social.cancelFriendRequest(puuid) : client.social.validateCancelFriendRequest(puuid);
     }
     case "friend-remove": {
       const puuid = pos[1];
       if (!puuid) {
         throw new ValidationError("invalid-argument", "Usage: riotclient friend-remove <puuid>");
       }
-      return yes ? client.removeFriend(puuid) : client.validateRemoveFriend(puuid);
+      return yes ? client.social.removeFriend(puuid) : client.social.validateRemoveFriend(puuid);
     }
     case "block": {
       const target = pos[1];
       if (!target) {
         throw new ValidationError("invalid-argument", "Usage: riotclient block <puuid|name#tag>");
       }
-      return yes ? client.blockPlayer(target) : client.validateBlockPlayer(target);
+      return yes ? client.social.blockPlayer(target) : client.social.validateBlockPlayer(target);
     }
     case "unblock": {
       const puuid = pos[1];
       if (!puuid) {
         throw new ValidationError("invalid-argument", "Usage: riotclient unblock <puuid>");
       }
-      return yes ? client.unblockPlayer(puuid) : client.validateUnblockPlayer(puuid);
+      return yes ? client.social.unblockPlayer(puuid) : client.social.validateUnblockPlayer(puuid);
     }
     case "equip": {
       const change = parseEquipChange(vals);
-      return yes ? client.equip(change) : client.validateEquip(change);
+      return yes ? client.account.equip(change) : client.account.validateEquip(change);
     }
     case "equip-collection": {
       const raw = pos.slice(1).join(",");
@@ -449,7 +449,7 @@ async function executeWriteCommand(
       if (skinUuids.length === 0) {
         throw new ValidationError("invalid-argument", "Usage: riotclient equip-collection <skinUuid,...>");
       }
-      return yes ? client.equipCollection(skinUuids) : client.validateEquipCollection(skinUuids);
+      return yes ? client.account.equipCollection(skinUuids) : client.account.validateEquipCollection(skinUuids);
     }
     default:
       return UNKNOWN_COMMAND;
@@ -474,34 +474,34 @@ async function executePartyCommand(
   switch (command) {
     case "party-invite": {
       const riotId = requirePositional(pos, 1, "Usage: riotclient party-invite <name#tag>");
-      return yes ? client.invite(riotId) : client.validateInvite(riotId);
+      return yes ? client.party.invite(riotId) : client.party.validateInvite(riotId);
     }
     case "party-kick": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient party-kick <puuid>");
-      return yes ? client.kick(puuid) : client.validateKick(puuid);
+      return yes ? client.party.kick(puuid) : client.party.validateKick(puuid);
     }
     case "party-promote": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient party-promote <puuid>");
-      return yes ? client.promote(puuid) : client.validatePromote(puuid);
+      return yes ? client.party.promote(puuid) : client.party.validatePromote(puuid);
     }
     case "party-code":
       return vals.revoke
-        ? (yes ? client.revokeInviteCode() : client.validateRevokeInviteCode())
-        : (yes ? client.createInviteCode() : client.validateCreateInviteCode());
+        ? (yes ? client.party.revokeInviteCode() : client.party.validateRevokeInviteCode())
+        : (yes ? client.party.createInviteCode() : client.party.validateCreateInviteCode());
     case "party-join": {
       const code = requirePositional(pos, 1, "Usage: riotclient party-join <code>");
-      return yes ? client.joinByCode(code) : client.validateJoinByCode(code);
+      return yes ? client.party.joinByCode(code) : client.party.validateJoinByCode(code);
     }
     case "party-ready": {
       const ready = parseBooleanFlag(
         "ready",
         requirePositional(pos, 1, "Usage: riotclient party-ready on|off"),
       );
-      return yes ? client.setReady(Boolean(ready)) : client.validateSetReady(Boolean(ready));
+      return yes ? client.party.setReady(Boolean(ready)) : client.party.validateSetReady(Boolean(ready));
     }
     case "party-queue": {
       const queue = requirePositional(pos, 1, "Usage: riotclient party-queue <queue>");
-      return yes ? client.setQueue(queue) : client.validateSetQueue(queue);
+      return yes ? client.party.setQueue(queue) : client.party.validateSetQueue(queue);
     }
     case "party-access": {
       const access = requirePositional(
@@ -512,14 +512,14 @@ async function executePartyCommand(
       if (access !== "open" && access !== "closed") {
         throw new ValidationError("invalid-argument", "Usage: riotclient party-access open|closed");
       }
-      return yes ? client.setAccessibility(access) : client.validateSetAccessibility(access);
+      return yes ? client.party.setAccessibility(access) : client.party.validateSetAccessibility(access);
     }
     case "party-start":
-      return yes ? client.startMatchmaking() : client.validateStartMatchmaking();
+      return yes ? client.party.startMatchmaking() : client.party.validateStartMatchmaking();
     case "party-stop":
-      return yes ? client.stopMatchmaking() : client.validateStopMatchmaking();
+      return yes ? client.party.stopMatchmaking() : client.party.validateStopMatchmaking();
     case "party-leave":
-      return yes ? client.leave() : client.validateLeave();
+      return yes ? client.party.leave() : client.party.validateLeave();
     default:
       return UNKNOWN_COMMAND;
   }
