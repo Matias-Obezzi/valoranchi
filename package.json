@@ -41,5 +41,13 @@
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.28.0",
     "vitest": "^4.1.11"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Matias-Obezzi/valoranchi.git"
+  },
+  "homepage": "https://github.com/Matias-Obezzi/valoranchi#readme",
+  "bugs": {
+    "url": "https://github.com/Matias-Obezzi/valoranchi/issues"
   }
 }
