@@ -71,9 +71,30 @@ export interface RiotLoadoutResponse {
   Incognito: boolean;
 }
 
-export interface RiotAccountXpResponse {
-  Progress: { Level: number; XP: number };
+export interface RiotAccountXpSource {
+  ID: "time-played" | "match-win" | "first-win-of-the-day" | string;
+  Amount: number;
 }
+
+export interface RiotAccountXpHistoryItem {
+  ID: string;
+  MatchStart: string;
+  StartProgress: { Level: number; XP: number };
+  EndProgress: { Level: number; XP: number };
+  XPDelta: number;
+  XPSources?: RiotAccountXpSource[];
+  XPMultipliers?: unknown[];
+}
+
+export interface RiotAccountXpResponse {
+  Version?: number;
+  Subject?: string;
+  Progress: { Level: number; XP: number };
+  History?: RiotAccountXpHistoryItem[];
+  LastTimeGrantedFirstWin?: string;
+  NextTimeFirstWinAvailable?: string;
+}
+
 
 export interface RiotWalletResponse {
   Balances: Record<string, number>;
@@ -491,3 +512,182 @@ export interface RiotPartyResponse {
   QueueEntryTime?: string | null;
   Members: RiotPartyMember[];
 }
+
+export interface RiotContractItem {
+  ContractDefinitionID: string;
+  ContractProgression?: {
+    TotalProgressionEarned?: number;
+    TotalProgressionEarnedVersion?: number;
+    HighestRewardedLevel?: Record<string, { Amount: number; Version: number }>;
+  };
+  ProgressionLevelReached: number;
+  ProgressionTowardsNextLevel: number;
+}
+
+export interface RiotMissionItem {
+  ID: string;
+  Objectives: Record<string, number>;
+  Complete: boolean;
+  ExpirationTime: string;
+}
+
+export interface RiotContractsResponse {
+  Version?: number;
+  Subject?: string;
+  Contracts: RiotContractItem[];
+  ProcessedMatches?: unknown[];
+  ActiveSpecialContract: string | null;
+  Missions: RiotMissionItem[];
+  MissionMetadata?: {
+    NPECompleted?: boolean;
+    WeeklyCheckpoint?: string;
+    WeeklyRefillTime?: string;
+  };
+}
+
+export interface RiotPenaltyItem {
+  ID: string;
+  Expiry: string;
+  Reason: string;
+}
+
+export interface RiotPenaltiesResponse {
+  Subject?: string;
+  Penalties: RiotPenaltyItem[];
+  Version?: number;
+}
+
+export interface RiotFavoriteItem {
+  FavoriteID: string;
+  ItemID: string;
+}
+
+export interface RiotFavoritesResponse {
+  Subject?: string;
+  FavoritedContent: Record<string, RiotFavoriteItem>;
+}
+
+export interface RiotLeaderboardPlayer {
+  PlayerCardID?: string;
+  TitleID?: string;
+  IsBanned: boolean;
+  IsAnonymized: boolean;
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  leaderboardRank: number;
+  rankedRating: number;
+  numberOfWins: number;
+  competitiveTier: number;
+}
+
+export interface RiotTierDetail {
+  rankedRatingThreshold: number;
+  startingPage: number;
+  startingIndex: number;
+}
+
+export interface RiotLeaderboardResponse {
+  Deployment?: string;
+  QueueID: string;
+  SeasonID: string;
+  Players: RiotLeaderboardPlayer[];
+  totalPlayers: number;
+  immortalStartingPage?: number;
+  immortalStartingIndex?: number;
+  topTierRRThreshold?: number;
+  tierDetails?: Record<string, RiotTierDetail>;
+  startIndex: number;
+  query: string;
+}
+
+export interface RiotOffersResponse {
+  Offers: RiotStoreOffer[];
+  UpgradeCurrencyOffers?: unknown[];
+}
+
+export interface RiotOrderResponse {
+  ID?: string;
+  id?: string;
+  Status?: string;
+  status?: string;
+  ItemTypeID?: string;
+  ItemID?: string;
+  BundleID?: string;
+  Cost?: Record<string, number>;
+  CurrencyID?: string;
+  CurrencyCost?: number;
+  TotalCost?: Record<string, number>;
+}
+
+export interface RiotSessionResponse {
+  subject: string;
+  cxnState?: string;
+  clientID?: string;
+  clientVersion: string;
+  loopState: "MENUS" | "PREGAME" | "INGAME" | string;
+  loopStateMetadata?: unknown;
+  version?: number;
+  lastHeartbeatTime?: string;
+  expiredTime?: string;
+  heartbeatIntervalMillis?: number;
+  playtimeNotification?: unknown;
+  playtimeMinutes: number;
+  isRestricted: boolean;
+  userinfoValidTime?: string;
+  restrictionType?: string;
+  clientPlatformInfo?: unknown;
+}
+
+export interface RiotClientConfigResponse {
+  Collapsed?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface RiotContentSeason {
+  ID: string;
+  Name: string;
+  Type: "act" | "episode" | string;
+  StartTime: string;
+  EndTime: string;
+  IsActive: boolean;
+}
+
+export interface RiotContentEvent {
+  ID: string;
+  Name: string;
+  StartTime: string;
+  EndTime: string;
+  IsActive: boolean;
+}
+
+export interface RiotContentResponse {
+  DisabledIDs?: string[];
+  Seasons: RiotContentSeason[];
+  Events: RiotContentEvent[];
+}
+
+export interface RiotQueueConfigItem {
+  QueueID: string;
+  Enabled: boolean;
+  TeamSize: number;
+  NumTeams: number;
+  MaxPartySize: number;
+  MinPartySize: number;
+  Mode: string;
+  IsRanked: boolean;
+  RequireRoster?: boolean;
+}
+
+export interface RiotQueueConfigsResponse {
+  Queues: RiotQueueConfigItem[];
+}
+
+export interface RiotCustomGameConfigsResponse {
+  Enabled: boolean;
+  EnabledMaps: string[];
+  EnabledModes: string[];
+  Queues: string[];
+  GamePodPingServiceInfo: unknown;
+}
+

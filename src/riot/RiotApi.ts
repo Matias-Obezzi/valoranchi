@@ -3,23 +3,35 @@ import type { FileResponseCache } from "./ResponseCache.js";
 import type { Session } from "./Session.js";
 import type {
   RiotAccountXpResponse,
+  RiotClientConfigResponse,
   RiotCompetitiveUpdatesResponse,
+  RiotContentResponse,
+  RiotContractsResponse,
   RiotCoreGameLoadoutsResponse,
   RiotCoreGameMatchResponse,
   RiotCoreGamePlayerResponse,
+  RiotCustomGameConfigsResponse,
   RiotEntitlementsResponse,
+  RiotFavoritesResponse,
+  RiotLeaderboardResponse,
   RiotLoadoutResponse,
   RiotMatchDetailsResponse,
   RiotMatchHistoryResponse,
   RiotMmrResponse,
   RiotNameResponse,
+  RiotOffersResponse,
+  RiotOrderResponse,
   RiotPartyPlayerResponse,
   RiotPartyResponse,
+  RiotPenaltiesResponse,
   RiotPregameMatchResponse,
   RiotPregamePlayerResponse,
+  RiotQueueConfigsResponse,
+  RiotSessionResponse,
   RiotStorefrontResponse,
   RiotWalletResponse,
 } from "./types.js";
+
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -92,9 +104,10 @@ export class RiotApi {
     startIndex = 0,
     endIndex = 20,
     queue?: string,
+    puuid = this.session.puuid,
   ): Promise<RiotMatchHistoryResponse> {
     const queueParam = queue ? `&queue=${encodeURIComponent(queue)}` : "";
-    const url = `${this.session.endpoints.pd}/match-history/v1/history/${this.session.puuid}?startIndex=${startIndex}&endIndex=${endIndex}${queueParam}`;
+    const url = `${this.session.endpoints.pd}/match-history/v1/history/${puuid}?startIndex=${startIndex}&endIndex=${endIndex}${queueParam}`;
     return this.get(url);
   }
 
@@ -114,10 +127,12 @@ export class RiotApi {
     startIndex = 0,
     endIndex = 20,
     queue = "competitive",
+    puuid = this.session.puuid,
   ): Promise<RiotCompetitiveUpdatesResponse> {
-    const url = `${this.session.endpoints.pd}/mmr/v1/players/${this.session.puuid}/competitiveupdates?startIndex=${startIndex}&endIndex=${endIndex}&queue=${encodeURIComponent(queue)}`;
+    const url = `${this.session.endpoints.pd}/mmr/v1/players/${puuid}/competitiveupdates?startIndex=${startIndex}&endIndex=${endIndex}&queue=${encodeURIComponent(queue)}`;
     return this.get(url);
   }
+
 
   async pregamePlayer(): Promise<RiotPregamePlayerResponse | null> {
     const url = `${this.session.endpoints.glz}/pregame/v1/players/${this.session.puuid}`;
@@ -213,4 +228,125 @@ export class RiotApi {
     const url = `${this.session.endpoints.glz}/parties/v1/players/${encodeURIComponent(puuid)}`;
     return this.gateway.delete(url, this.session.headers());
   }
+
+  async contracts(puuid = this.session.puuid): Promise<RiotContractsResponse> {
+    return this.get(`${this.session.endpoints.pd}/contracts/v1/contracts/${puuid}`);
+  }
+
+  async activateContract(contractId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/contracts/v1/contracts/${this.session.puuid}/special/${contractId}`;
+    return this.gateway.post(url, undefined, this.session.headers());
+  }
+
+  async penalties(): Promise<RiotPenaltiesResponse> {
+    return this.get(`${this.session.endpoints.pd}/restrictions/v3/penalties`);
+  }
+
+  async favorites(puuid = this.session.puuid): Promise<RiotFavoritesResponse> {
+    return this.get(`${this.session.endpoints.pd}/favorites/v1/players/${puuid}/favorites`);
+  }
+
+  async addFavorite(itemId: string): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/favorites/v1/players/${this.session.puuid}/favorites`;
+    return this.gateway.post(url, { ItemID: itemId }, this.session.headers());
+  }
+
+  async removeFavorite(itemIdWithoutDashes: string): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/favorites/v1/players/${this.session.puuid}/favorites/${itemIdWithoutDashes}`;
+    return this.gateway.delete(url, this.session.headers());
+  }
+
+  async setActRankBadgeHidden(hidden: boolean): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/mmr/v1/players/${this.session.puuid}/hideactrankbadge`;
+    return this.gateway.post(url, { HideActRankBadge: hidden }, this.session.headers());
+  }
+
+  async setLeaderboardAnonymized(seasonId: string, anonymized: boolean): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/mmr/v1/leaderboards/affinity/${this.session.region}/queue/competitive/season/${seasonId}/subject/${this.session.puuid}/anonymize`;
+    return this.gateway.post(url, { Anonymize: anonymized }, this.session.headers());
+  }
+
+  async gameSession(): Promise<RiotSessionResponse> {
+    return this.gateway.get(
+      `${this.session.endpoints.glz}/session/v1/sessions/${this.session.puuid}`,
+      this.session.headers(),
+    );
+  }
+
+
+  async clientConfig(region = this.session.region): Promise<RiotClientConfigResponse> {
+    return this.gateway.get(`${this.session.endpoints.shared}/v1/config/${region}`);
+  }
+
+  async offers(): Promise<RiotOffersResponse> {
+    return this.get(`${this.session.endpoints.pd}/store/v1/offers/`);
+  }
+
+  async revealNightMarket(): Promise<unknown> {
+    const url = `${this.session.endpoints.pd}/store/v2/storefront/${this.session.puuid}/nightmarket/offers`;
+    return this.gateway.post(url, {}, this.session.headers());
+  }
+
+  async createOrder(body: unknown): Promise<RiotOrderResponse> {
+    const url = `${this.session.endpoints.pd}/store/v1/order/`;
+    return this.gateway.post(url, body, this.session.headers());
+  }
+
+  async createBundleOrder(bundleId: string, body: unknown): Promise<RiotOrderResponse> {
+    const url = `${this.session.endpoints.pd}/store/v1/bundles/${bundleId}/order`;
+    return this.gateway.post(url, body, this.session.headers());
+  }
+
+  async order(orderId: string): Promise<RiotOrderResponse> {
+    return this.get(`${this.session.endpoints.pd}/store/v1/order/${orderId}`);
+  }
+
+  async content(): Promise<RiotContentResponse> {
+    return this.gateway.get(`${this.session.endpoints.shared}/content-service/v3/content`);
+  }
+
+  async queueConfigs(): Promise<RiotQueueConfigsResponse> {
+    return this.gateway.get(
+      `${this.session.endpoints.glz}/matchmaking/v1/queues/configs`,
+      this.session.headers(),
+    );
+  }
+
+  async customGameConfigs(): Promise<RiotCustomGameConfigsResponse> {
+    return this.gateway.get(
+      `${this.session.endpoints.glz}/parties/v1/parties/customgameconfigs`,
+      this.session.headers(),
+    );
+  }
+
+  async leaderboard(
+    seasonId: string,
+    startIndex = 0,
+    size = 100,
+    query = "",
+  ): Promise<RiotLeaderboardResponse> {
+    const cappedSize = Math.min(Math.max(size, 1), 510);
+    const queryParam = query ? `&query=${encodeURIComponent(query)}` : "&query=";
+    const url = `${this.session.endpoints.pd}/mmr/v1/leaderboards/affinity/${this.session.region}/queue/competitive/season/${seasonId}?startIndex=${startIndex}&size=${cappedSize}${queryParam}`;
+    return this.get(url);
+  }
+
+  async premierPlayer(puuid = this.session.puuid): Promise<unknown> {
+    return this.get(`${this.session.endpoints.pd}/premier/v2/players/${puuid}`);
+  }
+
+  async premierEligibility(): Promise<unknown> {
+    return this.get(`${this.session.endpoints.pd}/premier/v1/player/eligibility`);
+  }
+
+  async premierActiveSeason(region = this.session.region): Promise<unknown> {
+    return this.get(
+      `${this.session.endpoints.pd}/premier/v1/affinities/${region}/premier-seasons/active`,
+    );
+  }
+
+  async premierConferences(region = this.session.region): Promise<unknown> {
+    return this.get(`${this.session.endpoints.pd}/premier/v1/affinities/${region}/conferences`);
+  }
 }
+
