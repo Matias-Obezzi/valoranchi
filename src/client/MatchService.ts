@@ -1,6 +1,17 @@
+import { ContentBuilder } from "../collection/ContentBuilder.js";
+import { LeaderboardBuilder } from "../collection/LeaderboardBuilder.js";
 import { MatchBuilder } from "../collection/MatchBuilder.js";
 import { MmrBuilder } from "../collection/MmrBuilder.js";
-import type { LiveMatch, Match, MatchSummary, Mmr, RankChange } from "../model/index.js";
+import type {
+  Content,
+  Leaderboard,
+  LiveMatch,
+  Match,
+  MatchSummary,
+  Mmr,
+  Premier,
+  RankChange,
+} from "../model/index.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -15,27 +26,38 @@ export class MatchService implements MatchesApi {
 
   async list(options?: { count?: number; queue?: string }): Promise<MatchSummary[]> {
     const session = await this.context.sessions.session();
+    return this.fetchMatchList(session.puuid, options);
+  }
+
+  async listFor(
+    puuid: string,
+    options?: { count?: number; queue?: string },
+  ): Promise<MatchSummary[]> {
+    return this.fetchMatchList(puuid, options);
+  }
+
+  private async fetchMatchList(
+    puuid: string,
+    options?: { count?: number; queue?: string },
+  ): Promise<MatchSummary[]> {
+    const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const catalogue = await this.context.catalogue();
-
     const targetCount = Math.min(Math.max(options?.count ?? 20, 1), 100);
     const collected: RiotMatchHistoryItem[] = [];
 
     for (let start = 0; start < targetCount; start += 20) {
-      if (start > 0) {
-        await new Promise((r) => setTimeout(r, 500));
-      }
+      if (start > 0) await new Promise((r) => setTimeout(r, 500));
       const end = Math.min(start + 20, targetCount);
-      const page = await api.matchHistory(start, end, options?.queue);
+      const page = await api.matchHistory(start, end, options?.queue, puuid);
       const history = page.History ?? [];
       if (history.length === 0) break;
       collected.push(...history);
       if (history.length < end - start) break;
     }
 
-    const items = collected.slice(0, targetCount);
     const summaries = await Promise.all(
-      items.map(async (item) => {
+      collected.slice(0, targetCount).map(async (item) => {
         try {
           const details = await api.matchDetails(item.MatchID);
           return MatchBuilder.toSummary(details, catalogue);
@@ -67,17 +89,27 @@ export class MatchService implements MatchesApi {
 
   async mmr(): Promise<Mmr> {
     const session = await this.context.sessions.session();
+    return this.mmrFor(session.puuid);
+  }
+
+  async mmrFor(puuid: string): Promise<Mmr> {
+    const session = await this.context.sessions.session();
     const api = this.context.api(session);
-    const [rawMmr, catalogue] = await Promise.all([api.mmr(), this.context.catalogue()]);
+    const [rawMmr, catalogue] = await Promise.all([api.mmr(puuid), this.context.catalogue()]);
     return new MmrBuilder(catalogue).buildMmr(rawMmr);
   }
 
   async rankHistory(options?: { count?: number }): Promise<RankChange[]> {
+    const session = await this.context.sessions.session();
+    return this.rankHistoryFor(session.puuid, options);
+  }
+
+  async rankHistoryFor(puuid: string, options?: { count?: number }): Promise<RankChange[]> {
     const count = Math.max(options?.count ?? 20, 1);
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const [rawUpdates, catalogue] = await Promise.all([
-      api.competitiveUpdates(0, count, "competitive"),
+      api.competitiveUpdates(0, count, "competitive", puuid),
       this.context.catalogue(),
     ]);
     return new MmrBuilder(catalogue).buildRankChanges(rawUpdates.Matches ?? []);
@@ -85,5 +117,62 @@ export class MatchService implements MatchesApi {
 
   async live(options?: { ranks?: boolean; loadouts?: boolean }): Promise<LiveMatch> {
     return this.liveMatchService.liveMatch(options);
+  }
+
+  async leaderboard(options?: {
+    season?: string;
+    start?: number;
+    size?: number;
+    query?: string;
+  }): Promise<Leaderboard> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+    let seasonId = options?.season ?? catalogue.currentAct()?.uuid;
+    if (!seasonId) {
+      const content = await api.content();
+      const activeAct = content.Seasons.find((s) => s.Type.toLowerCase() === "act" && s.IsActive);
+      seasonId = activeAct?.ID ?? "";
+    }
+    const raw = await api.leaderboard(
+      seasonId,
+      options?.start ?? 0,
+      options?.size ?? 100,
+      options?.query ?? "",
+    );
+    return new LeaderboardBuilder(catalogue).build(raw);
+  }
+
+  async content(): Promise<Content> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).content();
+    return ContentBuilder.build(raw);
+  }
+
+  async premier(): Promise<Premier> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const [eligibility, roster, activeSeason, conferences] = await Promise.all([
+      api.premierEligibility().catch(() => null),
+      api.premierPlayer().catch(() => null),
+      api.premierActiveSeason().catch(() => null),
+      api.premierConferences().catch(() => null),
+    ]);
+
+    const eligRecord = eligibility as Record<string, unknown> | null;
+    const isEligible = eligRecord
+      ? typeof eligRecord.eligible === "boolean"
+        ? eligRecord.eligible
+        : typeof eligRecord.IsEligible === "boolean"
+          ? eligRecord.IsEligible
+          : true
+      : null;
+
+    return {
+      eligible: isEligible,
+      roster,
+      season: activeSeason,
+      conferences,
+    };
   }
 }

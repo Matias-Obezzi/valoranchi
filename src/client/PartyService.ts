@@ -1,12 +1,15 @@
 import { PartyBuilder } from "../collection/PartyBuilder.js";
+import { QueueConfigBuilder } from "../collection/QueueConfigBuilder.js";
 import { ValidationError } from "../errors.js";
-import type { Party } from "../model/index.js";
+import type { Party, QueueConfig } from "../model/index.js";
 import type { RiotApi } from "../riot/RiotApi.js";
+import type { RiotCustomGameConfigsResponse } from "../riot/types.js";
 import { ChatValidator } from "./ChatValidator.js";
 import type { ClientContext } from "./ClientContext.js";
 import type { PartyApi } from "./api.js";
 import { resolveLobbyNames } from "./LiveMatchService.js";
 import { PartyValidator, type PartyAction, type PartyActionRequest } from "./PartyValidator.js";
+
 
 export class PartyService implements PartyApi {
   constructor(private readonly context: ClientContext) {}
@@ -210,4 +213,16 @@ export class PartyService implements PartyApi {
         break;
     }
   }
+
+  async queues(): Promise<QueueConfig[]> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).queueConfigs();
+    return QueueConfigBuilder.build(raw);
+  }
+
+  async customGameConfigs(): Promise<RiotCustomGameConfigsResponse> {
+    const session = await this.context.sessions.session();
+    return this.context.api(session).customGameConfigs();
+  }
 }
+

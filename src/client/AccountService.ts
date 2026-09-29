@@ -1,12 +1,27 @@
+import { AccountProgressionBuilder } from "../collection/AccountProgressionBuilder.js";
 import { CollectionBuilder } from "../collection/CollectionBuilder.js";
+import { GameSessionBuilder } from "../collection/GameSessionBuilder.js";
 import { LoadoutBuilder } from "../collection/LoadoutBuilder.js";
 import { LoadoutWriter } from "../collection/LoadoutWriter.js";
 import { ValidationError } from "../errors.js";
-import type { Loadout, OwnedItems, Player, Wallet } from "../model/index.js";
+import type {
+  AccountXp,
+  ContractProgress,
+  Favourite,
+  GameSession,
+  Loadout,
+  Mission,
+  OwnedItems,
+  Penalty,
+  Player,
+  Wallet,
+} from "../model/index.js";
 import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
+import { AccountValidator } from "./AccountValidator.js";
 import type { AccountApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 import { LoadoutValidator, type LoadoutChange, type LoadoutGunChange } from "./LoadoutValidator.js";
+
 
 export class AccountService implements AccountApi {
   constructor(private readonly context: ClientContext) {}
@@ -161,4 +176,149 @@ export class AccountService implements AccountApi {
       kingdomCredits: balances[CURRENCY_UUIDS.kingdomCredits] ?? 0,
     };
   }
+
+  async xp(): Promise<AccountXp> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).accountXp();
+    return AccountProgressionBuilder.buildAccountXp(raw);
+  }
+
+  async contracts(): Promise<ContractProgress[]> {
+    const session = await this.context.sessions.session();
+    const [raw, catalogue] = await Promise.all([
+      this.context.api(session).contracts(),
+      this.context.catalogue(),
+    ]);
+    return AccountProgressionBuilder.buildContracts(raw, catalogue);
+  }
+
+  async missions(): Promise<Mission[]> {
+    const session = await this.context.sessions.session();
+    const [raw, catalogue] = await Promise.all([
+      this.context.api(session).contracts(),
+      this.context.catalogue(),
+    ]);
+    return AccountProgressionBuilder.buildMissions(raw, catalogue);
+  }
+
+  async validateActivateContract(uuid: string): Promise<{ contractId: string }> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const [rawContracts, owned, catalogue] = await Promise.all([
+      api.contracts(),
+      this.ownedItems(),
+      this.context.catalogue(),
+    ]);
+    return AccountValidator.validateActivateContract(rawContracts, owned, catalogue, uuid);
+  }
+
+  async activateContract(uuid: string): Promise<ContractProgress[]> {
+    const validated = await this.validateActivateContract(uuid);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).activateContract(validated.contractId);
+    return this.contracts();
+  }
+
+  async penalties(): Promise<Penalty[]> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).penalties();
+    return AccountProgressionBuilder.buildPenalties(raw);
+  }
+
+  async favourites(): Promise<Favourite[]> {
+    const session = await this.context.sessions.session();
+    const [raw, catalogue] = await Promise.all([
+      this.context.api(session).favorites(),
+      this.context.catalogue(),
+    ]);
+    return AccountProgressionBuilder.buildFavourites(raw, catalogue);
+  }
+
+  async validateAddFavourite(skin: string): Promise<{ ItemID: string }> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const [rawFavs, owned, catalogue] = await Promise.all([
+      api.favorites(),
+      this.ownedItems(),
+      this.context.catalogue(),
+    ]);
+    return AccountValidator.validateAddFavourite(rawFavs, owned, catalogue, skin);
+  }
+
+  async addFavourite(skin: string): Promise<Favourite[]> {
+    const validated = await this.validateAddFavourite(skin);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).addFavorite(validated.ItemID);
+    return this.favourites();
+  }
+
+  async validateRemoveFavourite(skin: string): Promise<{ itemIdWithoutDashes: string }> {
+    const session = await this.context.sessions.session();
+    const [rawFavs, catalogue] = await Promise.all([
+      this.context.api(session).favorites(),
+      this.context.catalogue(),
+    ]);
+    return AccountValidator.validateRemoveFavourite(rawFavs, catalogue, skin);
+  }
+
+  async removeFavourite(skin: string): Promise<Favourite[]> {
+    const validated = await this.validateRemoveFavourite(skin);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).removeFavorite(validated.itemIdWithoutDashes);
+    return this.favourites();
+  }
+
+  async validateSetActRankBadgeHidden(hidden: boolean): Promise<{ HideActRankBadge: boolean }> {
+    if (typeof hidden !== "boolean") {
+      throw new ValidationError("invalid-argument", "Expected boolean for badge privacy");
+    }
+    return { HideActRankBadge: hidden };
+  }
+
+  async setActRankBadgeHidden(hidden: boolean): Promise<boolean> {
+    const validated = await this.validateSetActRankBadgeHidden(hidden);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).setActRankBadgeHidden(validated.HideActRankBadge);
+    return hidden;
+  }
+
+  async validateSetLeaderboardAnonymized(
+    anonymized: boolean,
+  ): Promise<{ seasonId: string; Anonymize: boolean }> {
+    if (typeof anonymized !== "boolean") {
+      throw new ValidationError("invalid-argument", "Expected boolean for leaderboard anonymize");
+    }
+    const session = await this.context.sessions.session();
+    const catalogue = await this.context.catalogue();
+    let seasonId = catalogue.currentAct()?.uuid;
+    if (!seasonId) {
+      const content = await this.context.api(session).content();
+      const activeAct = content.Seasons.find((s) => s.Type.toLowerCase() === "act" && s.IsActive);
+      seasonId = activeAct?.ID ?? "";
+    }
+    return { seasonId, Anonymize: anonymized };
+  }
+
+  async setLeaderboardAnonymized(anonymized: boolean): Promise<boolean> {
+    const validated = await this.validateSetLeaderboardAnonymized(anonymized);
+    const session = await this.context.sessions.session();
+    await this.context.api(session).setLeaderboardAnonymized(
+      validated.seasonId,
+      validated.Anonymize,
+    );
+    return anonymized;
+  }
+
+  async session(): Promise<GameSession> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).gameSession();
+    return GameSessionBuilder.build(raw);
+  }
+
+  async config(): Promise<Record<string, unknown>> {
+    const session = await this.context.sessions.session();
+    const raw = await this.context.api(session).clientConfig();
+    return (raw.Collapsed ?? raw) as Record<string, unknown>;
+  }
 }
+

@@ -1,24 +1,37 @@
 import type {
+  AccountXp,
   BlockedPlayer,
+  Content,
+  ContractProgress,
   Conversation,
+  Favourite,
   Friend,
   FriendRequest,
+  GameSession,
+  Leaderboard,
   LiveMatch,
   Loadout,
   Match,
   MatchSummary,
   Message,
+  Mission,
   Mmr,
+  Offer,
+  Order,
   OwnedItems,
   Party,
+  Penalty,
   Player,
+  Premier,
+  QueueConfig,
   RankChange,
   Store,
   Wallet,
 } from "../model/index.js";
-import type { RiotLoadoutResponse } from "../riot/types.js";
+import type { RiotCustomGameConfigsResponse, RiotLoadoutResponse } from "../riot/types.js";
 import type { LoadoutChange } from "./LoadoutValidator.js";
 import type { PartyActionRequest } from "./PartyValidator.js";
+import type { BuyTarget, BuyValidationResult } from "./StoreValidator.js";
 
 export interface AccountApi {
   whoami(): Promise<Player>;
@@ -29,6 +42,23 @@ export interface AccountApi {
   equipCollection(skinUuids: string[]): Promise<Loadout>;
   validateEquipCollection(skinUuids: string[]): Promise<RiotLoadoutResponse>;
   wallet(): Promise<Wallet>;
+  xp(): Promise<AccountXp>;
+  contracts(): Promise<ContractProgress[]>;
+  missions(): Promise<Mission[]>;
+  activateContract(uuid: string): Promise<ContractProgress[]>;
+  validateActivateContract(uuid: string): Promise<{ contractId: string }>;
+  penalties(): Promise<Penalty[]>;
+  favourites(): Promise<Favourite[]>;
+  addFavourite(skin: string): Promise<Favourite[]>;
+  validateAddFavourite(skin: string): Promise<{ ItemID: string }>;
+  removeFavourite(skin: string): Promise<Favourite[]>;
+  validateRemoveFavourite(skin: string): Promise<{ itemIdWithoutDashes: string }>;
+  setActRankBadgeHidden(hidden: boolean): Promise<boolean>;
+  validateSetActRankBadgeHidden(hidden: boolean): Promise<{ HideActRankBadge: boolean }>;
+  setLeaderboardAnonymized(anonymized: boolean): Promise<boolean>;
+  validateSetLeaderboardAnonymized(anonymized: boolean): Promise<{ seasonId: string; Anonymize: boolean }>;
+  session(): Promise<GameSession>;
+  config(): Promise<Record<string, unknown>>;
 }
 
 export interface SocialApi {
@@ -63,6 +93,12 @@ export interface SocialApi {
 
 export interface StoreApi {
   current(options?: { language?: string }): Promise<Store>;
+  offers(): Promise<Offer[]>;
+  revealNightMarket(): Promise<Store>;
+  validateRevealNightMarket(): Promise<{ url: string }>;
+  buy(target: BuyTarget, options?: { confirm?: boolean }): Promise<Order>;
+  validateBuy(target: BuyTarget, options?: { confirm?: boolean }): Promise<BuyValidationResult>;
+  order(id: string): Promise<Order>;
 }
 
 export interface MatchesApi {
@@ -71,6 +107,17 @@ export interface MatchesApi {
   mmr(): Promise<Mmr>;
   rankHistory(options?: { count?: number }): Promise<RankChange[]>;
   live(options?: { ranks?: boolean; loadouts?: boolean }): Promise<LiveMatch>;
+  listFor(puuid: string, options?: { count?: number; queue?: string }): Promise<MatchSummary[]>;
+  mmrFor(puuid: string): Promise<Mmr>;
+  rankHistoryFor(puuid: string, options?: { count?: number }): Promise<RankChange[]>;
+  leaderboard(options?: {
+    season?: string;
+    start?: number;
+    size?: number;
+    query?: string;
+  }): Promise<Leaderboard>;
+  content(): Promise<Content>;
+  premier(): Promise<Premier>;
 }
 
 export interface PartyApi {
@@ -99,4 +146,7 @@ export interface PartyApi {
   validateStopMatchmaking(): Promise<PartyActionRequest>;
   leave(): Promise<Party>;
   validateLeave(): Promise<PartyActionRequest>;
+  queues(): Promise<QueueConfig[]>;
+  customGameConfigs(): Promise<RiotCustomGameConfigsResponse>;
 }
+
