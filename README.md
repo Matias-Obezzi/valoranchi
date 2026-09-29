@@ -24,66 +24,79 @@ import { RiotClient } from "@valoranchi/riot-client";
 const client = new RiotClient({ language: "en-US" });
 
 // 1. Get signed-in player identity and region
-const player = await client.whoami();
+const player = await client.account.whoami();
 console.log(player);
 
 // 2. Get full owned inventory (weapons, skins, chromas, buddies, etc.)
-const collection = await client.ownedItems({ language: "en-US" });
+const collection = await client.account.ownedItems({ language: "en-US" });
 console.log(collection);
 
 // 3. Get currently equipped loadout
-const loadout = await client.loadout();
+const loadout = await client.account.loadout();
 console.log(loadout);
 
 // 4. Get currency balances (VP, Radianite, Kingdom Credits)
-const wallet = await client.wallet();
+const wallet = await client.account.wallet();
 console.log(wallet);
 
 // 5. Get friends roster and presence
-const friends = await client.friends();
+const friends = await client.social.friends();
 console.log(friends);
 
 // 6. Get incoming/outgoing friend requests and blocked players
-const requests = await client.friendRequests();
-const blocked = await client.blocked();
+const requests = await client.social.friendRequests();
+const blocked = await client.social.blocked();
 
 // 7. Get conversations and messages
-const conversations = await client.conversations();
-const messages = await client.messages();
+const conversations = await client.social.conversations();
+const messages = await client.social.messages();
 
 // 8. Get storefront rotation (daily, night market, bundles, accessories, radianite)
-const store = await client.store({ language: "en-US" });
+const store = await client.store.current({ language: "en-US" });
 console.log(store);
 
 // 9. Get recent match history summaries
-const matchSummaries = await client.matches({ count: 5, queue: "competitive" });
+const matchSummaries = await client.matches.list({ count: 5, queue: "competitive" });
 console.log(matchSummaries);
 
 // 10. Get full match details by match ID
 if (matchSummaries.length > 0) {
-  const match = await client.match(matchSummaries[0].id);
+  const match = await client.matches.get(matchSummaries[0].id);
   console.log(match);
 }
 
 // 11. Get competitive MMR breakdown and current rank
-const mmr = await client.mmr();
+const mmr = await client.matches.mmr();
 console.log(mmr);
 
 // 12. Get rank change history (competitive rating updates)
-const rankChanges = await client.rankHistory({ count: 5 });
+const rankChanges = await client.matches.rankHistory({ count: 5 });
 console.log(rankChanges);
 
 // 13. Get live match state (pregame agent select, in-game, range, or none)
-const live = await client.liveMatch({ ranks: true });
+const live = await client.matches.live({ ranks: true });
 console.log(live);
 
 // 14. Get current party details and members
-const party = await client.party();
+const party = await client.party.current();
 console.log(party);
 
 // Close the local loopback client agent when finished
 await client.close();
 ```
+
+## Migrating from 0.1
+
+In 0.2.0, every method moved under its namespace (`account`, `social`, `store`, `matches`, `party`).
+
+Five methods were also renamed:
+- `client.store()` → `client.store.current()`
+- `client.matches()` → `client.matches.list()`
+- `client.match(id)` → `client.matches.get(id)`
+- `client.liveMatch()` → `client.matches.live()`
+- `client.party()` → `client.party.current()`
+
+`client.events()` and `client.close()` remain on the root client.
 
 ## Real-Time Events
 
@@ -298,28 +311,28 @@ All writes are validated locally against your inventory and catalogue before any
 
 ### Available Methods
 
-- `client.equip(change: LoadoutChange): Promise<Loadout>`: Update equipped skins, skin levels, chromas, buddies, sprays, player card, title, level border, and incognito status.
-- `client.equipCollection(skinUuids: string[]): Promise<Loadout>`: Equip a list of skin UUIDs (one per weapon) at their highest owned level and base chroma.
-- `client.sendMessage(to, text): Promise<Message>`: Send a whisper or room message (target can be `{ puuid }`, `{ conversationId }`, or `{ riotId }`).
-- `client.sendFriendRequest(riotId): Promise<FriendRequest[]>`: Send a friend request by `Name#Tag`.
-- `client.acceptFriendRequest(puuid): Promise<Friend[]>`: Accept an incoming friend request.
-- `client.declineFriendRequest(puuid): Promise<FriendRequest[]>`: Decline an incoming friend request.
-- `client.cancelFriendRequest(puuid): Promise<FriendRequest[]>`: Cancel an outgoing friend request.
-- `client.removeFriend(puuid): Promise<Friend[]>`: Remove a friend.
-- `client.blockPlayer(target): Promise<BlockedPlayer[]>`: Block a player by PUUID or `Name#Tag`.
-- `client.unblockPlayer(puuid): Promise<BlockedPlayer[]>`: Unblock a player.
-- `client.invite(riotId): Promise<Party>`: Invite a player to the party by `Name#Tag`.
-- `client.kick(puuid): Promise<Party>`: Remove a member from the party (owner only).
-- `client.promote(puuid): Promise<Party>`: Transfer party ownership to another member.
-- `client.createInviteCode(): Promise<Party>`: Generate an invite code for the party.
-- `client.revokeInviteCode(): Promise<Party>`: Revoke the party's current invite code.
-- `client.joinByCode(code): Promise<Party>`: Join a party using an alphanumeric invite code.
-- `client.setReady(ready): Promise<Party>`: Set your ready status (`true` or `false`).
-- `client.setQueue(queue): Promise<Party>`: Change party queue (validated against eligible queues).
-- `client.setAccessibility(accessibility): Promise<Party>`: Set party accessibility (`"open"` or `"closed"`).
-- `client.startMatchmaking(): Promise<Party>`: Enter matchmaking queue (requires all members ready and idle party).
-- `client.stopMatchmaking(): Promise<Party>`: Cancel matchmaking queue.
-- `client.leave(): Promise<Party>`: Leave your current party.
+- `client.account.equip(change: LoadoutChange): Promise<Loadout>`: Update equipped skins, skin levels, chromas, buddies, sprays, player card, title, level border, and incognito status.
+- `client.account.equipCollection(skinUuids: string[]): Promise<Loadout>`: Equip a list of skin UUIDs (one per weapon) at their highest owned level and base chroma.
+- `client.social.sendMessage(to, text): Promise<Message>`: Send a whisper or room message (target can be `{ puuid }`, `{ conversationId }`, or `{ riotId }`).
+- `client.social.sendFriendRequest(riotId): Promise<FriendRequest[]>`: Send a friend request by `Name#Tag`.
+- `client.social.acceptFriendRequest(puuid): Promise<Friend[]>`: Accept an incoming friend request.
+- `client.social.declineFriendRequest(puuid): Promise<FriendRequest[]>`: Decline an incoming friend request.
+- `client.social.cancelFriendRequest(puuid): Promise<FriendRequest[]>`: Cancel an outgoing friend request.
+- `client.social.removeFriend(puuid): Promise<Friend[]>`: Remove a friend.
+- `client.social.blockPlayer(target): Promise<BlockedPlayer[]>`: Block a player by PUUID or `Name#Tag`.
+- `client.social.unblockPlayer(puuid): Promise<BlockedPlayer[]>`: Unblock a player.
+- `client.party.invite(riotId): Promise<Party>`: Invite a player to the party by `Name#Tag`.
+- `client.party.kick(puuid): Promise<Party>`: Remove a member from the party (owner only).
+- `client.party.promote(puuid): Promise<Party>`: Transfer party ownership to another member.
+- `client.party.createInviteCode(): Promise<Party>`: Generate an invite code for the party.
+- `client.party.revokeInviteCode(): Promise<Party>`: Revoke the party's current invite code.
+- `client.party.joinByCode(code): Promise<Party>`: Join a party using an alphanumeric invite code.
+- `client.party.setReady(ready): Promise<Party>`: Set your ready status (`true` or `false`).
+- `client.party.setQueue(queue): Promise<Party>`: Change party queue (validated against eligible queues).
+- `client.party.setAccessibility(accessibility): Promise<Party>`: Set party accessibility (`"open"` or `"closed"`).
+- `client.party.startMatchmaking(): Promise<Party>`: Enter matchmaking queue (requires all members ready and idle party).
+- `client.party.stopMatchmaking(): Promise<Party>`: Cancel matchmaking queue.
+- `client.party.leave(): Promise<Party>`: Leave your current party.
 
 ### Party Validation Rules
 
