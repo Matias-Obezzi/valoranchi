@@ -182,5 +182,33 @@
       "displayIcon": null,
       "listViewIcon": null
     }
+  ],
+  "tiers": [
+    {
+      "tier": 0,
+      "tierName": "Unranked",
+      "divisionName": null,
+      "color": "00000000",
+      "smallIcon": null,
+      "largeIcon": null
+    },
+    {
+      "tier": 3,
+      "tierName": "Iron 3",
+      "divisionName": "Iron",
+      "color": "33333333",
+      "smallIcon": "https://media.valorant-api.com/competitivetiers/iron3_small.png",
+      "largeIcon": "https://media.valorant-api.com/competitivetiers/iron3_large.png"
+    }
+  ],
+  "seasons": [
+    {
+      "uuid": "season-act-1",
+      "displayName": "ACT 1",
+      "type": "EAresSeasonType::Act",
+      "startTime": "2026-01-01T00:00:00Z",
+      "endTime": "2026-12-31T00:00:00Z",
+      "parentUuid": null
+    }
   ]
 }

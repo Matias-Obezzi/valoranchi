@@ -11,9 +11,16 @@ import type {
   ValorantApiMap,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
+  ValorantApiSeason,
   ValorantApiSpray,
+  ValorantApiTier,
   ValorantApiWeapon,
 } from "./types.js";
+
+interface ValorantApiTierGroup {
+  uuid: string;
+  tiers: ValorantApiTier[];
+}
 
 interface ApiResponse<T> {
   status: number;
@@ -101,7 +108,9 @@ export class ValorantApi {
     if (
       stored?.version === version &&
       Array.isArray(stored.data?.bundles) &&
-      Array.isArray(stored.data?.maps)
+      Array.isArray(stored.data?.maps) &&
+      Array.isArray(stored.data?.tiers) &&
+      Array.isArray(stored.data?.seasons)
     ) {
       return stored.data;
     }
@@ -122,6 +131,8 @@ export class ValorantApi {
       currenciesRes,
       bundlesRes,
       mapsRes,
+      compTiersRes,
+      seasonsRes,
     ] = await Promise.all([
       this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
       this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
@@ -133,7 +144,13 @@ export class ValorantApi {
       this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
       this.fetchEndpoint<ValorantApiBundle[]>("bundles", language),
       this.fetchEndpoint<ValorantApiMap[]>("maps", language),
+      this.fetchEndpoint<ValorantApiTierGroup[]>("competitivetiers", language),
+      this.fetchEndpoint<ValorantApiSeason[]>("seasons", language),
     ]);
+
+    const tierGroups = compTiersRes.data ?? [];
+    const lastTierGroup = tierGroups[tierGroups.length - 1];
+    const tiers = lastTierGroup?.tiers ?? [];
 
     return {
       weapons: weaponsRes.data,
@@ -146,6 +163,8 @@ export class ValorantApi {
       currencies: currenciesRes.data,
       bundles: bundlesRes.data,
       maps: mapsRes.data,
+      tiers,
+      seasons: seasonsRes.data,
     };
   }
 

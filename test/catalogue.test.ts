@@ -93,6 +93,50 @@ const sampleData = {
       listViewIcon: "icon-map-list",
     },
   ],
+  tiers: [
+    {
+      tier: 0,
+      tierName: "Unranked",
+      divisionName: null,
+      color: "000000",
+      smallIcon: null,
+      largeIcon: null,
+    },
+    {
+      tier: 3,
+      tierName: "Iron 3",
+      divisionName: "Iron",
+      color: "333333",
+      smallIcon: "iron-3-sm",
+      largeIcon: "iron-3-lg",
+    },
+  ],
+  seasons: [
+    {
+      uuid: "ep-1",
+      displayName: "EPISODE 1",
+      type: null,
+      startTime: "2026-01-01T00:00:00Z",
+      endTime: "2026-12-31T23:59:59Z",
+      parentUuid: null,
+    },
+    {
+      uuid: "act-1",
+      displayName: "ACT 1",
+      type: "EAresSeasonType::Act",
+      startTime: "2026-01-01T00:00:00Z",
+      endTime: "2026-06-01T00:00:00Z",
+      parentUuid: "ep-1",
+    },
+    {
+      uuid: "act-2",
+      displayName: "ACT 2",
+      type: "EAresSeasonType::Act",
+      startTime: "2026-06-01T00:00:00Z",
+      endTime: "2026-12-31T00:00:00Z",
+      parentUuid: "ep-1",
+    },
+  ],
 };
 
 describe("Catalogue", () => {
@@ -113,6 +157,10 @@ describe("Catalogue", () => {
     expect(catalogue.getTier("tier-1")?.displayName).toBe("Exclusive");
     expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
     expect(catalogue.getMapByPath("/Game/Maps/Ascent/Ascent")?.displayName).toBe("Ascent");
+    expect(catalogue.getTierByNumber(3)?.tierName).toBe("Iron 3");
+    expect(catalogue.getSeason("act-1")?.displayName).toBe("ACT 1");
+    expect(catalogue.currentAct(new Date("2026-03-01T00:00:00Z"))?.uuid).toBe("act-1");
+    expect(catalogue.currentAct(new Date("2026-08-01T00:00:00Z"))?.uuid).toBe("act-2");
   });
 });
 
@@ -146,6 +194,9 @@ describe("ValorantApi", () => {
       if (url.includes("currencies")) return { status: 200, data: sampleData.currencies };
       if (url.includes("bundles")) return { status: 200, data: sampleData.bundles };
       if (url.includes("maps")) return { status: 200, data: sampleData.maps };
+      if (url.includes("competitivetiers"))
+        return { status: 200, data: [{ uuid: "set-1", tiers: sampleData.tiers }] };
+      if (url.includes("seasons")) return { status: 200, data: sampleData.seasons };
       throw new Error(`Unexpected url: ${url}`);
     });
 
@@ -158,7 +209,8 @@ describe("ValorantApi", () => {
 
     expect(cat1.getWeapon("weapon-1")?.displayName).toBe("Vandal");
     expect(cat1.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
+    expect(cat1.getTierByNumber(3)?.tierName).toBe("Iron 3");
     expect(cat2).toBe(cat1);
-    expect(mockGet).toHaveBeenCalledTimes(10);
+    expect(mockGet).toHaveBeenCalledTimes(12);
   });
 });

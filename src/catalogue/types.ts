@@ -104,6 +104,24 @@ export interface ValorantApiMap {
   listViewIcon: string | null;
 }
 
+export interface ValorantApiTier {
+  tier: number;
+  tierName: string;
+  divisionName: string | null;
+  color: string | null;
+  smallIcon: string | null;
+  largeIcon: string | null;
+}
+
+export interface ValorantApiSeason {
+  uuid: string;
+  displayName: string;
+  type: string | null;
+  startTime: string;
+  endTime: string;
+  parentUuid: string | null;
+}
+
 export interface ValorantApiCatalogueData {
   weapons: ValorantApiWeapon[];
   playerCards: ValorantApiPlayerCard[];
@@ -115,4 +133,7 @@ export interface ValorantApiCatalogueData {
   currencies: ValorantApiCurrency[];
   bundles: ValorantApiBundle[];
   maps: ValorantApiMap[];
+  tiers?: ValorantApiTier[];
+  seasons?: ValorantApiSeason[];
 }
+

@@ -10,14 +10,18 @@ import type {
   ValorantApiMap,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
+  ValorantApiSeason,
   ValorantApiSkin,
   ValorantApiSkinLevel,
   ValorantApiSpray,
+  ValorantApiTier,
   ValorantApiWeapon,
 } from "./types.js";
 
 export class Catalogue {
   readonly weapons: readonly ValorantApiWeapon[];
+  readonly tiers: readonly ValorantApiTier[];
+  readonly seasons: readonly ValorantApiSeason[];
   private readonly weaponsByUuid = new Map<string, ValorantApiWeapon>();
   private readonly skinsByUuid = new Map<string, ValorantApiSkin>();
   private readonly skinLevelIndex = new Map<
@@ -41,9 +45,13 @@ export class Catalogue {
   private readonly currenciesByUuid = new Map<string, ValorantApiCurrency>();
   private readonly bundlesByUuid = new Map<string, ValorantApiBundle>();
   private readonly mapsByPath = new Map<string, ValorantApiMap>();
+  private readonly tierByNumber = new Map<number, ValorantApiTier>();
+  private readonly seasonByUuid = new Map<string, ValorantApiSeason>();
 
   constructor(data: ValorantApiCatalogueData) {
     this.weapons = data.weapons;
+    this.tiers = data.tiers ?? [];
+    this.seasons = data.seasons ?? [];
     this.indexWeapons(data.weapons);
     this.indexBuddies(data.buddies);
     this.indexOtherEntities(data);
@@ -99,6 +107,12 @@ export class Catalogue {
       if (map?.mapUrl) {
         this.mapsByPath.set(map.mapUrl.toLowerCase(), map);
       }
+    }
+    for (const tier of this.tiers) {
+      this.tierByNumber.set(tier.tier, tier);
+    }
+    for (const season of this.seasons) {
+      this.seasonByUuid.set(season.uuid.toLowerCase(), season);
     }
   }
 
@@ -156,5 +170,27 @@ export class Catalogue {
 
   getMapByPath(path: string): ValorantApiMap | undefined {
     return this.mapsByPath.get(path.toLowerCase());
+  }
+
+  getTierByNumber(tier: number): ValorantApiTier | undefined {
+    return this.tierByNumber.get(tier);
+  }
+
+  getSeason(uuid: string): ValorantApiSeason | undefined {
+    return this.seasonByUuid.get(uuid.toLowerCase());
+  }
+
+  currentAct(now: Date = new Date()): ValorantApiSeason | undefined {
+    const nowTime = now.getTime();
+    for (const season of this.seasons) {
+      if (season.type === "EAresSeasonType::Act" && season.startTime && season.endTime) {
+        const start = new Date(season.startTime).getTime();
+        const end = new Date(season.endTime).getTime();
+        if (start <= nowTime && nowTime < end) {
+          return season;
+        }
+      }
+    }
+    return undefined;
   }
 }
