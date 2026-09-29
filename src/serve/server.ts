@@ -91,7 +91,6 @@ export async function createRiotServer(
         query[key] = value;
       }
 
-      // Root index
       if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
         const html = renderIndexHtml();
         res.writeHead(200, {
@@ -102,7 +101,6 @@ export async function createRiotServer(
         return;
       }
 
-      // OpenAPI spec
       if (req.method === "GET" && pathname === "/openapi.json") {
         const spec = buildOpenApiSpec();
         const json = JSON.stringify(spec, null, 2);
@@ -114,13 +112,11 @@ export async function createRiotServer(
         return;
       }
 
-      // Server-Sent Events
       if (req.method === "GET" && pathname === "/events") {
         handleSse(client, req, res, query);
         return;
       }
 
-      // API namespace routes: /api/<namespace>/<method>
       if (pathname.startsWith("/api/")) {
         const parts = pathname.slice("/api/".length).split("/").filter(Boolean);
         if (parts.length >= 2) {
@@ -139,7 +135,6 @@ export async function createRiotServer(
         }
       }
 
-      // Not found
       res.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ error: { code: "NOT_FOUND", message: `Not found: ${req.url}` } }));
     } catch (error: unknown) {

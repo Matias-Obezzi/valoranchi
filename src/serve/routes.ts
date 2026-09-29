@@ -16,7 +16,6 @@ export const CONFIRM_GATED_ROUTES = new Set([
 ]);
 
 export const ROUTE_DEFINITIONS: RouteDefinition[] = [
-  // Account
   {
     method: "GET",
     namespace: "account",
@@ -212,7 +211,6 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     responseSchema: "PlayerSettings",
   },
 
-  // Social
   {
     method: "GET",
     namespace: "social",
@@ -326,7 +324,6 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     responseSchema: "BlockedPlayer",
   },
 
-  // Store
   {
     method: "GET",
     namespace: "store",
@@ -392,7 +389,6 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     responseSchema: "Order",
   },
 
-  // Matches
   {
     method: "GET",
     namespace: "matches",
@@ -570,7 +566,6 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     isConfirmGated: true,
   },
 
-  // Party
   {
     method: "GET",
     namespace: "party",
@@ -860,7 +855,6 @@ export async function dispatchApiRoute(
     }
   }
 
-  // ACCOUNT
   if (namespace === "account") {
     switch (normMethod) {
       case "whoami":
@@ -948,7 +942,6 @@ export async function dispatchApiRoute(
     }
   }
 
-  // SOCIAL
   if (namespace === "social") {
     switch (normMethod) {
       case "friends":
@@ -1018,7 +1011,6 @@ export async function dispatchApiRoute(
     }
   }
 
-  // STORE
   if (namespace === "store") {
     switch (normMethod) {
       case "current":
@@ -1043,7 +1035,6 @@ export async function dispatchApiRoute(
     }
   }
 
-  // MATCHES
   if (namespace === "matches") {
     switch (normMethod) {
       case "list":
@@ -1130,7 +1121,6 @@ export async function dispatchApiRoute(
     }
   }
 
-  // PARTY
   if (namespace === "party") {
     switch (normMethod) {
       case "current":
