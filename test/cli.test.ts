@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { RiotClient } from "../src/RiotClient.js";
@@ -9,6 +10,12 @@ import { StoreService } from "../src/client/StoreService.js";
 import { SessionManager } from "../src/client/SessionManager.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
 import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
+
+const packageVersion = (
+  JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "..", "package.json"), "utf-8")) as {
+    version: string;
+  }
+).version;
 import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
 import { TypedEmitter } from "../src/events/TypedEmitter.js";
 import {
@@ -92,7 +99,7 @@ describe("CLI entrypoint and flags", () => {
     try {
       const code = await runCli(["--version"]);
       expect(code).toBe(0);
-      expect(output.trim()).toBe("0.2.0");
+      expect(output.trim()).toBe(packageVersion);
     } finally {
       process.stdout.write = originalWrite;
     }
@@ -527,22 +534,18 @@ describe("CLI write commands and dry-run", () => {
       .mockResolvedValue({ method: "POST", path: "/parties/v1/players/joinbycode/CODE1" });
     const joinSpy = vi.spyOn(PartyService.prototype, "joinByCode").mockResolvedValue({} as never);
 
-    const valReadySpy = vi
-      .spyOn(PartyService.prototype, "validateSetReady")
-      .mockResolvedValue({
-        method: "POST",
-        path: "/parties/v1/parties/p1/members/self/setReady",
-        body: { ready: true },
-      });
+    const valReadySpy = vi.spyOn(PartyService.prototype, "validateSetReady").mockResolvedValue({
+      method: "POST",
+      path: "/parties/v1/parties/p1/members/self/setReady",
+      body: { ready: true },
+    });
     const readySpy = vi.spyOn(PartyService.prototype, "setReady").mockResolvedValue({} as never);
 
-    const valQueueSpy = vi
-      .spyOn(PartyService.prototype, "validateSetQueue")
-      .mockResolvedValue({
-        method: "POST",
-        path: "/parties/v1/parties/p1/queue",
-        body: { queueID: "competitive" },
-      });
+    const valQueueSpy = vi.spyOn(PartyService.prototype, "validateSetQueue").mockResolvedValue({
+      method: "POST",
+      path: "/parties/v1/parties/p1/queue",
+      body: { queueID: "competitive" },
+    });
     const queueSpy = vi.spyOn(PartyService.prototype, "setQueue").mockResolvedValue({} as never);
 
     const valAccessSpy = vi
