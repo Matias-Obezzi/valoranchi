@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Participant",
+  "definitions": {
+    "Participant": {
+      "type": "object",
+      "properties": {
+        "cid": {
+          "type": "string"
+        },
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pid": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "activePlatform": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": [
+        "cid",
+        "puuid",
+        "gameName",
+        "tagLine",
+        "name",
+        "pid",
+        "region",
+        "muted",
+        "activePlatform"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

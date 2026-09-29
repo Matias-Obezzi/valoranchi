@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/CustomGameSettings",
+  "definitions": {
+    "CustomGameSettings": {
+      "type": "object",
+      "properties": {
+        "map": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "server": {
+          "type": ["string", "null"]
+        },
+        "rules": {
+          "$ref": "#/definitions/CustomGameRules"
+        }
+      },
+      "required": ["map", "mode", "server", "rules"],
+      "additionalProperties": false
+    },
+    "CustomGameRules": {
+      "type": "object",
+      "properties": {
+        "allowGameModifiers": {
+          "type": ["boolean", "string"]
+        },
+        "playOutAllRounds": {
+          "type": ["boolean", "string"]
+        },
+        "skipMatchHistory": {
+          "type": ["boolean", "string"]
+        },
+        "tournamentMode": {
+          "type": ["boolean", "string"]
+        },
+        "isOvertimeWinByTwo": {
+          "type": ["boolean", "string"]
+        }
+      },
+      "additionalProperties": {}
+    }
+  }
+}

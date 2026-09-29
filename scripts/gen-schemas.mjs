@@ -33,6 +33,13 @@ const types = [
   "Content",
   "QueueConfig",
   "Premier",
+  "PartyInvite",
+  "PartyRequest",
+  "CustomGameSettings",
+  "CustomGameConfigs",
+  "PlayerSettings",
+  "ClientInfo",
+  "Participant",
 ];
 
 const schemaDir = path.resolve("schema");

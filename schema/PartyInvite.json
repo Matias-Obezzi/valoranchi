@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PartyInvite",
+  "definitions": {
+    "PartyInvite": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": "string"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "puuid": {
+                  "type": "string"
+                },
+                "gameName": {
+                  "type": "string"
+                },
+                "tagLine": {
+                  "type": "string"
+                }
+              },
+              "required": ["puuid", "gameName", "tagLine"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "at": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "partyId", "from", "at"],
+      "additionalProperties": false
+    }
+  }
+}

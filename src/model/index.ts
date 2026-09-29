@@ -587,3 +587,93 @@ export type Premier = {
   conferences: unknown;
 };
 
+export type PartyInvite = {
+  id: string;
+  partyId: string;
+  from: {
+    puuid: string;
+    gameName: string;
+    tagLine: string;
+  } | null;
+  at: string;
+};
+
+export type PartyRequest = {
+  id: string;
+  from: {
+    puuid: string;
+    gameName: string;
+    tagLine: string;
+  } | null;
+  at: string;
+};
+
+export type CustomGameRules = {
+  allowGameModifiers?: boolean | string;
+  playOutAllRounds?: boolean | string;
+  skipMatchHistory?: boolean | string;
+  tournamentMode?: boolean | string;
+  isOvertimeWinByTwo?: boolean | string;
+  [key: string]: unknown;
+};
+
+export type CustomGameSettings = {
+  map: string;
+  mode: string;
+  server: string | null;
+  rules: CustomGameRules;
+};
+
+export type CustomGameConfigs = {
+  maps: Array<{ path: string; name: string }>;
+  modes: Array<{ path: string; name: string }>;
+  servers: Array<{ id: string; name: string; ping: number | null }>;
+};
+
+export type PlayerSettingsBind = {
+  command: string;
+  key: string;
+  alt: boolean;
+  ctrl: boolean;
+  shift: boolean;
+  agent: string | null;
+  slot: number;
+};
+
+export type PlayerSettingsMouse = {
+  sensitivity: number | null;
+  scopedSensitivityMultiplier: number | null;
+  invertY: boolean | null;
+  rawInputBuffer: boolean | null;
+};
+
+export type PlayerSettings = {
+  binds: PlayerSettingsBind[];
+  mouse: PlayerSettingsMouse;
+  raw: Record<string, unknown>;
+};
+
+export type ClientInfo = {
+  locale: string;
+  region: string;
+  riotId: {
+    gameName: string;
+    tagLine: string;
+  };
+  valorantRunning: boolean;
+  valorantVersion: string | null;
+  patchline: string | null;
+};
+
+export type Participant = {
+  cid: string;
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  name: string;
+  pid: string;
+  region: string;
+  muted: boolean;
+  activePlatform: string | null;
+};
+

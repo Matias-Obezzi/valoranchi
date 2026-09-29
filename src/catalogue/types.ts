@@ -72,6 +72,7 @@ export interface ValorantApiAgent {
   } | null;
   displayIcon: string | null;
   isPlayableCharacter: boolean;
+  isBaseContent?: boolean;
 }
 
 export interface ValorantApiContentTier {

@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PartyRequest",
+  "definitions": {
+    "PartyRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "puuid": {
+                  "type": "string"
+                },
+                "gameName": {
+                  "type": "string"
+                },
+                "tagLine": {
+                  "type": "string"
+                }
+              },
+              "required": ["puuid", "gameName", "tagLine"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "at": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "from", "at"],
+      "additionalProperties": false
+    }
+  }
+}

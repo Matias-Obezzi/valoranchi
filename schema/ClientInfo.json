@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ClientInfo",
+  "definitions": {
+    "ClientInfo": {
+      "type": "object",
+      "properties": {
+        "locale": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "riotId": {
+          "type": "object",
+          "properties": {
+            "gameName": {
+              "type": "string"
+            },
+            "tagLine": {
+              "type": "string"
+            }
+          },
+          "required": ["gameName", "tagLine"],
+          "additionalProperties": false
+        },
+        "valorantRunning": {
+          "type": "boolean"
+        },
+        "valorantVersion": {
+          "type": ["string", "null"]
+        },
+        "patchline": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["locale", "region", "riotId", "valorantRunning", "valorantVersion", "patchline"],
+      "additionalProperties": false
+    }
+  }
+}

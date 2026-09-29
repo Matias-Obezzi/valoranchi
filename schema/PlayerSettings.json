@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PlayerSettings",
+  "definitions": {
+    "PlayerSettings": {
+      "type": "object",
+      "properties": {
+        "binds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PlayerSettingsBind"
+          }
+        },
+        "mouse": {
+          "$ref": "#/definitions/PlayerSettingsMouse"
+        },
+        "raw": {
+          "$ref": "#/definitions/Record%3Cstring%2Cunknown%3E"
+        }
+      },
+      "required": ["binds", "mouse", "raw"],
+      "additionalProperties": false
+    },
+    "PlayerSettingsBind": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "boolean"
+        },
+        "ctrl": {
+          "type": "boolean"
+        },
+        "shift": {
+          "type": "boolean"
+        },
+        "agent": {
+          "type": ["string", "null"]
+        },
+        "slot": {
+          "type": "number"
+        }
+      },
+      "required": ["command", "key", "alt", "ctrl", "shift", "agent", "slot"],
+      "additionalProperties": false
+    },
+    "PlayerSettingsMouse": {
+      "type": "object",
+      "properties": {
+        "sensitivity": {
+          "type": ["number", "null"]
+        },
+        "scopedSensitivityMultiplier": {
+          "type": ["number", "null"]
+        },
+        "invertY": {
+          "type": ["boolean", "null"]
+        },
+        "rawInputBuffer": {
+          "type": ["boolean", "null"]
+        }
+      },
+      "required": ["sensitivity", "scopedSensitivityMultiplier", "invertY", "rawInputBuffer"],
+      "additionalProperties": false
+    },
+    "Record<string,unknown>": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  }
+}
