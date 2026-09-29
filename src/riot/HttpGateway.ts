@@ -30,6 +30,10 @@ export class HttpGateway {
     return this.sendWithBody<T>("POST", url, body, headers);
   }
 
+  async delete<T>(url: string, headers?: Record<string, string>): Promise<T> {
+    return this.request<T>(url, { method: "DELETE" }, headers);
+  }
+
   async put<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
     return this.sendWithBody<T>("PUT", url, body, headers);
   }
@@ -80,7 +84,12 @@ export class HttpGateway {
       throw new RiotApiError(response.status, url);
     }
 
-    return (await response.json()) as T;
+    const text = await response.text();
+    if (!text || text.trim().length === 0) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   }
 
   private assertAllowedHost(urlStr: string, headers?: Record<string, string>): void {

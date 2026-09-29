@@ -170,6 +170,24 @@ describe("HttpGateway", () => {
     const gateway = new HttpGateway(mockFetch);
     await expect(gateway.getOrNull("https://pd.na.a.pvp.net/error")).rejects.toThrow(RiotApiError);
   });
+
+  it("makes DELETE requests and handles empty body responses", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(new Response("", { status: 200 }));
+    const gateway = new HttpGateway(mockFetch);
+
+    const res = await gateway.delete<unknown>("https://pd.na.a.pvp.net/item/123", {
+      Authorization: "Bearer secret",
+    });
+
+    expect(res).toBeUndefined();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/item/123",
+      expect.objectContaining({
+        method: "DELETE",
+        headers: { Authorization: "Bearer secret" },
+      }),
+    );
+  });
 });
 
 describe("RiotApi", () => {
@@ -339,6 +357,94 @@ describe("RiotApi", () => {
     await api.party("party-1");
     expect(mockGet).toHaveBeenCalledWith(
       "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/party-1",
+      expect.any(Object),
+    );
+  });
+
+  it("calls party write endpoints with correct methods, paths, and payloads", async () => {
+    const mockPost = vi.fn().mockResolvedValue({});
+    const mockDelete = vi.fn().mockResolvedValue(undefined);
+    const fakeGateway = { post: mockPost, delete: mockDelete } as unknown as HttpGateway;
+    const api = new RiotApi(fakeGateway, session);
+
+    await api.inviteToParty("p1", "Jett", "1234");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/invites/name/Jett/tag/1234",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.createPartyInviteCode("p1");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/invitecode",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.revokePartyInviteCode("p1");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/invitecode",
+      expect.any(Object),
+    );
+
+    await api.joinPartyByCode("ABC123");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/players/joinbycode/ABC123",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.kickFromParty("p1", "target-puuid");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/members/target-puuid",
+      expect.any(Object),
+    );
+
+    await api.promotePartyMember("p1", "target-puuid");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/members/target-puuid/owner",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.setPartyReady("p1", "target-puuid", true);
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/members/target-puuid/setReady",
+      { ready: true },
+      expect.any(Object),
+    );
+
+    await api.setPartyQueue("p1", "competitive");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/queue",
+      { queueID: "competitive" },
+      expect.any(Object),
+    );
+
+    await api.setPartyAccessibility("p1", "OPEN");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/accessibility",
+      { accessibility: "OPEN" },
+      expect.any(Object),
+    );
+
+    await api.startPartyMatchmaking("p1");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/matchmaking/join",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.stopPartyMatchmaking("p1");
+    expect(mockPost).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/p1/matchmaking/leave",
+      undefined,
+      expect.any(Object),
+    );
+
+    await api.leaveParty("self-puuid");
+    expect(mockDelete).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/players/self-puuid",
       expect.any(Object),
     );
   });

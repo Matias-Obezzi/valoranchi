@@ -472,6 +472,7 @@ export interface RiotPartyMember {
   };
   IsOwner?: boolean;
   IsReady?: boolean;
+  IsModerator?: boolean;
 }
 
 export interface RiotPartyResponse {
@@ -481,7 +482,12 @@ export interface RiotPartyResponse {
   MatchmakingData?: {
     QueueID?: string;
   } | null;
+  EligibleQueues?: string[];
+  QueueIneligibilities?: unknown[];
   InviteCode?: string | null;
+  Invites?: unknown[] | null;
+  Requests?: unknown[] | null;
+  RestrictedSeconds?: number;
   QueueEntryTime?: string | null;
   Members: RiotPartyMember[];
 }
