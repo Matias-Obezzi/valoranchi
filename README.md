@@ -59,6 +59,49 @@ console.log(store);
 await client.close();
 ```
 
+## Real-Time Events
+
+Subscribe to live events emitted by the local Riot Client WebSocket: friend presence updates, friend requests, roster changes, chat messages, party changes, and game transitions (agent select, match start).
+
+Events come from the local Riot Client loopback connection only and carry no authentication tokens.
+
+### Node Example
+
+```ts
+import { RiotClient } from "@valoranchi/riot-client";
+
+const client = new RiotClient();
+const events = client.events();
+
+events.on("connected", () => console.log("Connected to Riot Client"));
+events.on("disconnected", () => console.log("Disconnected"));
+
+events.on("friend:presence", ({ friend, change }) => {
+  console.log(`Friend ${friend.gameName} is now ${change} (${friend.presence.state})`);
+});
+
+events.on("message", (msg) => {
+  console.log(`[${msg.from.gameName}]: ${msg.body}`);
+});
+
+events.on("game", ({ phase, matchId }) => {
+  console.log(`Game phase: ${phase} (match ${matchId})`);
+});
+
+// Stop listening and close the local socket when finished
+await client.close();
+```
+
+### CLI Command
+
+Stream live events formatted as one JSON object per line until interrupted:
+
+```bash
+riotclient watch
+riotclient watch --only friend:presence,message,game
+riotclient watch --raw
+```
+
 ## CLI Usage
 
 The package includes the `riotclient` binary.
@@ -74,6 +117,7 @@ riotclient blocked
 riotclient conversations
 riotclient messages --cid <conversation-id>
 riotclient store --pretty
+riotclient watch
 ```
 
 Example trimmed output from `riotclient whoami --pretty`:

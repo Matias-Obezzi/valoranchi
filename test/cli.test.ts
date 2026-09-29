@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { RiotClient } from "../src/RiotClient.js";
-import { exitCodeForError, formatError, runCli, USAGE } from "../src/cli.js";
+import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
+import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
+import { TypedEmitter } from "../src/events/TypedEmitter.js";
 import {
   ForbiddenHostError,
   RegionUnknownError,
@@ -130,5 +132,75 @@ describe("CLI entrypoint and flags", () => {
       process.stdout.write = originalStdout;
       vi.restoreAllMocks();
     }
+  });
+});
+
+describe("CLI watch command", () => {
+  it("formats line matching { event, at, data }", () => {
+    const fixedIso = "2026-09-29T12:00:00.000Z";
+    const line = formatWatchLine("connected", undefined, fixedIso);
+    expect(line).toBe('{"event":"connected","at":"2026-09-29T12:00:00.000Z","data":null}');
+
+    const lineWithData = formatWatchLine("party", { partyId: "p1" }, fixedIso);
+    expect(lineWithData).toBe(
+      '{"event":"party","at":"2026-09-29T12:00:00.000Z","data":{"partyId":"p1"}}',
+    );
+  });
+
+  it("streams events as JSON lines and exits 0 on SIGINT", async () => {
+    let output = "";
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    const fakeEmitter = new TypedEmitter<RiotEventMap>();
+    vi.spyOn(RiotClient.prototype, "events").mockReturnValue(fakeEmitter as unknown as RiotEvents);
+    const closeSpy = vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    const promise = runCli(["watch", "--only", "connected,party"]);
+
+    fakeEmitter.emit("connected");
+    fakeEmitter.emit("party", { partyId: "party-99" });
+    fakeEmitter.emit("game", { phase: "pregame", matchId: "m1" });
+
+    process.emit("SIGINT");
+    const code = await promise;
+
+    process.stdout.write = originalWrite;
+    expect(code).toBe(0);
+    expect(closeSpy).toHaveBeenCalled();
+
+    const lines = output.trim().split("\n").map((l) => JSON.parse(l) as { event: string; data: unknown });
+    expect(lines).toHaveLength(2);
+    expect(lines[0]!.event).toBe("connected");
+    expect(lines[1]!.event).toBe("party");
+    expect(lines[1]!.data).toEqual({ partyId: "party-99" });
+  });
+
+  it("filters out raw events unless --raw flag is passed", async () => {
+    let output = "";
+    const originalWrite = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    const fakeEmitter = new TypedEmitter<RiotEventMap>();
+    vi.spyOn(RiotClient.prototype, "events").mockReturnValue(fakeEmitter as unknown as RiotEvents);
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    const promise = runCli(["watch"]);
+    fakeEmitter.emit("raw", { uri: "/foo", eventType: "Create", data: {} });
+    fakeEmitter.emit("party", { partyId: "p1" });
+
+    process.emit("SIGTERM");
+    await promise;
+
+    process.stdout.write = originalWrite;
+    const lines = output.trim().split("\n").map((l) => JSON.parse(l) as { event: string });
+    expect(lines).toHaveLength(1);
+    expect(lines[0]!.event).toBe("party");
   });
 });

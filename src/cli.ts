@@ -16,8 +16,11 @@ Commands:
   conversations    Print whisper and match chat conversations
   messages         Print chat messages (filter with --cid <id>)
   store            Print daily, night market, bundle, and accessory offers
+  watch            Stream real-time events as JSON lines until interrupted
 
 Options:
+  --only <events>    Comma-separated list of event names to print
+  --raw              Include raw client event frames
   --cid <id>         Conversation ID for filtering messages
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
@@ -62,6 +65,70 @@ export function formatError(error: unknown): { error: { code: string; message: s
   };
 }
 
+export function formatWatchLine(
+  event: string,
+  data: unknown,
+  at: string = new Date().toISOString(),
+): string {
+  return JSON.stringify({
+    event,
+    at,
+    data: data !== undefined ? data : null,
+  });
+}
+
+const WATCH_EVENTS = [
+  "connected",
+  "disconnected",
+  "friend:presence",
+  "friend:added",
+  "friend:removed",
+  "friend:request",
+  "message",
+  "party",
+  "game",
+  "self:state",
+  "raw",
+  "error",
+] as const;
+
+export async function runWatch(
+  client: RiotClient,
+  options: { only?: string; raw?: boolean } = {},
+): Promise<number> {
+  const allowed = options.only
+    ? new Set(options.only.split(",").map((s) => s.trim()).filter(Boolean))
+    : null;
+  const includeRaw = Boolean(options.raw);
+  const events = client.events();
+
+  const printEvent = (event: string, data?: unknown) => {
+    if (event === "raw" && !includeRaw) return;
+    if (allowed && !allowed.has(event)) return;
+    const payload = data instanceof Error ? { name: data.name, message: data.message } : data;
+    process.stdout.write(`${formatWatchLine(event, payload)}\n`);
+  };
+
+  for (const name of WATCH_EVENTS) {
+    events.on(name, (...args: unknown[]) => {
+      printEvent(name, args[0]);
+    });
+  }
+
+  await new Promise<void>((resolve) => {
+    const onSignal = () => {
+      process.off("SIGINT", onSignal);
+      process.off("SIGTERM", onSignal);
+      resolve();
+    };
+    process.on("SIGINT", onSignal);
+    process.on("SIGTERM", onSignal);
+  });
+
+  await client.close();
+  return 0;
+}
+
 async function executeCommand(
   client: RiotClient,
   command: string,
@@ -100,6 +167,8 @@ export async function runCli(args: string[]): Promise<number> {
       cid: { type: "string" },
       language: { type: "string" },
       cache: { type: "string" },
+      only: { type: "string" },
+      raw: { type: "boolean", default: false },
       pretty: { type: "boolean", default: false },
       help: { type: "boolean", default: false },
       version: { type: "boolean", default: false },
@@ -125,6 +194,13 @@ export async function runCli(args: string[]): Promise<number> {
   });
 
   try {
+    if (command === "watch") {
+      return await runWatch(client, {
+        only: parsed.values.only,
+        raw: parsed.values.raw,
+      });
+    }
+
     const result = await executeCommand(client, command, {
       language: parsed.values.language,
       cid: parsed.values.cid,
