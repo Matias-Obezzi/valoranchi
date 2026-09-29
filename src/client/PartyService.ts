@@ -4,13 +4,14 @@ import type { Party } from "../model/index.js";
 import type { RiotApi } from "../riot/RiotApi.js";
 import { ChatValidator } from "./ChatValidator.js";
 import type { ClientContext } from "./ClientContext.js";
+import type { PartyApi } from "./api.js";
 import { resolveLobbyNames } from "./LiveMatchService.js";
 import { PartyValidator, type PartyAction, type PartyActionRequest } from "./PartyValidator.js";
 
-export class PartyService {
+export class PartyService implements PartyApi {
   constructor(private readonly context: ClientContext) {}
 
-  async party(): Promise<Party> {
+  async current(): Promise<Party> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
@@ -26,7 +27,7 @@ export class PartyService {
     return new PartyBuilder(catalogue).build(rawParty, names);
   }
 
-  async validateAction(action: PartyAction): Promise<PartyActionRequest> {
+  private async validateAction(action: PartyAction): Promise<PartyActionRequest> {
     PartyValidator.validateActionParameters(action);
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
@@ -88,62 +89,62 @@ export class PartyService {
 
   async invite(riotId: string): Promise<Party> {
     await this.executeAction({ type: "invite", riotId });
-    return this.party();
+    return this.current();
   }
 
   async kick(puuid: string): Promise<Party> {
     await this.executeAction({ type: "kick", puuid });
-    return this.party();
+    return this.current();
   }
 
   async promote(puuid: string): Promise<Party> {
     await this.executeAction({ type: "promote", puuid });
-    return this.party();
+    return this.current();
   }
 
   async createInviteCode(): Promise<Party> {
     await this.executeAction({ type: "create-invite-code" });
-    return this.party();
+    return this.current();
   }
 
   async revokeInviteCode(): Promise<Party> {
     await this.executeAction({ type: "revoke-invite-code" });
-    return this.party();
+    return this.current();
   }
 
   async joinByCode(code: string): Promise<Party> {
     await this.executeAction({ type: "join-by-code", code });
-    return this.party();
+    return this.current();
   }
 
   async setReady(ready: boolean): Promise<Party> {
     await this.executeAction({ type: "set-ready", ready });
-    return this.party();
+    return this.current();
   }
 
   async setQueue(queue: string): Promise<Party> {
     await this.executeAction({ type: "set-queue", queue });
-    return this.party();
+    return this.current();
   }
 
   async setAccessibility(accessibility: "open" | "closed"): Promise<Party> {
     await this.executeAction({ type: "set-accessibility", accessibility });
-    return this.party();
+    return this.current();
   }
 
   async startMatchmaking(): Promise<Party> {
     await this.executeAction({ type: "start-matchmaking" });
-    return this.party();
+    return this.current();
   }
 
   async stopMatchmaking(): Promise<Party> {
     await this.executeAction({ type: "stop-matchmaking" });
-    return this.party();
+    return this.current();
   }
 
   async leave(): Promise<Party> {
     await this.executeAction({ type: "leave" });
-    return this.party();
+    return this.current();
   }
 
   private async executeAction(action: PartyAction): Promise<void> {

@@ -4,10 +4,11 @@ import { LoadoutWriter } from "../collection/LoadoutWriter.js";
 import { ValidationError } from "../errors.js";
 import type { Loadout, OwnedItems, Player, Wallet } from "../model/index.js";
 import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
+import type { AccountApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 import { LoadoutValidator, type LoadoutChange, type LoadoutGunChange } from "./LoadoutValidator.js";
 
-export class AccountService {
+export class AccountService implements AccountApi {
   constructor(private readonly context: ClientContext) {}
 
   async whoami(): Promise<Player> {

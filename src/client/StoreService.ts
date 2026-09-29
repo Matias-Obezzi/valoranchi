@@ -1,11 +1,12 @@
 import { StoreBuilder } from "../collection/StoreBuilder.js";
 import type { Store } from "../model/index.js";
+import type { StoreApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 
-export class StoreService {
+export class StoreService implements StoreApi {
   constructor(private readonly context: ClientContext) {}
 
-  async store(options?: { language?: string }): Promise<Store> {
+  async current(options?: { language?: string }): Promise<Store> {
     const lang = options?.language ?? this.context.language;
     const session = await this.context.sessions.session();
     const api = this.context.api(session);

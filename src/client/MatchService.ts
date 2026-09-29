@@ -1,13 +1,19 @@
 import { MatchBuilder } from "../collection/MatchBuilder.js";
 import { MmrBuilder } from "../collection/MmrBuilder.js";
-import type { Match, MatchSummary, Mmr, RankChange } from "../model/index.js";
+import type { LiveMatch, Match, MatchSummary, Mmr, RankChange } from "../model/index.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
+import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
+import { LiveMatchService } from "./LiveMatchService.js";
 
-export class MatchService {
-  constructor(private readonly context: ClientContext) {}
+export class MatchService implements MatchesApi {
+  private readonly liveMatchService: LiveMatchService;
 
-  async matches(options?: { count?: number; queue?: string }): Promise<MatchSummary[]> {
+  constructor(private readonly context: ClientContext) {
+    this.liveMatchService = new LiveMatchService(context);
+  }
+
+  async list(options?: { count?: number; queue?: string }): Promise<MatchSummary[]> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const catalogue = await this.context.catalogue();
@@ -49,7 +55,7 @@ export class MatchService {
       : summaries;
   }
 
-  async match(id: string): Promise<Match> {
+  async get(id: string): Promise<Match> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const [details, catalogue] = await Promise.all([
@@ -75,5 +81,9 @@ export class MatchService {
       this.context.catalogue(),
     ]);
     return new MmrBuilder(catalogue).buildRankChanges(rawUpdates.Matches ?? []);
+  }
+
+  async live(options?: { ranks?: boolean; loadouts?: boolean }): Promise<LiveMatch> {
+    return this.liveMatchService.liveMatch(options);
   }
 }

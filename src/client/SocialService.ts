@@ -10,9 +10,10 @@ import type {
   FriendRequest,
   Message,
 } from "../model/index.js";
+import type { SocialApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 
-export class SocialService {
+export class SocialService implements SocialApi {
   constructor(private readonly context: ClientContext) {}
 
   private chatApi(): ChatApi {
