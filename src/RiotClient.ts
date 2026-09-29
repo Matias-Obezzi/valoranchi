@@ -25,6 +25,7 @@ import { HttpGateway } from "./riot/HttpGateway.js";
 import { defaultResponseCacheDir, FileResponseCache } from "./riot/ResponseCache.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import type { Session } from "./riot/Session.js";
+import { createRiotServer, type ServeOptions, type ServerInstance } from "./serve/index.js";
 import { WatchService, type WatchApi } from "./watch/index.js";
 
 export type { LoadoutChange, LoadoutGunChange, PartyActionRequest };
@@ -168,6 +169,10 @@ export class RiotClient {
 
   events(): RiotEvents {
     return this.eventsService.events();
+  }
+
+  async serve(options: ServeOptions = {}): Promise<ServerInstance> {
+    return createRiotServer(this, options);
   }
 
   async close(): Promise<void> {

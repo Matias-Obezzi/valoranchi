@@ -32,6 +32,20 @@ export {
   type FriendsWatchItem,
 } from "./watch/index.js";
 export {
+  createRiotServer,
+  httpStatusForError,
+  isLoopback,
+  buildOpenApiSpec,
+  renderIndexHtml,
+  handleSse,
+  CONFIRM_GATED_ROUTES,
+  ROUTE_DEFINITIONS,
+  dispatchApiRoute,
+  type RouteDefinition,
+  type ServeOptions,
+  type ServerInstance,
+} from "./serve/index.js";
+export {
   RiotSocket,
   parseFrame,
   type RiotFrame,

@@ -18,10 +18,11 @@ describe("RiotClient facade", () => {
     fs.readFileSync(path.join(__dirname, "fixtures", "catalogue.json"), "utf-8"),
   ) as ValorantApiCatalogueData;
 
-  it("exposes exactly the five namespaces, events and close as public members", () => {
+  it("exposes the namespaces, watch, events, serve and close as public members", () => {
     expect(Object.getOwnPropertyNames(RiotClient.prototype)).toEqual([
       "constructor",
       "events",
+      "serve",
       "close",
     ]);
     const client = new RiotClient({ lockfilePath: "non-existent" });
@@ -30,7 +31,9 @@ describe("RiotClient facade", () => {
     expect(client.store).toBeDefined();
     expect(client.matches).toBeDefined();
     expect(client.party).toBeDefined();
+    expect(client.watch).toBeDefined();
     expect(typeof client.events).toBe("function");
+    expect(typeof client.serve).toBe("function");
     expect(typeof client.close).toBe("function");
   });
 

@@ -116,6 +116,9 @@ Events:
   watch-match      Stream match lifecycle events until interrupted
   watch-friends    Stream friend activity and presence events until interrupted
 
+Server:
+  serve            Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote]
+
 Options:
   --yes              Execute write command (default is dry-run)
   --confirm          Confirm write action (required with buy, dodge, leave-match, settings-save)
@@ -153,6 +156,9 @@ Options:
   --cid <id>         Conversation ID for filtering messages or participants
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
+  --port <n>         Port to bind HTTP server (default: 47800)
+  --host <ip>        Host address to bind HTTP server (default: 127.0.0.1)
+  --allow-remote     Allow binding HTTP server to non-loopback address
   --pretty           Pretty-print JSON output
   --help             Show usage instructions
   --version          Show version number
@@ -324,6 +330,28 @@ export async function runWatchFriends(client: RiotClient): Promise<number> {
     watcher.stop();
     await client.close();
   }
+  return 0;
+}
+
+export async function runServe(
+  client: RiotClient,
+  options: { port?: number; host?: string; allowRemote?: boolean } = {},
+): Promise<number> {
+  const server = await client.serve(options);
+  process.stdout.write(`Riot Client HTTP server listening on ${server.url}\n`);
+
+  await new Promise<void>((resolve) => {
+    const onSignal = () => {
+      process.off("SIGINT", onSignal);
+      process.off("SIGTERM", onSignal);
+      resolve();
+    };
+    process.on("SIGINT", onSignal);
+    process.on("SIGTERM", onSignal);
+  });
+
+  await server.close();
+  await client.close();
   return 0;
 }
 
@@ -1188,6 +1216,9 @@ export async function runCli(args: string[]): Promise<number> {
       body: { type: "string" },
       days: { type: "string" },
       pages: { type: "string" },
+      port: { type: "string" },
+      host: { type: "string" },
+      "allow-remote": { type: "boolean", default: false },
     },
     allowPositionals: true,
   });
@@ -1223,6 +1254,13 @@ export async function runCli(args: string[]): Promise<number> {
 
     if (command === "watch-friends") {
       return await runWatchFriends(client);
+    }
+
+    if (command === "serve") {
+      const port = parsed.values.port ? Number(parsed.values.port) : undefined;
+      const host = parsed.values.host;
+      const allowRemote = Boolean(parsed.values["allow-remote"]);
+      return await runServe(client, { port, host, allowRemote });
     }
 
     const count = parsed.values.count ? Number(parsed.values.count) : undefined;
