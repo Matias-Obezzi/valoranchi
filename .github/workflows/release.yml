@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: "patch"
+        required: true
+      notes:
+        description: "Optional release notes"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate NPM_TOKEN secret exists
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is missing or empty. Please configure NPM_TOKEN in repository secrets."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Generate JSON schemas
+        run: npm run schema
+
+      - name: Verify schemas are committed
+        run: git diff --exit-code -- schema
+
+      - name: Verify package tarball
+        run: npm pack --dry-run
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update changelog and extract release notes
+        run: |
+          node scripts/release-notes.mjs --bump "${{ github.event.inputs.bump }}" --notes "${{ github.event.inputs.notes }}" --output RELEASE_NOTES.md
+          git add CHANGELOG.md
+
+      - name: Bump version and create tag
+        id: version
+        run: |
+          NEW_TAG=$(npm version ${{ github.event.inputs.bump }} --force -m "Release v%s")
+          echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Push commit and tag
+        run: |
+          git push origin main
+          git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Publish package to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.version.outputs.tag }} --title "${{ steps.version.outputs.tag }}" --notes-file RELEASE_NOTES.md
