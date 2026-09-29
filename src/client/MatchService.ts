@@ -12,8 +12,10 @@ import type {
   Premier,
   RankChange,
   RatingTrend,
+  PerformanceSummary,
 } from "../model/index.js";
 import { ratingTrend } from "../analysis/ratingTrend.js";
+import { performanceSummary } from "../analysis/performanceSummary.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -286,5 +288,41 @@ export class MatchService implements MatchesApi {
       this.mmrFor(puuid).catch(() => null),
     ]);
     return ratingTrend(rawUpdates.Matches ?? [], mmr?.current ?? null);
+  }
+
+  async summary(options?: {
+    count?: number;
+    queue?: string;
+    puuid?: string;
+    onProgress?: (done: number, total: number) => void;
+  }): Promise<PerformanceSummary> {
+    const session = await this.context.sessions.session();
+    const puuid = options?.puuid ?? session.puuid;
+    const targetCount = Math.min(Math.max(options?.count ?? 10, 1), 50);
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+
+    const historyPage = await api.matchHistory(0, targetCount, options?.queue, puuid);
+    let items = historyPage.History ?? [];
+    if (options?.queue) {
+      items = items.filter((h) => h.QueueID.toLowerCase() === options.queue!.toLowerCase());
+    }
+    const matchIds = items.slice(0, targetCount).map((h) => h.MatchID);
+
+    const matches: Match[] = [];
+    for (let i = 0; i < matchIds.length; i++) {
+      if (i > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      try {
+        const details = await api.matchDetails(matchIds[i]!);
+        matches.push(new MatchBuilder(details, catalogue, puuid).build());
+      } catch {
+        // ignore unreadable match details
+      }
+      options?.onProgress?.(i + 1, matchIds.length);
+    }
+
+    return performanceSummary(matches, puuid, catalogue);
   }
 }

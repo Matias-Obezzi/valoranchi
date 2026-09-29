@@ -78,9 +78,19 @@ export type {
   RadianiteOffer,
   Rank,
   RankChange,
+  RatingTrend,
+  PerformanceSummary,
+  PlayerAssessment,
+  LoadoutDiff,
+  CollectionValue,
+  StoreHistory,
+  StoreSeen,
+  MatchSyncResult,
   Store,
   StoreItem,
   Tier,
   ValorantPresence,
   Wallet,
 } from "./model/index.js";
+export { ratingTrend } from "./analysis/ratingTrend.js";
+export { performanceSummary } from "./analysis/performanceSummary.js";
