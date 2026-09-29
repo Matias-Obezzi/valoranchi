@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ratingTrend } from "../src/analysis/ratingTrend.js";
@@ -6,11 +7,17 @@ import { performanceSummary } from "../src/analysis/performanceSummary.js";
 import { playerAssessment } from "../src/analysis/playerAssessment.js";
 import { diffLoadout, exportLoadout } from "../src/analysis/loadoutDiff.js";
 import { collectionValue } from "../src/analysis/collectionValue.js";
+import {
+  loadStoreHistory,
+  querySkinSeen,
+  recordStoreRotation,
+  saveStoreHistory,
+} from "../src/analysis/storeHistory.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
-import type { Loadout, Mmr, Offer, OwnedItems } from "../src/model/index.js";
+import type { Loadout, Mmr, Offer, OwnedItems, Store, StoreHistory } from "../src/model/index.js";
 import type { LoadoutChange } from "../src/client/LoadoutValidator.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
@@ -560,6 +567,119 @@ describe("collectionValue", () => {
     expect(exclusiveTier?.radianite).toBe(10);
   });
 });
+
+function createMockStore(skinUuids: string[]): Store {
+  return {
+    player: {
+      puuid: "p1",
+      gameName: "Player",
+      tagLine: "1234",
+      region: "na",
+      shard: "na",
+      accountLevel: 50,
+    },
+    fetchedAt: "2026-01-01T00:00:00.000Z",
+    daily: {
+      endsAt: "2026-01-02T00:00:00.000Z",
+      offers: skinUuids.map((uuid, i) => ({
+        offerId: `offer-${i}`,
+        item: {
+          kind: "skin",
+          uuid,
+          name: `Skin ${i}`,
+          weapon: "Vandal",
+          tier: null,
+          icon: null,
+          levelUuid: `level-${uuid}`,
+        },
+        cost: { currency: "Valorant Points", currencyUuid: "vp-uuid", amount: 1775 },
+      })),
+    },
+    nightMarket: null,
+    bundles: null,
+    accessories: null,
+    radianite: [],
+  };
+}
+
+describe("storeHistory", () => {
+  it("recordStoreRotation appends new days and deduplicates same day", () => {
+    const history: StoreHistory = { days: [] };
+    const store = createMockStore(["skin-a", "skin-b"]);
+    const day1 = recordStoreRotation(history, store, new Date("2026-01-01T12:00:00Z"));
+
+    expect(day1.days).toHaveLength(1);
+    expect(day1.days[0]?.day).toBe("2026-01-01");
+    expect(day1.days[0]?.daily).toEqual(["skin-a", "skin-b"]);
+
+    const day1Updated = recordStoreRotation(day1, createMockStore(["skin-c"]), new Date("2026-01-01T18:00:00Z"));
+    expect(day1Updated.days).toHaveLength(1);
+    expect(day1Updated.days[0]?.daily).toEqual(["skin-c"]);
+
+    const day2 = recordStoreRotation(day1Updated, createMockStore(["skin-d"]), new Date("2026-01-02T12:00:00Z"));
+    expect(day2.days).toHaveLength(2);
+    expect(day2.days[1]?.day).toBe("2026-01-02");
+  });
+
+  it("recordStoreRotation caps history at 400 days", () => {
+    const initialDays = Array.from({ length: 410 }, (_, i) => ({
+      day: `2025-${String(Math.floor(i / 30) + 1).padStart(2, "0")}-${String((i % 30) + 1).padStart(2, "0")}`,
+      daily: ["skin-1"],
+      nightMarket: null,
+      bundles: null,
+    }));
+    const history: StoreHistory = { days: initialDays };
+    const store = createMockStore(["skin-new"]);
+    const updated = recordStoreRotation(history, store, new Date("2026-05-01T00:00:00Z"));
+
+    expect(updated.days).toHaveLength(400);
+    expect(updated.days[399]?.day).toBe("2026-05-01");
+  });
+
+  it("querySkinSeen finds multiple times, once, and never seen", () => {
+    const history: StoreHistory = {
+      days: [
+        { day: "2026-01-01", daily: ["skin-a", "skin-b"], nightMarket: null, bundles: null },
+        { day: "2026-01-02", daily: ["skin-b", "skin-c"], nightMarket: null, bundles: null },
+        { day: "2026-01-03", daily: ["skin-a", "skin-d"], nightMarket: null, bundles: null },
+      ],
+    };
+
+    const multi = querySkinSeen(history, "skin-a");
+    expect(multi.times).toBe(2);
+    expect(multi.lastSeen).toBe("2026-01-03");
+
+    const once = querySkinSeen(history, "skin-c");
+    expect(once.times).toBe(1);
+    expect(once.lastSeen).toBe("2026-01-02");
+
+    const never = querySkinSeen(history, "skin-never");
+    expect(never.times).toBe(0);
+    expect(never.lastSeen).toBeNull();
+  });
+
+  it("loadStoreHistory and saveStoreHistory round-trip with temp directory", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "store-history-test-"));
+    try {
+      const history: StoreHistory = {
+        days: [
+          { day: "2026-01-01", daily: ["skin-1", "skin-2"], nightMarket: null, bundles: null },
+        ],
+      };
+      saveStoreHistory(tempDir, "player-1", history);
+      const loaded = loadStoreHistory(tempDir, "player-1");
+      expect(loaded.days).toHaveLength(1);
+      expect(loaded.days[0]?.day).toBe("2026-01-01");
+      expect(loaded.days[0]?.daily).toEqual(["skin-1", "skin-2"]);
+
+      const empty = loadStoreHistory(tempDir, "nonexistent-player");
+      expect(empty.days).toHaveLength(0);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 
 
 

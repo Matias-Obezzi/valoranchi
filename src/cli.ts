@@ -49,6 +49,8 @@ Social:
 
 Store:
   store            Print storefront (daily, night market, bundles, accessories)
+  store-history    Print recorded daily store rotations [--days <n>]
+  store-seen       Print when a skin was last seen in daily store (<skin>)
   offers           Print full item offers catalog and pricing
   order <id>       Print store order details
   night-market-reveal Reveal night market offers (dry-run, --yes to apply)
@@ -285,6 +287,7 @@ interface CliCommandOptions {
   loadouts?: boolean;
   matchId?: string;
   yes?: boolean;
+  days?: number;
   positionals?: string[];
   rawValues?: Record<string, unknown>;
 }
@@ -457,6 +460,12 @@ async function executeStandardCommand(
       return client.social.messages(options?.cid);
     case "store":
       return client.store.current({ language: options?.language });
+    case "store-history":
+      return client.store.history({ days: options?.days });
+    case "store-seen": {
+      const skin = requirePositional(pos, 1, "Usage: riotclient store-seen <skin>");
+      return client.store.seen(skin);
+    }
     case "offers":
       return client.store.offers();
     case "order":
@@ -1125,6 +1134,7 @@ export async function runCli(args: string[]): Promise<number> {
       server: { type: "string" },
       rule: { type: "string", multiple: true },
       body: { type: "string" },
+      days: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -1165,6 +1175,7 @@ export async function runCli(args: string[]): Promise<number> {
       loadouts,
       matchId: command === "match" ? parsed.positionals[1] : undefined,
       yes: Boolean(parsed.values.yes),
+      days: parsed.values.days ? Number(parsed.values.days) : undefined,
       positionals: parsed.positionals,
       rawValues: parsed.values,
     });

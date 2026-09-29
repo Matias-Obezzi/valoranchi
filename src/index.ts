@@ -87,6 +87,7 @@ export type {
   CollectionValueGroup,
   CollectionValueItem,
   StoreHistory,
+  StoreHistoryDay,
   StoreSeen,
   MatchSyncResult,
   Store,
@@ -100,4 +101,10 @@ export { performanceSummary } from "./analysis/performanceSummary.js";
 export { playerAssessment } from "./analysis/playerAssessment.js";
 export { diffLoadout, exportLoadout } from "./analysis/loadoutDiff.js";
 export { collectionValue } from "./analysis/collectionValue.js";
+export {
+  recordStoreRotation,
+  querySkinSeen,
+  loadStoreHistory,
+  saveStoreHistory,
+} from "./analysis/storeHistory.js";
 

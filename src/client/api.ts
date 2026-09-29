@@ -38,6 +38,8 @@ import type {
   RankChange,
   RatingTrend,
   Store,
+  StoreHistory,
+  StoreSeen,
   Wallet,
 } from "../model/index.js";
 import type { RiotLoadoutResponse } from "../riot/types.js";
@@ -126,6 +128,8 @@ export interface StoreApi {
   buy(target: BuyTarget, options?: { confirm?: boolean }): Promise<Order>;
   validateBuy(target: BuyTarget, options?: { confirm?: boolean }): Promise<BuyValidationResult>;
   order(id: string): Promise<Order>;
+  history(options?: { days?: number }): Promise<StoreHistory>;
+  seen(skin: string): Promise<StoreSeen>;
 }
 
 export interface MatchesApi {

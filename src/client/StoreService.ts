@@ -1,7 +1,9 @@
 import { CollectionBuilder } from "../collection/CollectionBuilder.js";
 import { StoreBuilder } from "../collection/StoreBuilder.js";
 import { StoreOffersBuilder } from "../collection/StoreOffersBuilder.js";
-import type { Offer, Order, OwnedItems, Store, Wallet } from "../model/index.js";
+import type { Offer, Order, OwnedItems, Store, StoreHistory, StoreSeen, Wallet } from "../model/index.js";
+import { loadStoreHistory, querySkinSeen, recordStoreRotation, saveStoreHistory } from "../analysis/storeHistory.js";
+import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import { CURRENCY_UUIDS } from "../riot/types.js";
 import type { StoreApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -21,7 +23,16 @@ export class StoreService implements StoreApi {
       this.context.catalogue(lang),
     ]);
 
-    return new StoreBuilder(player, rawStorefront, catalogue, Date.now()).build();
+    const store = new StoreBuilder(player, rawStorefront, catalogue, Date.now()).build();
+    try {
+      const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+      const history = loadStoreHistory(cacheDir, player.puuid);
+      const updated = recordStoreRotation(history, store);
+      saveStoreHistory(cacheDir, player.puuid, updated);
+    } catch {
+      // Non-blocking: errors in saving store history don't fail current()
+    }
+    return store;
   }
 
   async offers(): Promise<Offer[]> {
@@ -82,6 +93,34 @@ export class StoreService implements StoreApi {
 
     const catalogue = await this.context.catalogue();
     return new StoreOffersBuilder(catalogue).buildOrder(rawOrder);
+  }
+
+  async history(options?: { days?: number }): Promise<StoreHistory> {
+    const session = await this.context.sessions.session();
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    const history = loadStoreHistory(cacheDir, session.puuid);
+    if (options?.days !== undefined && options.days > 0) {
+      return { days: history.days.slice(-options.days) };
+    }
+    return history;
+  }
+
+  async seen(skin: string): Promise<StoreSeen> {
+    const [session, catalogue] = await Promise.all([
+      this.context.sessions.session(),
+      this.context.catalogue(),
+    ]);
+    const skinEntity =
+      catalogue.getSkin(skin) ??
+      catalogue.weapons.flatMap((w) => w.skins).find(
+        (s) =>
+          s.displayName.toLowerCase() === skin.toLowerCase() ||
+          s.uuid.toLowerCase() === skin.toLowerCase(),
+      );
+    const skinUuid = skinEntity?.uuid ?? skin;
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    const history = loadStoreHistory(cacheDir, session.puuid);
+    return querySkinSeen(history, skinUuid);
   }
 
   async order(id: string): Promise<Order> {
