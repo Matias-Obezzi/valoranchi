@@ -287,9 +287,54 @@ CLI exit codes:
 - `3`: Riot Client is not ready yet (`RIOT_CLIENT_NOT_READY`)
 - `4`: Region could not be resolved (`REGION_UNKNOWN`)
 - `5`: Remote Riot API request failed (`RIOT_API_ERROR`)
+- `6`: Local validation failed (`VALIDATION`)
 - `1`: Unexpected failure
 
-On failure, error information is formatted as `{ "error": { "code": string, "message": string } }` and output to stderr.
+On failure, error information is formatted as `{ "error": { "code": string, "message": string, "reason"?: string, "details"?: object } }` and output to stderr.
+
+## Writes
+
+All writes are validated locally against your inventory and catalogue before any network request reaches Riot. If an item is not owned, an instance is exhausted, a weapon mismatches, or a social target is invalid, a `ValidationError` is thrown immediately and no network request is sent.
+
+### Available Methods
+
+- `client.equip(change: LoadoutChange): Promise<Loadout>`: Update equipped skins, skin levels, chromas, buddies, sprays, player card, title, level border, and incognito status.
+- `client.equipCollection(skinUuids: string[]): Promise<Loadout>`: Equip a list of skin UUIDs (one per weapon) at their highest owned level and base chroma.
+- `client.sendMessage(to, text): Promise<Message>`: Send a whisper or room message (target can be `{ puuid }`, `{ conversationId }`, or `{ riotId }`).
+- `client.sendFriendRequest(riotId): Promise<FriendRequest[]>`: Send a friend request by `Name#Tag`.
+- `client.acceptFriendRequest(puuid): Promise<Friend[]>`: Accept an incoming friend request.
+- `client.declineFriendRequest(puuid): Promise<FriendRequest[]>`: Decline an incoming friend request.
+- `client.cancelFriendRequest(puuid): Promise<FriendRequest[]>`: Cancel an outgoing friend request.
+- `client.removeFriend(puuid): Promise<Friend[]>`: Remove a friend.
+- `client.blockPlayer(target): Promise<BlockedPlayer[]>`: Block a player by PUUID or `Name#Tag`.
+- `client.unblockPlayer(puuid): Promise<BlockedPlayer[]>`: Unblock a player.
+
+### Dry-Run by Default in CLI
+
+In the CLI, every write command defaults to a **dry run**: it validates the operation locally, outputs the validated body (tokens excluded) as JSON to stdout, and exits 0 without executing any network mutations.
+
+Pass `--yes` to execute the actual write:
+
+```bash
+# Dry run: validates locally and prints the PUT body without sending
+riotclient equip --card 0819fbcd-4bd4-c379-5384-52803440f2b2
+
+# Execute the write
+riotclient equip --card 0819fbcd-4bd4-c379-5384-52803440f2b2 --yes
+```
+
+If validation fails, the command exits with code `6` and writes the validation error to stderr:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION",
+    "reason": "card-not-owned",
+    "message": "Card is not owned",
+    "details": { "card": "00000000-0000-0000-0000-000000000000" }
+  }
+}
+```
 
 ## From Other Languages
 
@@ -351,10 +396,9 @@ Access tokens and entitlements JWTs are strictly scoped. They may only ever be s
 
 ## What It Does Not Do
 
-- No store purchases or transactional operations
-- No sending chat messages or modifying friend relationships
+- No store purchases, radianite upgrades, or transactional operations
 - No automation, bots, or match orchestration
-- No writing or mutating equipped loadouts
+- No party matchmaking actions (queueing, inviting, entering custom games)
 - No telemetry or credential logging
 
 ## Disclaimer
