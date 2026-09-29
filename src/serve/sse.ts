@@ -18,21 +18,9 @@ const CLIENT_EVENT_NAMES = [
   "error",
 ] as const;
 
-const MATCH_EVENT_NAMES = [
-  "pregame",
-  "locked",
-  "started",
-  "round",
-  "ended",
-  "left",
-] as const;
+const MATCH_EVENT_NAMES = ["pregame", "locked", "started", "round", "ended", "left"] as const;
 
-const FRIENDS_EVENT_NAMES = [
-  "online",
-  "offline",
-  "in-game",
-  "out-of-game",
-] as const;
+const FRIENDS_EVENT_NAMES = ["online", "offline", "in-game", "out-of-game"] as const;
 
 export function handleSse(
   client: RiotClient,
@@ -53,7 +41,7 @@ export function handleSse(
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
   });
 
   const sendEvent = (eventName: string, data?: unknown) => {

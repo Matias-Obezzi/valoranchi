@@ -3,7 +3,11 @@ import type { RiotEvents } from "../events/RiotEvents.js";
 import { FriendsWatcher, type FriendsWatcherOptions } from "./FriendsWatcher.js";
 import { MatchWatcher, type MatchWatcherOptions } from "./MatchWatcher.js";
 
-export { FriendsWatcher, formatPresenceActivity, type FriendsWatcherOptions } from "./FriendsWatcher.js";
+export {
+  FriendsWatcher,
+  formatPresenceActivity,
+  type FriendsWatcherOptions,
+} from "./FriendsWatcher.js";
 export { MatchWatcher, type MatchWatcherOptions } from "./MatchWatcher.js";
 export { AsyncQueue } from "./AsyncQueue.js";
 export type {

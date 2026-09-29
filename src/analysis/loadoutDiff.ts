@@ -169,13 +169,13 @@ function diffSprays(
       const cur = current.sprays[i];
       const curId = cur?.uuid.toLowerCase() ?? "";
       const entity = sp ? catalogue.getSpray(sp) : undefined;
-      const tarId = entity?.uuid.toLowerCase() ?? (sp?.toLowerCase() ?? "");
+      const tarId = entity?.uuid.toLowerCase() ?? sp?.toLowerCase() ?? "";
       if (curId !== tarId) {
         items.push({
           slot: spraySlotName(i),
           slotId: cur?.slot ?? String(i),
           from: { id: cur?.uuid ?? "", name: cur?.name },
-          to: { id: entity?.uuid ?? (sp ?? ""), name: entity?.displayName },
+          to: { id: entity?.uuid ?? sp ?? "", name: entity?.displayName },
         });
       }
     }

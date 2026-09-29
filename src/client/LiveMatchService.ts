@@ -38,7 +38,9 @@ export class LiveMatchService {
       const match = await api.pregameMatch(pregame.MatchID);
       const allPlayers = [...(match.AllyTeam?.Players ?? []), ...(match.EnemyTeam?.Players ?? [])];
       const puuids = allPlayers.map((p) => p.Subject);
-      const accountLevels = new Map(allPlayers.map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]));
+      const accountLevels = new Map(
+        allPlayers.map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]),
+      );
       const names = await resolveLobbyNames(api, puuids);
       const { ranks, warnings } = options?.ranks
         ? await this.resolveLobbyRanksAndWarnings(api, puuids, accountLevels, catalogue)
@@ -53,7 +55,9 @@ export class LiveMatchService {
         return { phase: "range", matchId: match.MatchID };
       }
       const puuids = (match.Players ?? []).map((p) => p.Subject);
-      const accountLevels = new Map((match.Players ?? []).map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]));
+      const accountLevels = new Map(
+        (match.Players ?? []).map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]),
+      );
       const names = await resolveLobbyNames(api, puuids);
       const rawLoadouts =
         options?.loadouts !== false ? await api.coreGameLoadouts(core.MatchID) : null;

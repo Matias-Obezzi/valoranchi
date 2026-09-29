@@ -55,9 +55,7 @@ export class FileResponseCache {
           if (content.key && content.key.startsWith(keyPrefix)) {
             fs.unlinkSync(fullPath);
           }
-        } catch {
-          // ignore corrupted or unreadable cache file
-        }
+        } catch {}
       }
     } catch {
       return;

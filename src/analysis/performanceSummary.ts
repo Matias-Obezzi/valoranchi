@@ -122,8 +122,7 @@ function computeConsistency(matches: Match[], puuid: string): PerformanceConsist
   }
 
   const mean = scores.reduce((sum, val) => sum + val, 0) / scores.length;
-  const variance =
-    scores.reduce((sum, val) => sum + (val - mean) ** 2, 0) / scores.length;
+  const variance = scores.reduce((sum, val) => sum + (val - mean) ** 2, 0) / scores.length;
   const scoreStdDev = Math.round(Math.sqrt(variance) * 10) / 10;
 
   return {

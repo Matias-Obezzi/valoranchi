@@ -65,7 +65,10 @@ function buildValueItem(
   };
 }
 
-function groupByWeapon(items: CollectionValueItem[], weapons: OwnedWeapon[]): CollectionValueGroup[] {
+function groupByWeapon(
+  items: CollectionValueItem[],
+  weapons: OwnedWeapon[],
+): CollectionValueGroup[] {
   const groups: CollectionValueGroup[] = [];
 
   for (const weapon of weapons) {

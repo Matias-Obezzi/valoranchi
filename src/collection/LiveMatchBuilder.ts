@@ -40,8 +40,12 @@ export class LiveMatchBuilder {
     const allyTeamId = match.AllyTeam?.TeamID ?? "Blue";
     const enemyTeamId = match.EnemyTeam?.TeamID ?? "Red";
 
-    const allies = allyPlayers.map((p) => this.buildPregamePlayer(p, allyTeamId, names, ranks, warnings));
-    const enemies = enemyPlayers.map((p) => this.buildPregamePlayer(p, enemyTeamId, names, ranks, warnings));
+    const allies = allyPlayers.map((p) =>
+      this.buildPregamePlayer(p, allyTeamId, names, ranks, warnings),
+    );
+    const enemies = enemyPlayers.map((p) =>
+      this.buildPregamePlayer(p, enemyTeamId, names, ranks, warnings),
+    );
     const self = allies.find((p) => p.puuid === selfPuuid) ?? null;
 
     const phaseEndsInMs = match.PhaseTimeRemainingNS

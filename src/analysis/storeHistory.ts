@@ -54,13 +54,16 @@ export function loadStoreHistory(cacheDir: string, puuid: string): StoreHistory 
   try {
     if (fs.existsSync(filePath)) {
       const raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as unknown;
-      if (raw && typeof raw === "object" && "days" in raw && Array.isArray((raw as StoreHistory).days)) {
+      if (
+        raw &&
+        typeof raw === "object" &&
+        "days" in raw &&
+        Array.isArray((raw as StoreHistory).days)
+      ) {
         return { days: (raw as StoreHistory).days };
       }
     }
-  } catch {
-    // Return empty history on read or parse failure
-  }
+  } catch {}
   return { days: [] };
 }
 
@@ -78,8 +81,6 @@ export function saveStoreHistory(cacheDir: string, puuid: string, history: Store
     fs.writeFileSync(filePath, content, "utf-8");
     try {
       if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-    } catch {
-      // Ignore temporary file unlink error
-    }
+    } catch {}
   }
 }

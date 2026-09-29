@@ -774,11 +774,7 @@ export type PerformanceSummary = {
 };
 
 export type AssessmentFlag =
-  | "low-level-high-rank"
-  | "inflated"
-  | "underranked"
-  | "long-streak"
-  | "new-act";
+  "low-level-high-rank" | "inflated" | "underranked" | "long-streak" | "new-act";
 
 export type AssessmentWarning = {
   flag: AssessmentFlag;
@@ -805,7 +801,6 @@ export type LoadoutDiff = {
   identity: LoadoutDiffItem[];
   totalChanges: number;
 };
-
 
 export type CollectionValueItem = {
   skin: { uuid: string; name: string; icon: Image };
@@ -857,4 +852,3 @@ export type MatchSyncResult = {
   added: MatchSummary[];
   total: number;
 };
-

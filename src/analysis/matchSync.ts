@@ -11,17 +11,11 @@ export function loadKnownMatches(cacheDir: string, puuid: string): MatchSummary[
         return raw as MatchSummary[];
       }
     }
-  } catch {
-    // Return empty list on read or parse failure
-  }
+  } catch {}
   return [];
 }
 
-export function saveKnownMatches(
-  cacheDir: string,
-  puuid: string,
-  matches: MatchSummary[],
-): void {
+export function saveKnownMatches(cacheDir: string, puuid: string, matches: MatchSummary[]): void {
   const dir = path.join(cacheDir, "matches");
   fs.mkdirSync(dir, { recursive: true });
   const filePath = path.join(dir, `${puuid}.json`);
@@ -46,9 +40,7 @@ export function saveKnownMatches(
     fs.writeFileSync(filePath, content, "utf-8");
     try {
       if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
-    } catch {
-      // Ignore temporary file unlink error
-    }
+    } catch {}
   }
 }
 

@@ -30,7 +30,6 @@ export class LoadoutWriter {
   static buildPutBody(raw: RiotLoadoutResponse): RiotLoadoutPutBody {
     const activeExpressions: Array<{ TypeID: string; AssetID: string }> = [];
 
-    // ActiveExpressions: flex first, then sprays
     const flex = raw.ActiveExpressions?.find(
       (e) => e.TypeID.toLowerCase() === ENTITLEMENT_ITEM_TYPES.flex.toLowerCase(),
     );

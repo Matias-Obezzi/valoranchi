@@ -1,8 +1,4 @@
-import type {
-  AssessmentWarning,
-  Mmr,
-  PlayerAssessment,
-} from "../model/index.js";
+import type { AssessmentWarning, Mmr, PlayerAssessment } from "../model/index.js";
 import type { RiotCompetitiveUpdate } from "../riot/types.js";
 import { calculateStreak } from "./ratingTrend.js";
 

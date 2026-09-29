@@ -32,9 +32,10 @@ export function buildOpenApiSpec(schemaDir?: string): Record<string, unknown> {
         description: "Successful response",
         content: {
           "application/json": {
-            schema: r.responseSchema && schemas[r.responseSchema]
-              ? { $ref: `#/components/schemas/${r.responseSchema}` }
-              : { type: "object" },
+            schema:
+              r.responseSchema && schemas[r.responseSchema]
+                ? { $ref: `#/components/schemas/${r.responseSchema}` }
+                : { type: "object" },
           },
         },
       },
@@ -66,16 +67,17 @@ export function buildOpenApiSpec(schemaDir?: string): Record<string, unknown> {
       summary: r.summary,
       tags: [r.namespace],
       parameters: parameters.length > 0 ? parameters : undefined,
-      requestBody: r.method === "POST"
-        ? {
-            required: false,
-            content: {
-              "application/json": {
-                schema: { type: "object" },
+      requestBody:
+        r.method === "POST"
+          ? {
+              required: false,
+              content: {
+                "application/json": {
+                  schema: { type: "object" },
+                },
               },
-            },
-          }
-        : undefined,
+            }
+          : undefined,
       responses,
     };
   }
@@ -108,7 +110,8 @@ export function buildOpenApiSpec(schemaDir?: string): Record<string, unknown> {
     info: {
       title: "Valorant Riot Client Local API",
       version: "0.3.0",
-      description: "Local HTTP API serving read and write endpoints, Server-Sent Events, and OpenAPI documentation for Riot Client and Valorant.",
+      description:
+        "Local HTTP API serving read and write endpoints, Server-Sent Events, and OpenAPI documentation for Riot Client and Valorant.",
     },
     paths,
     components: {

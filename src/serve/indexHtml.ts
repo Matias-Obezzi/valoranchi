@@ -2,8 +2,7 @@ import { ROUTE_DEFINITIONS } from "./routes.js";
 
 export function renderIndexHtml(): string {
   const routesList = ROUTE_DEFINITIONS.map(
-    (r) =>
-      `<li><code><strong>${r.method}</strong> ${r.path}</code> — ${r.summary}</li>`,
+    (r) => `<li><code><strong>${r.method}</strong> ${r.path}</code> — ${r.summary}</li>`,
   ).join("\n      ");
 
   return `<!DOCTYPE html>

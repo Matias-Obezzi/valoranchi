@@ -1,8 +1,21 @@
 import { CollectionBuilder } from "../collection/CollectionBuilder.js";
 import { StoreBuilder } from "../collection/StoreBuilder.js";
 import { StoreOffersBuilder } from "../collection/StoreOffersBuilder.js";
-import type { Offer, Order, OwnedItems, Store, StoreHistory, StoreSeen, Wallet } from "../model/index.js";
-import { loadStoreHistory, querySkinSeen, recordStoreRotation, saveStoreHistory } from "../analysis/storeHistory.js";
+import type {
+  Offer,
+  Order,
+  OwnedItems,
+  Store,
+  StoreHistory,
+  StoreSeen,
+  Wallet,
+} from "../model/index.js";
+import {
+  loadStoreHistory,
+  querySkinSeen,
+  recordStoreRotation,
+  saveStoreHistory,
+} from "../analysis/storeHistory.js";
 import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import { CURRENCY_UUIDS } from "../riot/types.js";
 import type { StoreApi } from "./api.js";
@@ -29,9 +42,7 @@ export class StoreService implements StoreApi {
       const history = loadStoreHistory(cacheDir, player.puuid);
       const updated = recordStoreRotation(history, store);
       saveStoreHistory(cacheDir, player.puuid, updated);
-    } catch {
-      // Non-blocking: errors in saving store history don't fail current()
-    }
+    } catch {}
     return store;
   }
 
@@ -112,11 +123,13 @@ export class StoreService implements StoreApi {
     ]);
     const skinEntity =
       catalogue.getSkin(skin) ??
-      catalogue.weapons.flatMap((w) => w.skins).find(
-        (s) =>
-          s.displayName.toLowerCase() === skin.toLowerCase() ||
-          s.uuid.toLowerCase() === skin.toLowerCase(),
-      );
+      catalogue.weapons
+        .flatMap((w) => w.skins)
+        .find(
+          (s) =>
+            s.displayName.toLowerCase() === skin.toLowerCase() ||
+            s.uuid.toLowerCase() === skin.toLowerCase(),
+        );
     const skinUuid = skinEntity?.uuid ?? skin;
     const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
     const history = loadStoreHistory(cacheDir, session.puuid);

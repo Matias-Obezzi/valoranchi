@@ -19,11 +19,7 @@ import type {
 import { ratingTrend } from "../analysis/ratingTrend.js";
 import { performanceSummary } from "../analysis/performanceSummary.js";
 import { playerAssessment } from "../analysis/playerAssessment.js";
-import {
-  loadKnownMatches,
-  saveKnownMatches,
-  syncMatches,
-} from "../analysis/matchSync.js";
+import { loadKnownMatches, saveKnownMatches, syncMatches } from "../analysis/matchSync.js";
 import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
@@ -127,8 +123,7 @@ export class MatchService implements MatchesApi {
     const known = loadKnownMatches(cacheDir, session.puuid);
     const knownIds = new Set(known.map((m) => m.id));
 
-    const fetcher = (startIndex: number) =>
-      this.fetchMatchListPage(session.puuid, startIndex, 20);
+    const fetcher = (startIndex: number) => this.fetchMatchListPage(session.puuid, startIndex, 20);
 
     const added = await syncMatches(fetcher, knownIds, { maxPages: options?.maxPages });
     const allMatches = [...added, ...known];
@@ -377,9 +372,7 @@ export class MatchService implements MatchesApi {
       try {
         const details = await api.matchDetails(matchIds[i]!);
         matches.push(new MatchBuilder(details, catalogue, puuid).build());
-      } catch {
-        // ignore unreadable match details
-      }
+      } catch {}
       options?.onProgress?.(i + 1, matchIds.length);
     }
 

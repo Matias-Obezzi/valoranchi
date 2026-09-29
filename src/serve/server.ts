@@ -26,10 +26,7 @@ export function isLoopback(host: string): boolean {
 }
 
 export function httpStatusForError(error: unknown): number {
-  if (
-    error instanceof RiotClientNotRunningError ||
-    error instanceof RiotClientNotReadyError
-  ) {
+  if (error instanceof RiotClientNotRunningError || error instanceof RiotClientNotReadyError) {
     return 503;
   }
   if (error instanceof ValidationError) {
@@ -130,14 +127,7 @@ export async function createRiotServer(
           const namespace = parts[0]!;
           const methodName = parts[1]!;
           const body = req.method === "POST" ? await readJsonBody(req) : {};
-          const result = await dispatchApiRoute(
-            client,
-            namespace,
-            methodName,
-            query,
-            body,
-            req,
-          );
+          const result = await dispatchApiRoute(client, namespace, methodName, query, body, req);
 
           const json = JSON.stringify(result ?? null);
           res.writeHead(200, {

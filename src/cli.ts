@@ -167,9 +167,9 @@ Options:
 function getPackageVersion(): string {
   try {
     return (
-      JSON.parse(
-        readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
-      ) as { version: string }
+      JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf-8")) as {
+        version: string;
+      }
     ).version;
   } catch {
     return "0.3.0";
@@ -758,7 +758,11 @@ async function executeAccountWriteCommand(
       return client.account.diffLoadout(content);
     }
     case "loadout-apply": {
-      const file = requirePositional(pos, 1, "Usage: riotclient loadout-apply <preset.json> [--yes]");
+      const file = requirePositional(
+        pos,
+        1,
+        "Usage: riotclient loadout-apply <preset.json> [--yes]",
+      );
       const content = JSON.parse(readFileSync(file, "utf-8")) as LoadoutChange;
       return yes
         ? client.account.equipPreset(content)
