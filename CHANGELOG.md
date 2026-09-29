@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Raw entry point `@valoranchi/riot-client/raw` with the transport, session, endpoints, local API, socket and validators.
 - Live match actions: select agent, lock agent, dodge agent select, and leave match with validation.
 - Expanded party operations: party invites, join requests, custom game configuration, team assignment, team balancing, preferred servers, and member promotion.
 - Cloud player settings inspection and persistence (`client.account.settings()`, `client.account.saveSettings()`).
