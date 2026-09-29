@@ -5,14 +5,33 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
+import { AccountValidator } from "../src/client/AccountValidator.js";
+import { StoreValidator } from "../src/client/StoreValidator.js";
 import { ValidationError } from "../src/errors.js";
 import type { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+import type { OwnedItems, Store, Wallet } from "../src/model/index.js";
 import { RiotClient } from "../src/RiotClient.js";
 import type { HttpGateway } from "../src/riot/HttpGateway.js";
+import type { RiotContractsResponse, RiotFavoritesResponse } from "../src/riot/types.js";
 
 const catalogueData = JSON.parse(
   fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
 ) as ValorantApiCatalogueData;
+
+function createOwnedItems(overrides?: Partial<OwnedItems>): OwnedItems {
+  return {
+    language: "en-US",
+    generatedAt: "2026-09-29T12:00:00.000Z",
+    player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+    weapons: [],
+    buddies: [],
+    sprays: [],
+    cards: [],
+    titles: [],
+    agents: [],
+    ...overrides,
+  };
+}
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "riot-client-writes-"));
 const lockfilePath = path.join(dir, "lockfile");
@@ -77,11 +96,6 @@ const client = new RiotClient({
   localApiFactory: () => localApi,
 });
 
-import { AccountValidator } from "../src/client/AccountValidator.js";
-import { StoreValidator } from "../src/client/StoreValidator.js";
-import type { Cost, OwnedItems, Store, Wallet } from "../src/model/index.js";
-import type { RiotContractsResponse, RiotFavoritesResponse } from "../riot/types.js";
-
 describe("refused writes never reach Riot", () => {
   it("does not put a loadout with a card the account does not own", async () => {
     await expect(
@@ -117,15 +131,7 @@ describe("refused writes never reach Riot", () => {
       ActiveSpecialContract: "",
       Missions: [],
     };
-    const emptyOwned: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    const emptyOwned = createOwnedItems();
 
     expect(() =>
       AccountValidator.validateActivateContract(
@@ -151,23 +157,16 @@ describe("refused writes never reach Riot", () => {
       ActiveSpecialContract: "",
       Missions: [],
     };
-    const ownedWithAgent: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
+    const ownedWithAgent = createOwnedItems({
       agents: [
         {
           uuid: "add6443a-41bd-e414-f6ad-e58d267f4e95",
           name: "Jett",
           role: "Duelist",
           icon: null,
-          isPlayableCharacter: true,
         },
       ],
-    };
+    });
 
     expect(() =>
       AccountValidator.validateActivateContract(
@@ -193,15 +192,7 @@ describe("refused writes never reach Riot", () => {
       ActiveSpecialContract: "contract-jett-1",
       Missions: [],
     };
-    const emptyOwned: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    const emptyOwned = createOwnedItems();
 
     expect(() =>
       AccountValidator.validateActivateContract(
@@ -223,36 +214,30 @@ describe("refused writes never reach Riot", () => {
     const rawFavorites: RiotFavoritesResponse = {
       Subject: "me",
       FavoritedContent: {
-        "fav-1": { ItemID: skinUuid },
+        "fav-1": { ItemID: skinUuid, FavoriteID: "fav-1" },
       },
     };
-    const ownedWithSkin: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+    const ownedWithSkin = createOwnedItems({
       weapons: [
         {
           uuid: "w-1",
           name: "Vandal",
           category: "Rifle",
-          defaultSkinUuid: "default",
-          killStreamIcon: "k",
+          skinsOwned: 1,
+          skinsTotal: 2,
           skins: [
             {
               uuid: skinUuid,
               name: "Prime Vandal",
               tier: null,
-              displayIcon: "d",
+              icon: "d",
               levels: [],
               chromas: [],
             },
           ],
         },
       ],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    });
 
     expect(() =>
       AccountValidator.validateAddFavourite(rawFavorites, ownedWithSkin, catalogue, skinUuid),
@@ -290,15 +275,7 @@ describe("refused writes never reach Riot", () => {
       accessories: null,
       radianite: [],
     };
-    const emptyOwned: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    const emptyOwned = createOwnedItems();
     const mockWallet: Wallet = {
       valorantPoints: 5000,
       radianite: 100,
@@ -333,15 +310,7 @@ describe("refused writes never reach Riot", () => {
       accessories: null,
       radianite: [],
     };
-    const emptyOwned: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    const emptyOwned = createOwnedItems();
     const mockWallet: Wallet = {
       valorantPoints: 5000,
       radianite: 100,
@@ -391,33 +360,27 @@ describe("refused writes never reach Riot", () => {
       accessories: null,
       radianite: [],
     };
-    const ownedWithSkin: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+    const ownedWithSkin = createOwnedItems({
       weapons: [
         {
           uuid: "w-1",
           name: "Vandal",
           category: "Rifle",
-          defaultSkinUuid: "default",
-          killStreamIcon: "k",
+          skinsOwned: 1,
+          skinsTotal: 2,
           skins: [
             {
               uuid: skinUuid,
               name: "Prime Vandal",
               tier: null,
-              displayIcon: "d",
+              icon: "icon",
               levels: [],
               chromas: [],
             },
           ],
         },
       ],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    });
     const mockWallet: Wallet = {
       valorantPoints: 5000,
       radianite: 100,
@@ -467,15 +430,7 @@ describe("refused writes never reach Riot", () => {
       accessories: null,
       radianite: [],
     };
-    const emptyOwned: OwnedItems = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
-      weapons: [],
-      buddies: [],
-      sprays: [],
-      cards: [],
-      titles: [],
-      agents: [],
-    };
+    const emptyOwned = createOwnedItems();
     const brokeWallet: Wallet = {
       valorantPoints: 500, // 500 < 1775
       radianite: 0,
