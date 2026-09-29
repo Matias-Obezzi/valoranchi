@@ -39,12 +39,8 @@ export class LiveMatchBuilder {
     const allyTeamId = match.AllyTeam?.TeamID ?? "Blue";
     const enemyTeamId = match.EnemyTeam?.TeamID ?? "Red";
 
-    const allies = allyPlayers.map((p) =>
-      this.buildPregamePlayer(p, allyTeamId, names, ranks),
-    );
-    const enemies = enemyPlayers.map((p) =>
-      this.buildPregamePlayer(p, enemyTeamId, names, ranks),
-    );
+    const allies = allyPlayers.map((p) => this.buildPregamePlayer(p, allyTeamId, names, ranks));
+    const enemies = enemyPlayers.map((p) => this.buildPregamePlayer(p, enemyTeamId, names, ranks));
     const self = allies.find((p) => p.puuid === selfPuuid) ?? null;
 
     const phaseEndsInMs = match.PhaseTimeRemainingNS
@@ -199,9 +195,7 @@ export class LiveMatchBuilder {
 
     const buddySocket = rawItem.Sockets?.[BUDDY_SOCKET_UUID];
     const buddyLevelUuid = buddySocket?.Item?.ID;
-    const buddyMatch = buddyLevelUuid
-      ? this.catalogue.findBuddyByLevel(buddyLevelUuid)
-      : undefined;
+    const buddyMatch = buddyLevelUuid ? this.catalogue.findBuddyByLevel(buddyLevelUuid) : undefined;
 
     return {
       weapon: {

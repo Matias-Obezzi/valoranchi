@@ -269,6 +269,8 @@ export type Store = {
 
 export type Agent = { uuid: string; name: string; icon: Image; role: string | null } | null;
 
+export type RankMovement = "promoted" | "demoted" | "up" | "down" | "same";
+
 export type Rank = {
   tier: number;
   name: string;
@@ -368,7 +370,7 @@ export type Mmr = {
     before: Rank | null;
     after: Rank | null;
     earned: number;
-    movement: string;
+    movement: RankMovement;
   } | null;
   leaderboardAnonymized: boolean;
 };
@@ -381,7 +383,7 @@ export type RankChange = {
   after: Rank;
   earned: number;
   bonus: number;
-  movement: string;
+  movement: RankMovement;
   afkPenalty: number;
 };
 
@@ -443,4 +445,3 @@ export type Party = {
   queueEnteredAt: string | null;
   members: PartyMember[];
 } | null;
-

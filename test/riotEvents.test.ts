@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RiotEvents, toFriendRequest } from "../src/events/RiotEvents.js";
 import type { ChatApi } from "../src/local/ChatApi.js";
-import type { RawChatFriend, RawChatMessage, RawChatPresence, RawChatSession, RawFriendRequest } from "../src/local/chatTypes.js";
+import type {
+  RawChatFriend,
+  RawChatMessage,
+  RawChatPresence,
+  RawChatSession,
+  RawFriendRequest,
+} from "../src/local/chatTypes.js";
 import type { RiotFrame, RiotSocket } from "../src/local/RiotSocket.js";
 import type { Friend, FriendRequest, Message, ValorantPresence } from "../src/model/index.js";
 
@@ -141,9 +147,9 @@ describe("RiotEvents", () => {
     const emitted: Array<{ friend: Friend; change: "update" | "offline" }> = [];
     events.on("friend:presence", (payload) => emitted.push(payload));
 
-    const valorantPrivate = Buffer.from(
-      JSON.stringify({ sessionLoopState: "INGAME" }),
-    ).toString("base64");
+    const valorantPrivate = Buffer.from(JSON.stringify({ sessionLoopState: "INGAME" })).toString(
+      "base64",
+    );
 
     const updatePresence: RawChatPresence = {
       puuid: "f-1",
@@ -195,9 +201,9 @@ describe("RiotEvents", () => {
     const states: Array<{ state: string | null; presence: ValorantPresence | null }> = [];
     events.on("self:state", (s) => states.push(s));
 
-    const menusPrivate = Buffer.from(
-      JSON.stringify({ sessionLoopState: "MENUS" }),
-    ).toString("base64");
+    const menusPrivate = Buffer.from(JSON.stringify({ sessionLoopState: "MENUS" })).toString(
+      "base64",
+    );
 
     // 1. Initial menus presence
     fakeSocket.sendFrame({
@@ -267,9 +273,9 @@ describe("RiotEvents", () => {
     expect(states).toHaveLength(1);
 
     // 4. Ingame transition -> emitted
-    const ingamePrivate = Buffer.from(
-      JSON.stringify({ sessionLoopState: "INGAME" }),
-    ).toString("base64");
+    const ingamePrivate = Buffer.from(JSON.stringify({ sessionLoopState: "INGAME" })).toString(
+      "base64",
+    );
     fakeSocket.sendFrame({
       uri: "/chat/v4/presences",
       eventType: "Update",

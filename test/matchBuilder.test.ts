@@ -15,7 +15,10 @@ const standardMatch = JSON.parse(
 ) as RiotMatchDetailsResponse;
 
 const deathmatchMatch = JSON.parse(
-  fs.readFileSync(path.join(import.meta.dirname, "fixtures", "matchDetailsDeathmatch.json"), "utf-8"),
+  fs.readFileSync(
+    path.join(import.meta.dirname, "fixtures", "matchDetailsDeathmatch.json"),
+    "utf-8",
+  ),
 ) as RiotMatchDetailsResponse;
 
 describe("MatchBuilder", () => {

@@ -136,4 +136,3 @@ export interface ValorantApiCatalogueData {
   tiers?: ValorantApiTier[];
   seasons?: ValorantApiSeason[];
 }
-

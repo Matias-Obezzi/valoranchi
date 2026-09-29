@@ -267,11 +267,9 @@ describe("RiotApi", () => {
     const api = new RiotApi(fakeGateway, session, mockCache);
     await api.matchDetails("m1");
 
-    expect(mockCache.through).toHaveBeenCalledWith(
-      "matchDetails m1",
-      expect.any(Function),
-      { ttlMs: 30 * 24 * 60 * 60 * 1000 },
-    );
+    expect(mockCache.through).toHaveBeenCalledWith("matchDetails m1", expect.any(Function), {
+      ttlMs: 30 * 24 * 60 * 60 * 1000,
+    });
     expect(mockGet).toHaveBeenCalledWith(
       "https://pd.na.a.pvp.net/match-details/v1/matches/m1",
       expect.any(Object),

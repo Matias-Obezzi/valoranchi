@@ -211,7 +211,10 @@ describe("CLI watch command", () => {
     expect(code).toBe(0);
     expect(closeSpy).toHaveBeenCalled();
 
-    const lines = output.trim().split("\n").map((l) => JSON.parse(l) as { event: string; data: unknown });
+    const lines = output
+      .trim()
+      .split("\n")
+      .map((l) => JSON.parse(l) as { event: string; data: unknown });
     expect(lines).toHaveLength(2);
     expect(lines[0]!.event).toBe("connected");
     expect(lines[1]!.event).toBe("party");
@@ -238,7 +241,10 @@ describe("CLI watch command", () => {
     await promise;
 
     process.stdout.write = originalWrite;
-    const lines = output.trim().split("\n").map((l) => JSON.parse(l) as { event: string });
+    const lines = output
+      .trim()
+      .split("\n")
+      .map((l) => JSON.parse(l) as { event: string });
     expect(lines).toHaveLength(1);
     expect(lines[0]!.event).toBe("party");
   });

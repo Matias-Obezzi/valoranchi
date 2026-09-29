@@ -477,4 +477,3 @@ export interface RiotPartyResponse {
   QueueEntryTime?: string | null;
   Members: RiotPartyMember[];
 }
-

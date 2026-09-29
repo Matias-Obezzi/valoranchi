@@ -37,7 +37,7 @@
           "type": "number"
         },
         "movement": {
-          "type": "string"
+          "$ref": "#/definitions/RankMovement"
         },
         "afkPenalty": {
           "type": "number"
@@ -80,6 +80,10 @@
     },
     "Image": {
       "type": ["string", "null"]
+    },
+    "RankMovement": {
+      "type": "string",
+      "enum": ["promoted", "demoted", "up", "down", "same"]
     }
   }
 }

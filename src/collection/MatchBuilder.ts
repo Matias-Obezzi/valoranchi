@@ -78,10 +78,7 @@ export class MatchBuilder {
     }));
   }
 
-  private buildPlayers(
-    players: RiotMatchPlayer[],
-    roundResults: RiotRoundResult[],
-  ): MatchPlayer[] {
+  private buildPlayers(players: RiotMatchPlayer[], roundResults: RiotRoundResult[]): MatchPlayer[] {
     return players
       .filter((p) => p.stats !== null && p.stats !== undefined)
       .map((p) => this.buildPlayer(p, roundResults));
@@ -236,9 +233,7 @@ export class MatchBuilder {
             name: weaponEntity?.displayName ?? null,
             kind,
           },
-          location: k.victimLocation
-            ? { x: k.victimLocation.x, y: k.victimLocation.y }
-            : null,
+          location: k.victimLocation ? { x: k.victimLocation.x, y: k.victimLocation.y } : null,
         });
       }
     }

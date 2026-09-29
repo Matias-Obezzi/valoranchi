@@ -1,11 +1,15 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
-import type { Mmr, Rank, RankChange } from "../model/index.js";
-import type {
-  RiotCompetitiveUpdate,
-  RiotMmrResponse,
-  RiotSeasonalInfo,
-} from "../riot/types.js";
+import type { Mmr, Rank, RankChange, RankMovement } from "../model/index.js";
+import type { RiotCompetitiveUpdate, RiotMmrResponse, RiotSeasonalInfo } from "../riot/types.js";
 import { RankResolver, resolveSeasonName } from "./RankResolver.js";
+
+export function rankMovement(tierBefore: number, tierAfter: number, earned: number): RankMovement {
+  if (tierAfter > tierBefore) return "promoted";
+  if (tierAfter < tierBefore) return "demoted";
+  if (earned > 0) return "up";
+  if (earned < 0) return "down";
+  return "same";
+}
 
 export class MmrBuilder {
   private readonly catalogue: Catalogue;
@@ -58,7 +62,7 @@ export class MmrBuilder {
         after: this.rankResolver.fromTier(u.TierAfterUpdate, u.RankedRatingAfterUpdate),
         earned: u.RankedRatingEarned,
         bonus: u.RankedRatingPerformanceBonus,
-        movement: u.CompetitiveMovement,
+        movement: rankMovement(u.TierBeforeUpdate, u.TierAfterUpdate, u.RankedRatingEarned),
         afkPenalty: u.AFKPenalty,
       };
     });
@@ -71,10 +75,7 @@ export class MmrBuilder {
   ): Rank | null {
     const latest = raw.LatestCompetitiveUpdate;
     if (latest && currentActUuid && latest.SeasonID === currentActUuid) {
-      return this.rankResolver.fromTier(
-        latest.TierAfterUpdate,
-        latest.RankedRatingAfterUpdate,
-      );
+      return this.rankResolver.fromTier(latest.TierAfterUpdate, latest.RankedRatingAfterUpdate);
     }
     const tier = seasonalInfo?.CompetitiveTier ?? seasonalInfo?.Rank ?? 0;
     const rating = seasonalInfo?.RankedRating ?? null;
@@ -131,23 +132,19 @@ export class MmrBuilder {
     return peak;
   }
 
-  private buildLastUpdate(
-    update?: RiotCompetitiveUpdate | null,
-  ): Mmr["lastUpdate"] {
+  private buildLastUpdate(update?: RiotCompetitiveUpdate | null): Mmr["lastUpdate"] {
     if (!update || !update.MatchID) return null;
     return {
       matchId: update.MatchID,
       at: new Date(update.MatchStartTime).toISOString(),
-      before: this.rankResolver.fromTier(
-        update.TierBeforeUpdate,
-        update.RankedRatingBeforeUpdate,
-      ),
-      after: this.rankResolver.fromTier(
-        update.TierAfterUpdate,
-        update.RankedRatingAfterUpdate,
-      ),
+      before: this.rankResolver.fromTier(update.TierBeforeUpdate, update.RankedRatingBeforeUpdate),
+      after: this.rankResolver.fromTier(update.TierAfterUpdate, update.RankedRatingAfterUpdate),
       earned: update.RankedRatingEarned,
-      movement: update.CompetitiveMovement,
+      movement: rankMovement(
+        update.TierBeforeUpdate,
+        update.TierAfterUpdate,
+        update.RankedRatingEarned,
+      ),
     };
   }
 }

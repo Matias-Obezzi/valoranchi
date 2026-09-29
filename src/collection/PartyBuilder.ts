@@ -12,12 +12,8 @@ export class PartyBuilder {
     this.rankResolver = new RankResolver(catalogue);
   }
 
-  build(
-    raw: RiotPartyResponse,
-    names: Map<string, { gameName: string; tagLine: string }>,
-  ): Party {
-    const accessibility =
-      raw.Accessibility?.toLowerCase() === "open" ? "open" : "closed";
+  build(raw: RiotPartyResponse, names: Map<string, { gameName: string; tagLine: string }>): Party {
+    const accessibility = raw.Accessibility?.toLowerCase() === "open" ? "open" : "closed";
 
     return {
       id: raw.ID,

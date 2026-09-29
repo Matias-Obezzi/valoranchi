@@ -57,10 +57,7 @@ export function resolveMap(
   };
 }
 
-export function resolveAgent(
-  catalogue: Catalogue,
-  characterId: string | null | undefined,
-): Agent {
+export function resolveAgent(catalogue: Catalogue, characterId: string | null | undefined): Agent {
   if (!characterId || characterId === "00000000-0000-0000-0000-000000000000") {
     return null;
   }

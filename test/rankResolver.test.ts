@@ -83,7 +83,9 @@ describe("RankResolver", () => {
   });
 
   it("resolves cards and titles", () => {
-    expect(resolveCard(catalogue, "33cd272d-4860-9118-2e06-95bb39ad0419")?.name).toBe("Duelist Card");
+    expect(resolveCard(catalogue, "33cd272d-4860-9118-2e06-95bb39ad0419")?.name).toBe(
+      "Duelist Card",
+    );
     expect(resolveCard(catalogue, null)).toBeNull();
     expect(resolveTitle(catalogue, "7a85e65d-4f11-c918-0929-c7931f6087d1")?.text).toBe("Champion");
     expect(resolveTitle(catalogue, null)).toBeNull();

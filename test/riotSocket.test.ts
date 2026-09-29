@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { parseFrame, RiotSocket, type WebSocketConstructor, type WebSocketLike } from "../src/local/RiotSocket.js";
+import {
+  parseFrame,
+  RiotSocket,
+  type WebSocketConstructor,
+  type WebSocketLike,
+} from "../src/local/RiotSocket.js";
 
 class FakeWebSocket implements WebSocketLike {
   static instances: FakeWebSocket[] = [];
@@ -66,7 +71,9 @@ describe("parseFrame", () => {
   it("returns null when uri or eventType is missing or invalid", () => {
     expect(parseFrame(JSON.stringify([8, "OnJsonApiEvent", {}]))).toBeNull();
     expect(parseFrame(JSON.stringify([8, "OnJsonApiEvent", { uri: "" }]))).toBeNull();
-    expect(parseFrame(JSON.stringify([8, "OnJsonApiEvent", { uri: "/foo", eventType: "Unknown" }]))).toBeNull();
+    expect(
+      parseFrame(JSON.stringify([8, "OnJsonApiEvent", { uri: "/foo", eventType: "Unknown" }])),
+    ).toBeNull();
   });
 
   it("returns parsed RiotFrame for valid payload", () => {
@@ -144,7 +151,11 @@ describe("RiotSocket", () => {
 
     // Valid frame delivered
     ws.dispatch("message", {
-      data: JSON.stringify([8, "OnJsonApiEvent", { uri: "/chat/v4/friends", eventType: "Create", data: {} }]),
+      data: JSON.stringify([
+        8,
+        "OnJsonApiEvent",
+        { uri: "/chat/v4/friends", eventType: "Create", data: {} },
+      ]),
     });
     expect(received).toEqual(["/chat/v4/friends"]);
 

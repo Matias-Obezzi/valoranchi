@@ -121,7 +121,7 @@
                   "type": "number"
                 },
                 "movement": {
-                  "type": "string"
+                  "$ref": "#/definitions/RankMovement"
                 }
               },
               "required": ["matchId", "at", "before", "after", "earned", "movement"],
@@ -163,6 +163,10 @@
     },
     "Image": {
       "type": ["string", "null"]
+    },
+    "RankMovement": {
+      "type": "string",
+      "enum": ["promoted", "demoted", "up", "down", "same"]
     }
   }
 }

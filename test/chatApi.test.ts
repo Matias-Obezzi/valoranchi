@@ -165,7 +165,12 @@ describe("ChatApi", () => {
     });
 
     const failingApi = new RiotClientLocalApi(5678, "pass", {
-      fetchFn: async () => ({ ok: false, status: 404, json: async () => ({}), text: async () => "" }),
+      fetchFn: async () => ({
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+        text: async () => "",
+      }),
     });
     const failingChatApi = new ChatApi(failingApi);
     expect(await failingChatApi.session()).toBeNull();

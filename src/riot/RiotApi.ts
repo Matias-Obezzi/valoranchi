@@ -140,4 +140,3 @@ export class RiotApi {
     return this.gateway.get(url, this.session.headers());
   }
 }
-

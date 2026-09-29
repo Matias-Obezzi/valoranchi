@@ -388,9 +388,9 @@ describe("RiotClient facade", () => {
           return {};
         }),
         getOrNull: vi.fn().mockResolvedValue(null),
-        put: vi.fn().mockResolvedValue([
-          { Subject: "self-puuid", GameName: "SelfPlayer", TagLine: "TAG" },
-        ]),
+        put: vi
+          .fn()
+          .mockResolvedValue([{ Subject: "self-puuid", GameName: "SelfPlayer", TagLine: "TAG" }]),
         post: vi.fn().mockResolvedValue({}),
         ...gatewayOverrides,
       } as unknown as HttpGateway;
@@ -435,7 +435,7 @@ describe("RiotClient facade", () => {
         expect(history).toHaveLength(1);
         expect(history[0]?.after.name).toBe("Iron 3");
         expect(history[0]?.earned).toBe(20);
-        expect(history[0]?.movement).toBe("INCREASE");
+        expect(history[0]?.movement).toBe("up");
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }

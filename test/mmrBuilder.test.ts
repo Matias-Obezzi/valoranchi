@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
-import { MmrBuilder } from "../src/collection/MmrBuilder.js";
+import { MmrBuilder, rankMovement } from "../src/collection/MmrBuilder.js";
 import type { RiotCompetitiveUpdate, RiotMmrResponse } from "../src/riot/types.js";
 
 const catalogueData = JSON.parse(
@@ -53,7 +53,7 @@ describe("MmrBuilder", () => {
         rating: 75,
       },
       earned: 20,
-      movement: "INCREASE",
+      movement: "up",
     });
   });
 
@@ -129,8 +129,16 @@ describe("MmrBuilder", () => {
       },
       earned: 20,
       bonus: 2,
-      movement: "INCREASE",
+      movement: "up",
       afkPenalty: 0,
     });
+  });
+
+  it("derives the movement from the tiers and the rating earned", () => {
+    expect(rankMovement(3, 4, 20)).toBe("promoted");
+    expect(rankMovement(4, 3, -20)).toBe("demoted");
+    expect(rankMovement(3, 3, 20)).toBe("up");
+    expect(rankMovement(3, 3, -20)).toBe("down");
+    expect(rankMovement(3, 3, 0)).toBe("same");
   });
 });
