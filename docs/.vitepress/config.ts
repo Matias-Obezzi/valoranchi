@@ -26,6 +26,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: "Guide", link: "/guide/getting-started" },
+      { text: "Languages", link: "/languages/" },
       { text: "Reference", link: "/reference/" },
       { text: "npm", link: "https://www.npmjs.com/package/@valoranchi/riot-client" },
       { text: "GitHub", link: "https://github.com/Valoranchi/valoranchi" },
@@ -47,6 +48,22 @@ export default defineConfig({
           { text: "Raw Layer", link: "/guide/raw-layer" },
           { text: "CLI Reference", link: "/guide/cli" },
           { text: "Releasing", link: "/guide/releasing" },
+        ],
+      },
+      {
+        text: "Usage by language",
+        items: [
+          { text: "Overview", link: "/languages/" },
+          { text: "JavaScript", link: "/languages/javascript" },
+          { text: "TypeScript", link: "/languages/typescript" },
+          { text: "C#", link: "/languages/csharp" },
+          { text: "Java", link: "/languages/java" },
+          { text: "Python", link: "/languages/python" },
+          { text: "Go", link: "/languages/go" },
+          { text: "Rust", link: "/languages/rust" },
+          { text: "PHP", link: "/languages/php" },
+          { text: "Ruby", link: "/languages/ruby" },
+          { text: "Shell", link: "/languages/shell" },
         ],
       },
       {

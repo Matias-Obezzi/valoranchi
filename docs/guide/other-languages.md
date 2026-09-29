@@ -2,6 +2,10 @@
 
 Any programming language or runtime can interact with the local Riot Client session by invoking the `riotclient` binary as a child process and parsing standard JSON from stdout.
 
+::: tip Dedicated Language Guides
+For complete, copy-paste recipes, quicktype code generation, and error handling across 10 programming languages, see [Usage by Language](/languages/).
+:::
+
 ## Spawning the CLI
 
 ### C#

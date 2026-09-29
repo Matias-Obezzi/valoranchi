@@ -23,6 +23,9 @@ features:
     details: Subscribe to live WebSocket events for friend presence, incoming messages, and game state changes.
   - title: Works from Any Language via CLI
     details: Spawn the command-line binary from C#, Rust, Python, or Go and read clean JSON output from stdout.
+  - title: Any language
+    details: Complete copy-paste recipes for JavaScript, TypeScript, C#, Java, Python, Go, Rust, PHP, Ruby, and Shell.
+    link: /languages/
 ---
 
 ## Quick Start
