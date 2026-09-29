@@ -1,0 +1,25 @@
+[
+  {
+    "id": "offer-reaver-vandal",
+    "item": {
+      "kind": "skin",
+      "uuid": "14f05da8-4ff6-4b8a-b9c1-52a1215b2447",
+      "name": "Reaver Vandal",
+      "weapon": "Vandal",
+      "tier": {
+        "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
+        "name": "Premium",
+        "rank": 3,
+        "icon": null
+      },
+      "icon": null,
+      "levelUuid": "8c599182-4752-ef19-d933-7284b39794cb"
+    },
+    "cost": {
+      "currency": "Valorant Points",
+      "currencyUuid": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+      "amount": 1775
+    },
+    "startedAt": "2026-01-01T00:00:00.000Z"
+  }
+]

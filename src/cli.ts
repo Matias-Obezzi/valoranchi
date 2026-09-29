@@ -62,6 +62,7 @@ Matches:
   leaderboard      Print competitive leaderboard [--season] [--start] [--size] [--query]
   content          Print active act, episode and live events
   premier          Print premier eligibility, roster, and season info
+  trend            Print competitive rating streak, net RR gains, and climbing pace
   agent-select     Select an agent in pregame (<uuid|name>) (dry-run, --yes to apply)
   agent-lock       Lock in an agent in pregame (<uuid|name>) (dry-run, --yes to apply)
   dodge            Dodge pregame agent select (requires --yes --confirm)
@@ -507,6 +508,8 @@ async function executeGameCommand(
       return client.matches.content();
     case "premier":
       return client.matches.premier();
+    case "trend":
+      return client.matches.trend({ count: options?.count });
     case "party":
       return client.party.current();
     case "queues":

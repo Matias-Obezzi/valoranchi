@@ -22,7 +22,7 @@ import { StoreService } from "./client/StoreService.js";
 import type { RiotEvents } from "./events/RiotEvents.js";
 import type { RiotClientLocalApi } from "./local/RiotClientLocalApi.js";
 import { HttpGateway } from "./riot/HttpGateway.js";
-import { FileResponseCache } from "./riot/ResponseCache.js";
+import { defaultResponseCacheDir, FileResponseCache } from "./riot/ResponseCache.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import type { Session } from "./riot/Session.js";
 
@@ -130,9 +130,10 @@ export class RiotClient {
       options.catalogueDir === null ? null : new FileCatalogueStore(options.catalogueDir);
     const valorantApi =
       options.valorantApi ?? new ValorantApi(gateway, new MemoryCatalogueCache(), store);
+    const cacheDir = options.responseCache?.dir ?? defaultResponseCacheDir();
     const responseCache = options.responseCache
-      ? new FileResponseCache(options.responseCache.ttlMs, options.responseCache.dir)
-      : null;
+      ? new FileResponseCache(options.responseCache.ttlMs, cacheDir)
+      : new FileResponseCache(0, cacheDir);
 
     this.sessions = new SessionManager({
       lockfilePath: options.lockfilePath,
@@ -149,6 +150,7 @@ export class RiotClient {
       api,
       catalogue: (lang?: string) => valorantApi.getCatalogue(lang ?? language),
       player: (session: Session) => createPlayer(api(session), session),
+      cacheDir,
     };
 
     this.account = new AccountService(context);

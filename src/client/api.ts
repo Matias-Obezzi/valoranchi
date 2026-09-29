@@ -16,6 +16,7 @@ import type {
   Loadout,
   Match,
   MatchSummary,
+  MatchSyncResult,
   Message,
   Mission,
   Mmr,
@@ -27,13 +28,20 @@ import type {
   PartyInvite,
   PartyRequest,
   Penalty,
+  PerformanceSummary,
   Player,
+  PlayerAssessment,
   PlayerSettings,
   Premier,
   QueueConfig,
   RankChange,
+  RatingTrend,
   Store,
+  StoreHistory,
+  StoreSeen,
   Wallet,
+  CollectionValue,
+  LoadoutDiff,
 } from "../model/index.js";
 import type { RiotLoadoutResponse } from "../riot/types.js";
 import type { LoadoutChange } from "./LoadoutValidator.js";
@@ -75,6 +83,11 @@ export interface AccountApi {
   ): Promise<{ type: string; data: Record<string, unknown> }>;
   saveSettings(data: unknown, options?: { confirm?: boolean }): Promise<PlayerSettings>;
   client(): Promise<ClientInfo>;
+  diffLoadout(target: LoadoutChange | Loadout): Promise<LoadoutDiff>;
+  equipPreset(preset: LoadoutChange): Promise<Loadout>;
+  validateEquipPreset(preset: LoadoutChange): Promise<RiotLoadoutResponse>;
+  exportLoadout(): Promise<LoadoutChange>;
+  collectionValue(): Promise<CollectionValue>;
 }
 
 export interface SocialApi {
@@ -116,6 +129,8 @@ export interface StoreApi {
   buy(target: BuyTarget, options?: { confirm?: boolean }): Promise<Order>;
   validateBuy(target: BuyTarget, options?: { confirm?: boolean }): Promise<BuyValidationResult>;
   order(id: string): Promise<Order>;
+  history(): Promise<StoreHistory>;
+  seen(skinUuid: string): Promise<StoreSeen>;
 }
 
 export interface MatchesApi {
@@ -151,6 +166,16 @@ export interface MatchesApi {
   validateLeaveMatch(options?: {
     confirm?: boolean;
   }): Promise<{ method: string; path: string; matchId: string; puuid: string }>;
+  trend(options?: { count?: number; puuid?: string }): Promise<RatingTrend>;
+  summary(options?: {
+    count?: number;
+    queue?: string;
+    puuid?: string;
+    onProgress?: (done: number, total: number) => void;
+  }): Promise<PerformanceSummary>;
+  assess(puuid?: string): Promise<PlayerAssessment>;
+  sync(options?: { queue?: string; puuid?: string }): Promise<MatchSyncResult>;
+  known(puuid?: string): Promise<MatchSummary[]>;
 }
 
 export interface PartyApi {

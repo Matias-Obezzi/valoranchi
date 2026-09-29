@@ -416,6 +416,7 @@ export type LiveMatchPlayer = {
     skin: { uuid: string; name: string | null; icon: Image } | null;
     buddy: { uuid: string; name: string | null; icon: Image } | null;
   }> | null;
+  warnings: string[];
 };
 
 export type LiveMatch =
@@ -686,3 +687,185 @@ export type Participant = {
   muted: boolean;
   activePlatform: string | null;
 };
+
+export type RatingStreak = {
+  kind: "win" | "loss" | null;
+  length: number;
+};
+
+export type RatingNet = {
+  last5: number;
+  last10: number;
+  last20: number;
+};
+
+export type RatingAverages = {
+  averageGain: number | null;
+  averageLoss: number | null;
+};
+
+export type RatingTarget = {
+  rating: number;
+  winsAtCurrentPace: number | null;
+};
+
+export type DemotionTarget = {
+  rating: number;
+  lossesAtCurrentPace: number | null;
+};
+
+export type RatingPace = "climbing" | "holding" | "falling";
+
+export type RatingTrend = {
+  streak: RatingStreak;
+  net: RatingNet;
+  winRate: number;
+  perGame: RatingAverages;
+  toNextRank: RatingTarget;
+  toDemotion: DemotionTarget;
+  pace: RatingPace;
+};
+
+export type PerformanceStats = {
+  games: number;
+  wins: number;
+  winRate: number;
+  kd: number;
+  kda: number;
+  headshotRate: number;
+  averageScore: number;
+  averageDamagePerRound: number;
+  firstBloodsPerGame: number;
+  plantsPerGame: number;
+  defusesPerGame: number;
+};
+
+export type AgentPerformance = PerformanceStats & {
+  uuid: string;
+  name: string;
+  icon: Image;
+};
+
+export type MapPerformance = PerformanceStats & {
+  uuid: string | null;
+  name: string;
+  icon: Image;
+};
+
+export type PerformanceConsistency = {
+  scoreStdDev: number;
+  gamesNonNegative: number;
+  longestNonNegativeStreak: number;
+};
+
+export type PerformanceSummary = {
+  overall: PerformanceStats;
+  byAgent: AgentPerformance[];
+  byMap: MapPerformance[];
+  best: {
+    agent: AgentPerformance | null;
+    map: MapPerformance | null;
+  };
+  worst: {
+    agent: AgentPerformance | null;
+    map: MapPerformance | null;
+  };
+  consistency: PerformanceConsistency;
+};
+
+export type AssessmentFlag =
+  | "low-level-high-rank"
+  | "inflated"
+  | "underranked"
+  | "long-streak"
+  | "new-act";
+
+export type AssessmentWarning = {
+  flag: AssessmentFlag;
+  reason: string;
+};
+
+export type PlayerAssessment = {
+  puuid: string;
+  accountLevel: number;
+  flags: AssessmentWarning[];
+  warnings: string[];
+};
+
+export type LoadoutGunDiff = {
+  weapon: { uuid: string; name: string };
+  from: {
+    skin: { uuid: string; name: string };
+    level: { uuid: string; name: string };
+    chroma: { uuid: string; name: string };
+    buddy: { uuid: string; name: string } | null;
+  };
+  to: {
+    skin: { uuid: string; name: string };
+    level: { uuid: string; name: string };
+    chroma: { uuid: string; name: string };
+    buddy: { uuid: string; name: string } | null;
+  };
+};
+
+export type LoadoutDiff = {
+  guns: LoadoutGunDiff[];
+  sprays: Array<{ slot: string; from: string | null; to: string | null }>;
+  flex: { from: string | null; to: string | null } | null;
+  card: { from: string | null; to: string | null } | null;
+  title: { from: string | null; to: string | null } | null;
+  border: { from: string | null; to: string | null } | null;
+  incognito: { from: boolean; to: boolean } | null;
+};
+
+export type CollectionValueItem = {
+  skin: { uuid: string; name: string; icon: Image };
+  weapon: { uuid: string; name: string };
+  tier: Tier | null;
+  vp: number | null;
+  radianite: number;
+  source: "offer" | "bundle" | "unknown";
+};
+
+export type CollectionValueGroup = {
+  name: string;
+  uuid: string | null;
+  vp: number;
+  radianite: number;
+  items: number;
+  priced: number;
+};
+
+export type CollectionValue = {
+  total: {
+    vp: number;
+    radianite: number;
+    priced: number;
+    totalItems: number;
+  };
+  byWeapon: CollectionValueGroup[];
+  byTier: CollectionValueGroup[];
+  items: CollectionValueItem[];
+};
+
+export type StoreHistoryDay = {
+  day: string;
+  daily: string[];
+  nightMarket: string[] | null;
+  bundles: string[] | null;
+};
+
+export type StoreSeen = {
+  lastSeen: string | null;
+  times: number;
+};
+
+export type StoreHistory = {
+  days: StoreHistoryDay[];
+};
+
+export type MatchSyncResult = {
+  added: MatchSummary[];
+  total: number;
+};
+

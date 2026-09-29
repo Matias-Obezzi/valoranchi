@@ -179,7 +179,14 @@
       "uuid": "map-1",
       "displayName": "Ascent",
       "mapUrl": "/Game/Maps/Ascent/Ascent",
-      "displayIcon": null,
+      "displayIcon": "https://media.valorant-api.com/maps/ascent.png",
+      "listViewIcon": null
+    },
+    {
+      "uuid": "map-2",
+      "displayName": "Bind",
+      "mapUrl": "/Game/Maps/Duality/Duality",
+      "displayIcon": "https://media.valorant-api.com/maps/bind.png",
       "listViewIcon": null
     }
   ],

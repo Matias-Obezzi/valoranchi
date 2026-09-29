@@ -2,164 +2,165 @@
 
 ### Account
 
-| Command             | Description                                                                       |
-| :------------------ | :-------------------------------------------------------------------------------- |
-| `whoami`            | Print signed-in player profile and region                                         |
-| `owned-items`       | Print owned inventory items                                                       |
-| `loadout`           | Print currently equipped loadout                                                  |
-| `wallet`            | Print VP, Radianite, and Kingdom Credits balances                                 |
-| `xp`                | Print account level, XP progression and recent match XP history                   |
-| `contracts`         | Print progression across agent, battlepass and event contracts                    |
-| `missions`          | Print active daily and weekly missions and objectives                             |
-| `penalties`         | Print active penalties and restrictions                                           |
-| `favourites`        | Print favorited weapon skins                                                      |
-| `session`           | Print current client session loop state and playtime                              |
-| `config`            | Print shared client configuration mapping                                         |
-| `client`            | Print client identity, locale, region, and Valorant running state                 |
-| `settings`          | Print cloud player settings (--raw for unprocessed dump)                          |
-| `settings-save`     | Save player settings from JSON file (&lt;file.json&gt;, requires --yes --confirm) |
-| `equip`             | Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply) |
-| `equip-collection`  | Equip a collection of skins (&lt;skinUuid,...&gt;) (dry-run, --yes to apply)      |
-| `contract-activate` | Activate an agent contract (&lt;uuid&gt;) (dry-run, --yes to apply)               |
-| `favourite-add`     | Add skin to favourites (&lt;skin&gt;) (dry-run, --yes to apply)                   |
-| `favourite-remove`  | Remove skin from favourites (&lt;skin&gt;) (dry-run, --yes to apply)              |
-| `privacy`           | Update account privacy toggles (--badge on\|off, --leaderboard on\|off)           |
+| Command | Description |
+| :--- | :--- |
+| `whoami` | Print signed-in player profile and region |
+| `owned-items` | Print owned inventory items |
+| `loadout` | Print currently equipped loadout |
+| `wallet` | Print VP, Radianite, and Kingdom Credits balances |
+| `xp` | Print account level, XP progression and recent match XP history |
+| `contracts` | Print progression across agent, battlepass and event contracts |
+| `missions` | Print active daily and weekly missions and objectives |
+| `penalties` | Print active penalties and restrictions |
+| `favourites` | Print favorited weapon skins |
+| `session` | Print current client session loop state and playtime |
+| `config` | Print shared client configuration mapping |
+| `client` | Print client identity, locale, region, and Valorant running state |
+| `settings` | Print cloud player settings (--raw for unprocessed dump) |
+| `settings-save` | Save player settings from JSON file (&lt;file.json&gt;, requires --yes --confirm) |
+| `equip` | Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply) |
+| `equip-collection` | Equip a collection of skins (&lt;skinUuid,...&gt;) (dry-run, --yes to apply) |
+| `contract-activate` | Activate an agent contract (&lt;uuid&gt;) (dry-run, --yes to apply) |
+| `favourite-add` | Add skin to favourites (&lt;skin&gt;) (dry-run, --yes to apply) |
+| `favourite-remove` | Remove skin from favourites (&lt;skin&gt;) (dry-run, --yes to apply) |
+| `privacy` | Update account privacy toggles (--badge on\|off, --leaderboard on\|off) |
 
 ### Social
 
-| Command           | Description                                                              |
-| :---------------- | :----------------------------------------------------------------------- |
-| `friends`         | Print friends roster and presence                                        |
-| `friend-requests` | Print incoming and outgoing friend requests                              |
-| `blocked`         | Print blocked players                                                    |
-| `conversations`   | Print whisper and match chat conversations                               |
-| `messages`        | Print chat messages (filter with --cid &lt;id&gt;)                       |
-| `participants`    | Print chat participants (filter with --cid &lt;id&gt;)                   |
-| `send`            | Send chat message (--to &lt;puuid\|name#tag\|cid&gt; --text &lt;msg&gt;) |
-| `friend-request`  | Send friend request (&lt;name#tag&gt;)                                   |
-| `friend-accept`   | Accept friend request (&lt;puuid&gt;)                                    |
-| `friend-decline`  | Decline friend request (&lt;puuid&gt;)                                   |
-| `friend-cancel`   | Cancel friend request (&lt;puuid&gt;)                                    |
-| `friend-remove`   | Remove friend (&lt;puuid&gt;)                                            |
-| `block`           | Block player (&lt;puuid\|name#tag&gt;)                                   |
-| `unblock`         | Unblock player (&lt;puuid&gt;)                                           |
+| Command | Description |
+| :--- | :--- |
+| `friends` | Print friends roster and presence |
+| `friend-requests` | Print incoming and outgoing friend requests |
+| `blocked` | Print blocked players |
+| `conversations` | Print whisper and match chat conversations |
+| `messages` | Print chat messages (filter with --cid &lt;id&gt;) |
+| `participants` | Print chat participants (filter with --cid &lt;id&gt;) |
+| `send` | Send chat message (--to &lt;puuid\|name#tag\|cid&gt; --text &lt;msg&gt;) |
+| `friend-request` | Send friend request (&lt;name#tag&gt;) |
+| `friend-accept` | Accept friend request (&lt;puuid&gt;) |
+| `friend-decline` | Decline friend request (&lt;puuid&gt;) |
+| `friend-cancel` | Cancel friend request (&lt;puuid&gt;) |
+| `friend-remove` | Remove friend (&lt;puuid&gt;) |
+| `block` | Block player (&lt;puuid\|name#tag&gt;) |
+| `unblock` | Unblock player (&lt;puuid&gt;) |
 
 ### Store
 
-| Command               | Description                                                                                    |
-| :-------------------- | :--------------------------------------------------------------------------------------------- |
-| `store`               | Print storefront (daily, night market, bundles, accessories)                                   |
-| `offers`              | Print full item offers catalog and pricing                                                     |
-| `order <id>`          | Print store order details                                                                      |
-| `night-market-reveal` | Reveal night market offers (dry-run, --yes to apply)                                           |
-| `buy`                 | Purchase offer or bundle (--offer &lt;id&gt; \| --bundle &lt;id&gt;, requires --yes --confirm) |
+| Command | Description |
+| :--- | :--- |
+| `store` | Print storefront (daily, night market, bundles, accessories) |
+| `offers` | Print full item offers catalog and pricing |
+| `order <id>` | Print store order details |
+| `night-market-reveal` | Reveal night market offers (dry-run, --yes to apply) |
+| `buy` | Purchase offer or bundle (--offer &lt;id&gt; \| --bundle &lt;id&gt;, requires --yes --confirm) |
 
 ### Matches
 
-| Command                    | Description                                                                |
-| :------------------------- | :------------------------------------------------------------------------- |
-| `matches`                  | Print recent match history summaries                                       |
-| `match <id>`               | Print full match details by ID                                             |
-| `mmr`                      | Print current rank, rating, and MMR breakdown                              |
-| `rank-history`             | Print competitive rating adjustments and tier changes                      |
-| `live`                     | Print live pregame or in-game lobby status and loadouts                    |
-| `matches-for <puuid>`      | Print recent match history summaries for player                            |
-| `mmr-for <puuid>`          | Print rank, rating, and MMR for player                                     |
-| `rank-history-for <puuid>` | Print competitive updates for player                                       |
-| `leaderboard`              | Print competitive leaderboard [--season] [--start] [--size] [--query]      |
-| `content`                  | Print active act, episode and live events                                  |
-| `premier`                  | Print premier eligibility, roster, and season info                         |
-| `agent-select`             | Select an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply)  |
-| `agent-lock`               | Lock in an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply) |
-| `dodge`                    | Dodge pregame agent select (requires --yes --confirm)                      |
-| `leave-match`              | Leave active in-game match (requires --yes --confirm)                      |
+| Command | Description |
+| :--- | :--- |
+| `matches` | Print recent match history summaries |
+| `match <id>` | Print full match details by ID |
+| `mmr` | Print current rank, rating, and MMR breakdown |
+| `rank-history` | Print competitive rating adjustments and tier changes |
+| `live` | Print live pregame or in-game lobby status and loadouts |
+| `matches-for <puuid>` | Print recent match history summaries for player |
+| `mmr-for <puuid>` | Print rank, rating, and MMR for player |
+| `rank-history-for <puuid>` | Print competitive updates for player |
+| `leaderboard` | Print competitive leaderboard [--season] [--start] [--size] [--query] |
+| `content` | Print active act, episode and live events |
+| `premier` | Print premier eligibility, roster, and season info |
+| `agent-select` | Select an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply) |
+| `agent-lock` | Lock in an agent in pregame (&lt;uuid\|name&gt;) (dry-run, --yes to apply) |
+| `dodge` | Dodge pregame agent select (requires --yes --confirm) |
+| `leave-match` | Leave active in-game match (requires --yes --confirm) |
 
 ### Party
 
-| Command                 | Description                                                                                          |
-| :---------------------- | :--------------------------------------------------------------------------------------------------- |
-| `party`                 | Print current party details and members                                                              |
-| `queues`                | Print matchmaking queue configurations                                                               |
-| `custom-game-configs`   | Print custom game configuration options                                                              |
-| `party-invite`          | Invite player to party (&lt;name#tag&gt;)                                                            |
-| `party-kick`            | Kick member from party (&lt;puuid&gt;)                                                               |
-| `party-promote`         | Promote member to party owner (&lt;puuid&gt;)                                                        |
-| `party-code`            | Generate or revoke party invite code [--revoke]                                                      |
-| `party-join`            | Join party by invite code or party ID (&lt;partyId\|code&gt;)                                        |
-| `party-invites`         | Print incoming party invites                                                                         |
-| `party-requests`        | Print incoming party join requests                                                                   |
-| `party-decline-invite`  | Decline party invite (&lt;id&gt;) (dry-run, --yes to apply)                                          |
-| `party-request`         | Request to join party (&lt;partyId&gt;) (dry-run, --yes to apply)                                    |
-| `party-decline-request` | Decline party join request (&lt;id&gt;) (dry-run, --yes to apply)                                    |
-| `custom-game`           | Convert party into a custom game (dry-run, --yes to apply)                                           |
-| `custom-game-settings`  | Configure custom game (--map &lt;name&gt; --mode &lt;name&gt; [--server &lt;id&gt;] [--rule k=v...]) |
-| `custom-game-team`      | Set member custom game team (&lt;puuid&gt; &lt;team&gt;) (dry-run, --yes to apply)                   |
-| `custom-game-start`     | Start custom game match (dry-run, --yes to apply)                                                    |
-| `custom-game-balance`   | Balance custom game teams (dry-run, --yes to apply)                                                  |
-| `party-default`         | Set party default queue (&lt;queue&gt;) (dry-run, --yes to apply)                                    |
-| `party-servers`         | Set preferred game servers (&lt;id,...&gt;) (dry-run, --yes to apply)                                |
-| `party-moderator`       | Set member moderator status (&lt;puuid&gt; on\|off) (dry-run, --yes to apply)                        |
-| `party-refresh`         | Refresh party member pings and identity (dry-run, --yes to apply)                                    |
-| `party-ready`           | Set party ready state (on\|off)                                                                      |
-| `party-queue`           | Change party queue (&lt;queue&gt;)                                                                   |
-| `party-access`          | Set party accessibility (open\|closed)                                                               |
-| `party-start`           | Start party matchmaking                                                                              |
-| `party-stop`            | Stop party matchmaking                                                                               |
-| `party-leave`           | Leave current party                                                                                  |
+| Command | Description |
+| :--- | :--- |
+| `party` | Print current party details and members |
+| `queues` | Print matchmaking queue configurations |
+| `custom-game-configs` | Print custom game configuration options |
+| `party-invite` | Invite player to party (&lt;name#tag&gt;) |
+| `party-kick` | Kick member from party (&lt;puuid&gt;) |
+| `party-promote` | Promote member to party owner (&lt;puuid&gt;) |
+| `party-code` | Generate or revoke party invite code [--revoke] |
+| `party-join` | Join party by invite code or party ID (&lt;partyId\|code&gt;) |
+| `party-invites` | Print incoming party invites |
+| `party-requests` | Print incoming party join requests |
+| `party-decline-invite` | Decline party invite (&lt;id&gt;) (dry-run, --yes to apply) |
+| `party-request` | Request to join party (&lt;partyId&gt;) (dry-run, --yes to apply) |
+| `party-decline-request` | Decline party join request (&lt;id&gt;) (dry-run, --yes to apply) |
+| `custom-game` | Convert party into a custom game (dry-run, --yes to apply) |
+| `custom-game-settings` | Configure custom game (--map &lt;name&gt; --mode &lt;name&gt; [--server &lt;id&gt;] [--rule k=v...]) |
+| `custom-game-team` | Set member custom game team (&lt;puuid&gt; &lt;team&gt;) (dry-run, --yes to apply) |
+| `custom-game-start` | Start custom game match (dry-run, --yes to apply) |
+| `custom-game-balance` | Balance custom game teams (dry-run, --yes to apply) |
+| `party-default` | Set party default queue (&lt;queue&gt;) (dry-run, --yes to apply) |
+| `party-servers` | Set preferred game servers (&lt;id,...&gt;) (dry-run, --yes to apply) |
+| `party-moderator` | Set member moderator status (&lt;puuid&gt; on\|off) (dry-run, --yes to apply) |
+| `party-refresh` | Refresh party member pings and identity (dry-run, --yes to apply) |
+| `party-ready` | Set party ready state (on\|off) |
+| `party-queue` | Change party queue (&lt;queue&gt;) |
+| `party-access` | Set party accessibility (open\|closed) |
+| `party-start` | Start party matchmaking |
+| `party-stop` | Stop party matchmaking |
+| `party-leave` | Leave current party |
 
 ### Raw (unsupported)
 
-| Command | Description                                                                                             |
-| :------ | :------------------------------------------------------------------------------------------------------ |
-| `local` | Send raw request to local Riot client API (&lt;get\|post\|put\|delete&gt; &lt;path&gt; [--body json])   |
-| `riot`  | Send raw request to remote Riot game servers (&lt;get\|post\|put\|delete&gt; &lt;url&gt; [--body json]) |
+| Command | Description |
+| :--- | :--- |
+| `local` | Send raw request to local Riot client API (&lt;get\|post\|put\|delete&gt; &lt;path&gt; [--body json]) |
+| `riot` | Send raw request to remote Riot game servers (&lt;get\|post\|put\|delete&gt; &lt;url&gt; [--body json]) |
 
 ### Events
 
-| Command | Description                                             |
-| :------ | :------------------------------------------------------ |
+| Command | Description |
+| :--- | :--- |
 | `watch` | Stream real-time events as JSON lines until interrupted |
 
 ### Options
 
-| Option                    | Description                                                                 |
-| :------------------------ | :-------------------------------------------------------------------------- |
-| `--yes`                   | Execute write command (default is dry-run)                                  |
-| `--confirm`               | Confirm write action (required with buy, dodge, leave-match, settings-save) |
-| `--offer <id>`            | Store offer ID to purchase                                                  |
-| `--bundle <id>`           | Store bundle ID to purchase                                                 |
-| `--badge <on\|off>`       | Hide or show act rank badge                                                 |
-| `--leaderboard <on\|off>` | Anonymize or reveal leaderboard presence                                    |
-| `--season <uuid>`         | Season ID for leaderboard                                                   |
-| `--start <n>`             | Leaderboard starting index                                                  |
-| `--size <n>`              | Leaderboard page size (max 510)                                             |
-| `--query <text>`          | Leaderboard player search query                                             |
-| `--revoke`                | Revoke party invite code (used with party-code)                             |
-| `--to <target>`           | Message recipient (puuid, name#tag, or cid)                                 |
-| `--text <msg>`            | Message text                                                                |
-| `--gun <spec>`            | Gun to equip: &lt;weapon&gt;=&lt;skin&gt;[:level[:chroma]] (repeatable)     |
-| `--buddy <spec>`          | Buddy to equip: &lt;weapon&gt;=&lt;buddy\|none&gt; (repeatable)             |
-| `--spray <spec>`          | Spray to equip: &lt;slot&gt;=&lt;uuid\|none&gt; (repeatable)                |
-| `--card <uuid>`           | Player card UUID                                                            |
-| `--title <uuid>`          | Player title UUID                                                           |
-| `--flex <uuid\|none>`     | Flex item UUID or none                                                      |
-| `--border <uuid>`         | Level border UUID                                                           |
-| `--incognito <on\|off>`   | Enable or disable incognito                                                 |
-| `--hide-level <on\|off>`  | Hide or show account level                                                  |
-| `--count <n>`             | Number of matches or rank history entries to fetch                          |
-| `--queue <queue>`         | Queue filter (e.g. competitive, unrated)                                    |
-| `--ranks`                 | Fetch MMR and rank for each player in live match                            |
-| `--no-loadouts`           | Skip fetching player loadouts in live match                                 |
-| `--map <name>`            | Map name or path for custom game                                            |
-| `--mode <name>`           | Game mode name or path for custom game                                      |
-| `--server <id>`           | Server pod ID for custom game                                               |
-| `--rule <spec>`           | Game rule override: &lt;name&gt;=&lt;value&gt; (repeatable)                 |
-| `--body <json>`           | JSON request body for local and riot raw commands                           |
-| `--only <events>`         | Comma-separated list of event names to print                                |
-| `--raw`                   | Include raw client event frames or unformatted settings                     |
-| `--cid <id>`              | Conversation ID for filtering messages or participants                      |
-| `--language <lang>`       | Catalogue language (default: en-US)                                         |
-| `--cache <seconds>`       | Reuse Riot responses younger than this many seconds                         |
-| `--pretty`                | Pretty-print JSON output                                                    |
-| `--help`                  | Show usage instructions                                                     |
-| `--version`               | Show version number                                                         |
+| Option | Description |
+| :--- | :--- |
+| `--yes` | Execute write command (default is dry-run) |
+| `--confirm` | Confirm write action (required with buy, dodge, leave-match, settings-save) |
+| `--offer <id>` | Store offer ID to purchase |
+| `--bundle <id>` | Store bundle ID to purchase |
+| `--badge <on\|off>` | Hide or show act rank badge |
+| `--leaderboard <on\|off>` | Anonymize or reveal leaderboard presence |
+| `--season <uuid>` | Season ID for leaderboard |
+| `--start <n>` | Leaderboard starting index |
+| `--size <n>` | Leaderboard page size (max 510) |
+| `--query <text>` | Leaderboard player search query |
+| `--revoke` | Revoke party invite code (used with party-code) |
+| `--to <target>` | Message recipient (puuid, name#tag, or cid) |
+| `--text <msg>` | Message text |
+| `--gun <spec>` | Gun to equip: &lt;weapon&gt;=&lt;skin&gt;[:level[:chroma]] (repeatable) |
+| `--buddy <spec>` | Buddy to equip: &lt;weapon&gt;=&lt;buddy\|none&gt; (repeatable) |
+| `--spray <spec>` | Spray to equip: &lt;slot&gt;=&lt;uuid\|none&gt; (repeatable) |
+| `--card <uuid>` | Player card UUID |
+| `--title <uuid>` | Player title UUID |
+| `--flex <uuid\|none>` | Flex item UUID or none |
+| `--border <uuid>` | Level border UUID |
+| `--incognito <on\|off>` | Enable or disable incognito |
+| `--hide-level <on\|off>` | Hide or show account level |
+| `--count <n>` | Number of matches or rank history entries to fetch |
+| `--queue <queue>` | Queue filter (e.g. competitive, unrated) |
+| `--ranks` | Fetch MMR and rank for each player in live match |
+| `--no-loadouts` | Skip fetching player loadouts in live match |
+| `--map <name>` | Map name or path for custom game |
+| `--mode <name>` | Game mode name or path for custom game |
+| `--server <id>` | Server pod ID for custom game |
+| `--rule <spec>` | Game rule override: &lt;name&gt;=&lt;value&gt; (repeatable) |
+| `--body <json>` | JSON request body for local and riot raw commands |
+| `--only <events>` | Comma-separated list of event names to print |
+| `--raw` | Include raw client event frames or unformatted settings |
+| `--cid <id>` | Conversation ID for filtering messages or participants |
+| `--language <lang>` | Catalogue language (default: en-US) |
+| `--cache <seconds>` | Reuse Riot responses younger than this many seconds |
+| `--pretty` | Pretty-print JSON output |
+| `--help` | Show usage instructions |
+| `--version` | Show version number |
+

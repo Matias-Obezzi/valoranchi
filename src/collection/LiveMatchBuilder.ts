@@ -33,14 +33,15 @@ export class LiveMatchBuilder {
     names: Map<string, { gameName: string; tagLine: string }>,
     ranks: Map<string, Rank | null>,
     selfPuuid: string,
+    warnings: Map<string, string[]> = new Map(),
   ): LiveMatch {
     const allyPlayers = match.AllyTeam?.Players ?? [];
     const enemyPlayers = match.EnemyTeam?.Players ?? [];
     const allyTeamId = match.AllyTeam?.TeamID ?? "Blue";
     const enemyTeamId = match.EnemyTeam?.TeamID ?? "Red";
 
-    const allies = allyPlayers.map((p) => this.buildPregamePlayer(p, allyTeamId, names, ranks));
-    const enemies = enemyPlayers.map((p) => this.buildPregamePlayer(p, enemyTeamId, names, ranks));
+    const allies = allyPlayers.map((p) => this.buildPregamePlayer(p, allyTeamId, names, ranks, warnings));
+    const enemies = enemyPlayers.map((p) => this.buildPregamePlayer(p, enemyTeamId, names, ranks, warnings));
     const self = allies.find((p) => p.puuid === selfPuuid) ?? null;
 
     const phaseEndsInMs = match.PhaseTimeRemainingNS
@@ -67,6 +68,7 @@ export class LiveMatchBuilder {
     names: Map<string, { gameName: string; tagLine: string }>,
     ranks: Map<string, Rank | null>,
     selfPuuid: string,
+    warnings: Map<string, string[]> = new Map(),
   ): LiveMatch {
     if (match.ProvisioningFlow === "ShootingRange") {
       return { phase: "range", matchId: match.MatchID };
@@ -77,10 +79,10 @@ export class LiveMatchBuilder {
     const loadoutMap = this.indexLoadouts(loadouts);
 
     const allies = match.Players.filter((p) => p.TeamID === selfTeam).map((p) =>
-      this.buildCoreGamePlayer(p, loadoutMap, names, ranks),
+      this.buildCoreGamePlayer(p, loadoutMap, names, ranks, warnings),
     );
     const enemies = match.Players.filter((p) => p.TeamID !== selfTeam).map((p) =>
-      this.buildCoreGamePlayer(p, loadoutMap, names, ranks),
+      this.buildCoreGamePlayer(p, loadoutMap, names, ranks, warnings),
     );
     const self = allies.find((p) => p.puuid === selfPuuid) ?? null;
 
@@ -103,6 +105,7 @@ export class LiveMatchBuilder {
     teamId: string,
     names: Map<string, { gameName: string; tagLine: string }>,
     ranks: Map<string, Rank | null>,
+    warnings: Map<string, string[]>,
   ): LiveMatchPlayer {
     const nameInfo = names.get(player.Subject);
     const rank = ranks.has(player.Subject)
@@ -129,6 +132,7 @@ export class LiveMatchBuilder {
       rank,
       partyId: null,
       loadout: null,
+      warnings: warnings.get(player.Subject) ?? [],
     };
   }
 
@@ -137,6 +141,7 @@ export class LiveMatchBuilder {
     loadouts: Map<string, Record<string, RiotCoreGameLoadoutItem>>,
     names: Map<string, { gameName: string; tagLine: string }>,
     ranks: Map<string, Rank | null>,
+    warnings: Map<string, string[]>,
   ): LiveMatchPlayer {
     const nameInfo = names.get(player.Subject);
     const rank = ranks.get(player.Subject) ?? null;
@@ -156,6 +161,7 @@ export class LiveMatchBuilder {
       rank,
       partyId: null,
       loadout: items ? this.buildPlayerLoadout(items) : null,
+      warnings: warnings.get(player.Subject) ?? [],
     };
   }
 

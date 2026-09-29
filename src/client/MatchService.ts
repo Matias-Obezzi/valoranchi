@@ -11,7 +11,9 @@ import type {
   Mmr,
   Premier,
   RankChange,
+  RatingTrend,
 } from "../model/index.js";
+import { ratingTrend } from "../analysis/ratingTrend.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -272,5 +274,17 @@ export class MatchService implements MatchesApi {
     const session = await this.context.sessions.session();
     await this.context.api(session).disassociatePlayer(validated.matchId, session.puuid);
     return { left: true, matchId: validated.matchId };
+  }
+
+  async trend(options?: { count?: number; puuid?: string }): Promise<RatingTrend> {
+    const session = await this.context.sessions.session();
+    const puuid = options?.puuid ?? session.puuid;
+    const count = Math.max(options?.count ?? 20, 1);
+    const api = this.context.api(session);
+    const [rawUpdates, mmr] = await Promise.all([
+      api.competitiveUpdates(0, count, "competitive", puuid),
+      this.mmrFor(puuid).catch(() => null),
+    ]);
+    return ratingTrend(rawUpdates.Matches ?? [], mmr?.current ?? null);
   }
 }

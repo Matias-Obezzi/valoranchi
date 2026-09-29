@@ -12,6 +12,7 @@ export interface ClientContext {
   api(session: Session): RiotApi;
   catalogue(language?: string): Promise<Catalogue>;
   player(session: Session): Promise<Player>;
+  cacheDir: string;
 }
 
 export async function createPlayer(api: RiotApi, session: Session): Promise<Player> {

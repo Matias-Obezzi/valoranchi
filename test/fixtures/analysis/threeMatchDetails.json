@@ -1,0 +1,292 @@
+[
+  {
+    "matchInfo": {
+      "matchId": "match-0",
+      "mapId": "/Game/Maps/Ascent/Ascent",
+      "gameLengthMillis": 1800000,
+      "gameStartMillis": 1700000000000,
+      "provisioningFlowID": "Matchmaking",
+      "isCompleted": true,
+      "customGameName": null,
+      "queueID": "competitive",
+      "gameMode": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+      "isRanked": true,
+      "seasonId": "season-1",
+      "isReplayRecorded": true
+    },
+    "players": [
+      {
+        "subject": "self-puuid",
+        "gameName": "SelfPlayer",
+        "tagLine": "TAG",
+        "teamId": "Blue",
+        "partyId": "party-1",
+        "characterId": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+        "stats": {
+          "score": 4000,
+          "roundsPlayed": 20,
+          "kills": 20,
+          "deaths": 10,
+          "assists": 5
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 50
+      },
+      {
+        "subject": "enemy-1",
+        "gameName": "EnemyOne",
+        "tagLine": "TAG",
+        "teamId": "Red",
+        "partyId": "party-2",
+        "characterId": "eb93336a-449b-9c1b-0a54-a891f7921d69",
+        "stats": {
+          "score": 2500,
+          "roundsPlayed": 20,
+          "kills": 10,
+          "deaths": 20,
+          "assists": 2
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 45
+      }
+    ],
+    "teams": [
+      {
+        "teamId": "Blue",
+        "won": true,
+        "roundsPlayed": 20,
+        "roundsWon": 13,
+        "numPoints": 13
+      },
+      {
+        "teamId": "Red",
+        "won": false,
+        "roundsPlayed": 20,
+        "roundsWon": 7,
+        "numPoints": 7
+      }
+    ],
+    "roundResults": [
+      {
+        "roundNum": 0,
+        "roundResult": "Bomb defused",
+        "winningTeam": "Blue",
+        "bombDefuser": "self-puuid",
+        "playerStats": [
+          {
+            "subject": "self-puuid",
+            "kills": [
+              {
+                "roundTime": 5000,
+                "killer": "self-puuid",
+                "victim": "enemy-1",
+                "assistants": []
+              }
+            ],
+            "damage": [
+              {
+                "receiver": "enemy-1",
+                "damage": 3000,
+                "headshots": 10,
+                "bodyshots": 10,
+                "legshots": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "matchInfo": {
+      "matchId": "match-1",
+      "mapId": "/Game/Maps/Ascent/Ascent",
+      "gameLengthMillis": 1800000,
+      "gameStartMillis": 1700000001000,
+      "provisioningFlowID": "Matchmaking",
+      "isCompleted": true,
+      "customGameName": null,
+      "queueID": "competitive",
+      "gameMode": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+      "isRanked": true,
+      "seasonId": "season-1",
+      "isReplayRecorded": true
+    },
+    "players": [
+      {
+        "subject": "self-puuid",
+        "gameName": "SelfPlayer",
+        "tagLine": "TAG",
+        "teamId": "Blue",
+        "partyId": "party-1",
+        "characterId": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+        "stats": {
+          "score": 3000,
+          "roundsPlayed": 20,
+          "kills": 15,
+          "deaths": 15,
+          "assists": 5
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 50
+      },
+      {
+        "subject": "enemy-1",
+        "gameName": "EnemyOne",
+        "tagLine": "TAG",
+        "teamId": "Red",
+        "partyId": "party-2",
+        "characterId": "eb93336a-449b-9c1b-0a54-a891f7921d69",
+        "stats": {
+          "score": 2800,
+          "roundsPlayed": 20,
+          "kills": 15,
+          "deaths": 15,
+          "assists": 3
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 45
+      }
+    ],
+    "teams": [
+      {
+        "teamId": "Blue",
+        "won": true,
+        "roundsPlayed": 20,
+        "roundsWon": 13,
+        "numPoints": 13
+      },
+      {
+        "teamId": "Red",
+        "won": false,
+        "roundsPlayed": 20,
+        "roundsWon": 7,
+        "numPoints": 7
+      }
+    ],
+    "roundResults": [
+      {
+        "roundNum": 0,
+        "roundResult": "Elimination",
+        "winningTeam": "Blue",
+        "bombPlanter": "self-puuid",
+        "playerStats": [
+          {
+            "subject": "self-puuid",
+            "damage": [
+              {
+                "receiver": "enemy-1",
+                "damage": 2600,
+                "headshots": 5,
+                "bodyshots": 15,
+                "legshots": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "matchInfo": {
+      "matchId": "match-2",
+      "mapId": "/Game/Maps/Duality/Duality",
+      "gameLengthMillis": 1800000,
+      "gameStartMillis": 1700000002000,
+      "provisioningFlowID": "Matchmaking",
+      "isCompleted": true,
+      "customGameName": null,
+      "queueID": "competitive",
+      "gameMode": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+      "isRanked": true,
+      "seasonId": "season-1",
+      "isReplayRecorded": true
+    },
+    "players": [
+      {
+        "subject": "self-puuid",
+        "gameName": "SelfPlayer",
+        "tagLine": "TAG",
+        "teamId": "Blue",
+        "partyId": "party-1",
+        "characterId": "eb93336a-449b-9c1b-0a54-a891f7921d69",
+        "stats": {
+          "score": 2000,
+          "roundsPlayed": 20,
+          "kills": 8,
+          "deaths": 16,
+          "assists": 8
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 50
+      },
+      {
+        "subject": "enemy-1",
+        "gameName": "EnemyOne",
+        "tagLine": "TAG",
+        "teamId": "Red",
+        "partyId": "party-2",
+        "characterId": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+        "stats": {
+          "score": 3500,
+          "roundsPlayed": 20,
+          "kills": 16,
+          "deaths": 8,
+          "assists": 4
+        },
+        "competitiveTier": 15,
+        "playerCard": "card-1",
+        "playerTitle": "title-1",
+        "accountLevel": 45
+      }
+    ],
+    "teams": [
+      {
+        "teamId": "Blue",
+        "won": false,
+        "roundsPlayed": 20,
+        "roundsWon": 6,
+        "numPoints": 6
+      },
+      {
+        "teamId": "Red",
+        "won": true,
+        "roundsPlayed": 20,
+        "roundsWon": 13,
+        "numPoints": 13
+      }
+    ],
+    "roundResults": [
+      {
+        "roundNum": 0,
+        "roundResult": "Elimination",
+        "winningTeam": "Red",
+        "bombPlanter": "self-puuid",
+        "playerStats": [
+          {
+            "subject": "self-puuid",
+            "damage": [
+              {
+                "receiver": "enemy-1",
+                "damage": 1800,
+                "headshots": 3,
+                "bodyshots": 9,
+                "legshots": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
