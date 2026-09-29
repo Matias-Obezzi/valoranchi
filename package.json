@@ -48,7 +48,8 @@
     "examples:check": "tsc -p examples/tsconfig.json --noEmit && node --check examples/node/read.mjs && node --check examples/node/read.cjs && node --check examples/node/write.mjs && node --check examples/node/events.mjs",
     "format": "prettier --write .",
     "exe": "node scripts/build-exe.mjs",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "fixtures:record": "npm run build && node scripts/record-fixtures.mjs"
   },
   "dependencies": {
     "undici": "^7.5.0"

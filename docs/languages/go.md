@@ -42,4 +42,3 @@ npx quicktype schema/OwnedItems.json --src-lang schema -l go -o owned_items.go -
 Use the generated `UnmarshalOwnedItems` helper function to parse CLI output:
 
 <<< @/../examples/go/main.go#types{go}
-

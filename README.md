@@ -623,6 +623,8 @@ Access tokens and entitlements JWTs are strictly scoped. They may only ever be s
 
 ## Releasing
 
+`npm run fixtures:record` refreshes the anonymized Riot payloads under `test/fixtures/recorded/` (see the docs).
+
 Releases are published automatically to npm and GitHub Releases via GitHub Actions:
 
 1. Navigate to the **Actions** tab on GitHub and select the **Release** workflow.

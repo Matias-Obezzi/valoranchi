@@ -136,10 +136,10 @@ Only enable `--allow-remote` on trusted private networks or behind an authentica
 
 Serve mode maps client errors directly to standard HTTP statuses:
 
-| Status Code | Condition | Example |
-| :--- | :--- | :--- |
-| `200 OK` | Successful execution | Payload returned as JSON |
-| `400 Bad Request` | Validation failure or missing confirmation | `{ "error": { "code": "VALIDATION", "reason": "confirm-required" } }` |
-| `502 Bad Gateway` | Riot remote API error | Upstream Riot endpoint returned 4xx or 5xx |
-| `503 Service Unavailable` | Riot Client is closed or starting up | `RIOT_CLIENT_NOT_RUNNING` or `RIOT_CLIENT_NOT_READY` |
-| `500 Internal Error` | Unexpected server exception | Internal unhandled error |
+| Status Code               | Condition                                  | Example                                                               |
+| :------------------------ | :----------------------------------------- | :-------------------------------------------------------------------- |
+| `200 OK`                  | Successful execution                       | Payload returned as JSON                                              |
+| `400 Bad Request`         | Validation failure or missing confirmation | `{ "error": { "code": "VALIDATION", "reason": "confirm-required" } }` |
+| `502 Bad Gateway`         | Riot remote API error                      | Upstream Riot endpoint returned 4xx or 5xx                            |
+| `503 Service Unavailable` | Riot Client is closed or starting up       | `RIOT_CLIENT_NOT_RUNNING` or `RIOT_CLIENT_NOT_READY`                  |
+| `500 Internal Error`      | Unexpected server exception                | Internal unhandled error                                              |

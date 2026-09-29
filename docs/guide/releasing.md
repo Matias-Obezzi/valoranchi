@@ -24,3 +24,9 @@ If a release publish fails after a version is tagged or committed (for instance,
 ## Token Scope Requirements
 
 The workflow verifies npm permissions before starting the build. It expects a granular npm access token configured with **Read and write** permissions across all packages under the `@valoranchi` organization scope. An HTTP 404 during the publish step indicates that the token cannot access the `@valoranchi` scope or the organization is not accessible.
+
+## Recording fixtures
+
+`npm run fixtures:record` reads the live Riot Client (loadout, entitlements, wallet, storefront, MMR, rank history, match history and one match, names, party, friends, presences, requests, blocked, conversations, messages) through the raw layer and writes each payload to `test/fixtures/recorded/`, anonymized: every player and match id becomes a stable fake uuid, names become `Player1`, `Player2`..., tags become `TAG`, and message bodies and notes are redacted. Tokens never appear in these payloads.
+
+`test/recorded.test.ts` runs the builders over the recorded payloads and compares the result with a Vitest snapshot, so a change in a builder or in Riot's response shape shows up as a diff. Record again after a game patch and review the snapshot changes with `npx vitest run -u`.

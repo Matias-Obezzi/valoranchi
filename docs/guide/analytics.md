@@ -184,21 +184,19 @@ riotclient assess 4a7b9c1d-1234-5678-9abc-def012345678
       "reason": "Account level 22 is below 50 while holding rank Diamond 2"
     }
   ],
-  "warnings": [
-    "Account level 22 is below 50 while holding rank Diamond 2"
-  ]
+  "warnings": ["Account level 22 is below 50 while holding rank Diamond 2"]
 }
 ```
 
 #### Warning Flags
 
-| Flag | Trigger Condition |
-| :--- | :--- |
-| `low-level-high-rank` | Account level under 50 while holding rank Platinum 1 or higher (tier $\ge 15$). |
-| `inflated` | MMR fit is `"above"` (visible rank is noticeably above hidden MMR; small RR gains). |
-| `underranked` | MMR fit is `"below"` with two or more ranks discrepancy (hidden MMR is much higher). |
-| `long-streak` | Active win or loss streak of 5 or more games. |
-| `new-act` | Fewer than 5 competitive matches recorded in the current act. |
+| Flag                  | Trigger Condition                                                                    |
+| :-------------------- | :----------------------------------------------------------------------------------- |
+| `low-level-high-rank` | Account level under 50 while holding rank Platinum 1 or higher (tier $\ge 15$).      |
+| `inflated`            | MMR fit is `"above"` (visible rank is noticeably above hidden MMR; small RR gains).  |
+| `underranked`         | MMR fit is `"below"` with two or more ranks discrepancy (hidden MMR is much higher). |
+| `long-streak`         | Active win or loss streak of 5 or more games.                                        |
+| `new-act`             | Fewer than 5 competitive matches recorded in the current act.                        |
 
 #### Live Match Integration
 

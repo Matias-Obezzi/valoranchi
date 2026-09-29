@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Every language example is a compilable project under `examples/` that the docs import, and CI compiles all of them.
+- `npm run fixtures:record` captures anonymized Riot payloads; snapshot tests rebuild the models from them.
+
 - `client.watch.match()` and `client.watch.friends()` provide high-level typed event watchers with async iteration (`[Symbol.asyncIterator]`), 5-second polling floor, and 300ms friend presence debouncing. CLI `watch-match` and `watch-friends`.
 - Serve mode (`client.serve()`, CLI `riotclient serve`) runs a local HTTP integration server with REST endpoints (`GET`/`POST /api/<namespace>/<method>`), Server-Sent Events (`GET /events`), auto-generated OpenAPI 3.0 specs (`GET /openapi.json`), route index dashboard (`GET /`), and loopback binding security.
 - Single executable distribution (`npm run exe`) builds a standalone Windows executable (`release/riotclient-win-x64.exe`) with Node.js Single Executable Application (SEA) flow and automated GitHub release workflow attachment.

@@ -49,3 +49,66 @@ jobs:
 
       - name: Verify package tarball
         run: npm pack --dry-run
+
+  examples:
+    name: Compile the ${{ matrix.language }} example
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            run: dotnet build examples/csharp --nologo -v quiet
+          - language: java
+            run: javac -d /tmp/java-example examples/java/Main.java
+          - language: python
+            run: python3 -m py_compile examples/python/main.py
+          - language: go
+            run: cd examples/go && go build ./...
+          - language: rust
+            run: cd examples/rust && cargo check --quiet
+          - language: php
+            run: php -l examples/php/main.php
+          - language: ruby
+            run: ruby -c examples/ruby/main.rb
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Java
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Setup Rust
+        if: matrix.language == 'rust'
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup PHP
+        if: matrix.language == 'php'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+
+      - name: Setup Ruby
+        if: matrix.language == 'ruby'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Compile
+        run: ${{ matrix.run }}

@@ -60,4 +60,3 @@ npx quicktype schema/OwnedItems.json --src-lang schema -l java -o OwnedItems.jav
 The generated POJO models will map directly to the JSON payloads:
 
 <<< @/../examples/java/Main.java#types{java}
-

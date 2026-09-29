@@ -243,14 +243,9 @@ riotclient store-history
   "days": [
     {
       "day": "2026-09-29",
-      "daily": [
-        "8908f237-47b2-031a-e905-1a89c93cc8f5",
-        "4324a482-47da-4521-b3b0-4dbfcfefd779"
-      ],
+      "daily": ["8908f237-47b2-031a-e905-1a89c93cc8f5", "4324a482-47da-4521-b3b0-4dbfcfefd779"],
       "nightMarket": null,
-      "bundles": [
-        "b1c8f420-410c-512b-b6d4-8d960f2df262"
-      ]
+      "bundles": ["b1c8f420-410c-512b-b6d4-8d960f2df262"]
     }
   ]
 }

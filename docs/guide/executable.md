@@ -57,13 +57,16 @@ When `postject` injects the SEA preparation blob into the resource section of `n
 
 1. **Remove Existing Signature**:
    If the Windows SDK is installed, remove the original signature using Microsoft's `signtool`:
+
    ```powershell
    signtool remove /s release\riotclient-win-x64.exe
    ```
+
    The `npm run exe` script automatically attempts this step if `signtool` is available in your `PATH`.
 
 2. **Re-sign with Your Certificate**:
    For commercial or widespread distribution, sign the final executable with your own Authenticode code-signing certificate:
+
    ```powershell
    signtool sign /fd SHA256 /a /tr http://timestamp.digicert.com /td SHA256 release\riotclient-win-x64.exe
    ```

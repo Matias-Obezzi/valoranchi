@@ -44,4 +44,3 @@ npx quicktype schema/OwnedItems.json --src-lang schema -l python -o owned_items.
 Use the generated `owned_items_from_dict` helper in your code:
 
 <<< @/../examples/python/main.py#types{python}
-

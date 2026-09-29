@@ -8,15 +8,15 @@ The match watcher tracks the full lifecycle of a Valorant match through a unifie
 
 ### Events Emitted
 
-| Event | Type / Payload | Description |
-| :--- | :--- | :--- |
-| `pregame` | `LiveMatch` | Emitted when entering agent selection in a pregame lobby. |
-| `locked` | `LiveMatch` | Emitted once your own agent has been locked in. |
-| `started` | `LiveMatch` | Emitted when loading into the match with full player loadouts. |
-| `round` | `{ round: number, ally: number, enemy: number }` | Emitted whenever own presence scores change between rounds. |
-| `ended` | `Match` | Emitted when the match concludes and full match details are fetched from `matches.get` (retrying every 5 seconds for up to 2 minutes). |
-| `left` | `null` | Emitted if agent selection is dodged or the active match is abandoned. |
-| `error` | `Error` | Emitted if an unhandled error occurs during polling or dispatch. |
+| Event     | Type / Payload                                   | Description                                                                                                                            |
+| :-------- | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
+| `pregame` | `LiveMatch`                                      | Emitted when entering agent selection in a pregame lobby.                                                                              |
+| `locked`  | `LiveMatch`                                      | Emitted once your own agent has been locked in.                                                                                        |
+| `started` | `LiveMatch`                                      | Emitted when loading into the match with full player loadouts.                                                                         |
+| `round`   | `{ round: number, ally: number, enemy: number }` | Emitted whenever own presence scores change between rounds.                                                                            |
+| `ended`   | `Match`                                          | Emitted when the match concludes and full match details are fetched from `matches.get` (retrying every 5 seconds for up to 2 minutes). |
+| `left`    | `null`                                           | Emitted if agent selection is dodged or the active match is abandoned.                                                                 |
+| `error`   | `Error`                                          | Emitted if an unhandled error occurs during polling or dispatch.                                                                       |
 
 ### Usage with Event Listener
 
@@ -39,7 +39,9 @@ match.on("round", ({ round, ally, enemy }) => {
 });
 
 match.on("ended", (details) => {
-  console.log(`Match ${details.id} ended. Score: ${details.teams[0]?.roundsWon} - ${details.teams[1]?.roundsWon}`);
+  console.log(
+    `Match ${details.id} ended. Score: ${details.teams[0]?.roundsWon} - ${details.teams[1]?.roundsWon}`,
+  );
 });
 ```
 
@@ -61,15 +63,15 @@ The friends watcher monitors your friends list for presence changes, game activi
 
 ### Events Emitted
 
-| Event | Type / Payload | Description |
-| :--- | :--- | :--- |
-| `online` | `Friend` | Emitted when a friend transitions from offline to online. |
-| `offline` | `Friend` | Emitted when a friend goes offline. |
-| `in-game` | `{ friend: Friend, activity: string }` | Emitted when a friend enters a game or updates their in-game activity (queue, map, score). |
-| `out-of-game` | `Friend` | Emitted when a friend finishes or leaves a game back to menus/party. |
-| `message` | `Message` | Emitted when an incoming chat whisper or party message is received. |
-| `request` | `FriendRequest` | Emitted when a new incoming friend request is created. |
-| `error` | `Error` | Emitted if an unhandled error occurs. |
+| Event         | Type / Payload                         | Description                                                                                |
+| :------------ | :------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `online`      | `Friend`                               | Emitted when a friend transitions from offline to online.                                  |
+| `offline`     | `Friend`                               | Emitted when a friend goes offline.                                                        |
+| `in-game`     | `{ friend: Friend, activity: string }` | Emitted when a friend enters a game or updates their in-game activity (queue, map, score). |
+| `out-of-game` | `Friend`                               | Emitted when a friend finishes or leaves a game back to menus/party.                       |
+| `message`     | `Message`                              | Emitted when an incoming chat whisper or party message is received.                        |
+| `request`     | `FriendRequest`                        | Emitted when a new incoming friend request is created.                                     |
+| `error`       | `Error`                                | Emitted if an unhandled error occurs.                                                      |
 
 ### Example
 
