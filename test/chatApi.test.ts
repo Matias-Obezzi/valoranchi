@@ -175,4 +175,67 @@ describe("ChatApi", () => {
     const failingChatApi = new ChatApi(failingApi);
     expect(await failingChatApi.session()).toBeNull();
   });
+
+  it("calls write endpoints correctly", async () => {
+    const calls: Array<{ method: string; url: string; body: unknown }> = [];
+    const mockFetch = async (url: string, init?: unknown) => {
+      const typed = init as { method: string; body?: string };
+      calls.push({
+        method: typed.method,
+        url,
+        body: typed.body ? JSON.parse(typed.body) : undefined,
+      });
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ ok: true }),
+        text: async () => JSON.stringify({ ok: true }),
+      };
+    };
+
+    const localApi = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof localApi.get>[0] as never,
+    });
+    const chatApi = new ChatApi(localApi);
+
+    await chatApi.sendMessage("cid1", "hello", "chat");
+    await chatApi.sendFriendRequest("Player", "NA1");
+    await chatApi.deleteFriendRequest("p1");
+    await chatApi.removeFriend("p2");
+    await chatApi.blockPlayer("p3");
+    await chatApi.unblockPlayer("p4");
+
+    expect(calls).toEqual([
+      {
+        method: "POST",
+        url: "https://127.0.0.1:5678/chat/v6/messages",
+        body: { cid: "cid1", message: "hello", type: "chat" },
+      },
+      {
+        method: "POST",
+        url: "https://127.0.0.1:5678/chat/v4/friendrequests",
+        body: { game_name: "Player", game_tag: "NA1" },
+      },
+      {
+        method: "DELETE",
+        url: "https://127.0.0.1:5678/chat/v4/friendrequests",
+        body: { puuid: "p1" },
+      },
+      {
+        method: "DELETE",
+        url: "https://127.0.0.1:5678/chat/v4/friends",
+        body: { puuid: "p2" },
+      },
+      {
+        method: "POST",
+        url: "https://127.0.0.1:5678/chat/v4/blocked",
+        body: { puuid: "p3" },
+      },
+      {
+        method: "DELETE",
+        url: "https://127.0.0.1:5678/chat/v4/blocked",
+        body: { puuid: "p4" },
+      },
+    ]);
+  });
 });

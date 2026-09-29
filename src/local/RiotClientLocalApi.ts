@@ -1,5 +1,5 @@
 import { Agent, fetch as undiciFetch } from "undici";
-import { RiotClientNotReadyError, RiotClientNotRunningError } from "../errors.js";
+import { RiotApiError, RiotClientNotReadyError, RiotClientNotRunningError } from "../errors.js";
 
 export interface LocalEntitlementsToken {
   accessToken: string;
@@ -22,6 +22,8 @@ export interface LocalApiResponse {
 export type LocalApiFetchFn = (
   url: string,
   init?: {
+    method?: string;
+    body?: string;
     headers?: Record<string, string>;
     dispatcher?: Agent;
   },
@@ -106,27 +108,73 @@ export class RiotClientLocalApi {
   }
 
   async get<T>(path: string): Promise<T | null> {
+    return this.request<T>("GET", path);
+  }
+
+  async post<T>(path: string, body?: unknown): Promise<T> {
+    return (await this.request<T>("POST", path, body)) as T;
+  }
+
+  async delete<T>(path: string, body?: unknown): Promise<T> {
+    return (await this.request<T>("DELETE", path, body)) as T;
+  }
+
+  private async request<T>(
+    method: "GET" | "POST" | "DELETE",
+    path: string,
+    body?: unknown,
+  ): Promise<T | null> {
     const normalized = path.startsWith("/") ? path : `/${path}`;
     const url = `https://127.0.0.1:${this.port}${normalized}`;
+    const serializedBody =
+      body !== undefined ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined;
 
-    return this.withWarmupRetry<T | null>(async () => {
+    const headers: Record<string, string> = {
+      Authorization: this.authorization,
+      ...(serializedBody !== undefined ? { "Content-Type": "application/json" } : {}),
+    };
+
+    return this.withWarmupRetry<T | null>(async (attempt, maxRetries) => {
       try {
         const response = await this.fetchFn(url, {
-          headers: { Authorization: this.authorization },
+          method,
+          headers,
+          body: serializedBody,
           dispatcher: this.agent,
         });
 
-        if (response.status === 404) {
-          return { kind: "ok", value: null };
+        if (method === "GET") {
+          if (response.status === 404) {
+            return { kind: "ok", value: null };
+          }
+          if (response.ok) {
+            const data = (await response.json()) as T;
+            return { kind: "ok", value: data };
+          }
+          return { kind: "not-ready" };
         }
 
         if (response.ok) {
-          const data = (await response.json()) as T;
-          return { kind: "ok", value: data };
+          const text = await response.text();
+          if (!text || text.trim().length === 0) {
+            return { kind: "ok", value: {} as T };
+          }
+          try {
+            return { kind: "ok", value: JSON.parse(text) as T };
+          } catch {
+            return { kind: "ok", value: text as unknown as T };
+          }
         }
 
-        return { kind: "not-ready" };
+        if (attempt < maxRetries && response.status === 503) {
+          return { kind: "not-ready" };
+        }
+
+        throw new RiotApiError(response.status, url);
       } catch (error) {
+        if (error instanceof RiotApiError) {
+          throw error;
+        }
         if (this.isConnectionRefused(error)) {
           return { kind: "refused" };
         }
@@ -135,12 +183,14 @@ export class RiotClientLocalApi {
     });
   }
 
-  private async withWarmupRetry<T>(operation: () => Promise<AttemptResult<T>>): Promise<T> {
+  private async withWarmupRetry<T>(
+    operation: (attempt: number, maxRetries: number) => Promise<AttemptResult<T>>,
+  ): Promise<T> {
     const maxRetries = 5;
     const retryDelayMs = 1500;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      const result = await operation();
+      const result = await operation(attempt, maxRetries);
       switch (result.kind) {
         case "ok":
           return result.value;

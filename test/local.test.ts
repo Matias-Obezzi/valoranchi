@@ -4,6 +4,7 @@ import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
 import { parseRegionFromLog, resolveRegion, shardOf } from "../src/local/RegionResolver.js";
 import {
   RegionUnknownError,
+  RiotApiError,
   RiotClientNotReadyError,
   RiotClientNotRunningError,
 } from "../src/errors.js";
@@ -270,5 +271,138 @@ describe("RiotClientLocalApi", () => {
     });
 
     await expect(api.get("/chat/v4/friends")).rejects.toThrow(RiotClientNotReadyError);
+  });
+
+  it("sends POST with body, json header, auth header and returns parsed JSON", async () => {
+    let capturedUrl = "";
+    let capturedInit: unknown;
+
+    const mockFetch = async (url: string, init?: unknown) => {
+      capturedUrl = url;
+      capturedInit = init;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ id: "msg-123" }),
+        text: async () => JSON.stringify({ id: "msg-123" }),
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "secret_pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+    });
+
+    const res = await api.post<{ id: string }>("/chat/v6/messages", {
+      cid: "c1",
+      message: "hello",
+    });
+
+    expect(res).toEqual({ id: "msg-123" });
+    expect(capturedUrl).toBe("https://127.0.0.1:5678/chat/v6/messages");
+    const typedInit = capturedInit as {
+      method: string;
+      headers: Record<string, string>;
+      body: string;
+    };
+    expect(typedInit.method).toBe("POST");
+    expect(typedInit.headers["Content-Type"]).toBe("application/json");
+    expect(typedInit.headers.Authorization).toBe(
+      `Basic ${Buffer.from("riot:secret_pass").toString("base64")}`,
+    );
+    expect(typedInit.body).toBe(JSON.stringify({ cid: "c1", message: "hello" }));
+  });
+
+  it("sends DELETE with body and auth header", async () => {
+    let capturedInit: unknown;
+
+    const mockFetch = async (_url: string, init?: unknown) => {
+      capturedInit = init;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+        text: async () => "",
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "secret_pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+    });
+
+    const res = await api.delete("/chat/v4/friends", { puuid: "p1" });
+    expect(res).toEqual({});
+    const typedInit = capturedInit as {
+      method: string;
+      headers: Record<string, string>;
+      body: string;
+    };
+    expect(typedInit.method).toBe("DELETE");
+    expect(typedInit.headers.Authorization).toBe(
+      `Basic ${Buffer.from("riot:secret_pass").toString("base64")}`,
+    );
+    expect(typedInit.body).toBe(JSON.stringify({ puuid: "p1" }));
+  });
+
+  it("throws RiotApiError on non-2xx status for post and delete", async () => {
+    const mockFetch = async () => ({
+      ok: false,
+      status: 400,
+      json: async () => ({}),
+      text: async () => "Bad Request",
+    });
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      sleepFn: async () => {},
+    });
+
+    await expect(api.post("/chat/v4/blocked", { puuid: "p1" })).rejects.toThrow(RiotApiError);
+    await expect(api.delete("/chat/v4/blocked", { puuid: "p1" })).rejects.toThrow(RiotApiError);
+  });
+
+  it("retries on 503 during warm-up for post and succeeds", async () => {
+    let calls = 0;
+    const mockFetch = async () => {
+      calls++;
+      if (calls === 1) {
+        return {
+          ok: false,
+          status: 503,
+          json: async () => ({}),
+          text: async () => "Service Unavailable",
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true }),
+        text: async () => JSON.stringify({ success: true }),
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      sleepFn: async () => {},
+    });
+
+    const res = await api.post<{ success: boolean }>("/chat/v4/friendrequests", { puuid: "p1" });
+    expect(calls).toBe(2);
+    expect(res).toEqual({ success: true });
+  });
+
+  it("throws RiotClientNotRunningError on post when connection refused", async () => {
+    const connRefusedError = new Error("connect ECONNREFUSED 127.0.0.1:5678");
+    (connRefusedError as { code?: string }).code = "ECONNREFUSED";
+
+    const mockFetch = async () => {
+      throw connRefusedError;
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      sleepFn: async () => {},
+    });
+
+    await expect(api.post("/chat/v6/messages", {})).rejects.toThrow(RiotClientNotRunningError);
   });
 });

@@ -85,4 +85,35 @@ export class ChatApi {
       return null;
     }
   }
+
+  async sendMessage(
+    cid: string,
+    message: string,
+    type: "chat" | "groupchat",
+  ): Promise<RawChatMessage> {
+    return this.localApi.post<RawChatMessage>("/chat/v6/messages", { cid, message, type });
+  }
+
+  async sendFriendRequest(gameName: string, gameTag: string): Promise<void> {
+    await this.localApi.post("/chat/v4/friendrequests", {
+      game_name: gameName,
+      game_tag: gameTag,
+    });
+  }
+
+  async deleteFriendRequest(puuid: string): Promise<void> {
+    await this.localApi.delete("/chat/v4/friendrequests", { puuid });
+  }
+
+  async removeFriend(puuid: string): Promise<void> {
+    await this.localApi.delete("/chat/v4/friends", { puuid });
+  }
+
+  async blockPlayer(puuid: string): Promise<void> {
+    await this.localApi.post("/chat/v4/blocked", { puuid });
+  }
+
+  async unblockPlayer(puuid: string): Promise<void> {
+    await this.localApi.delete("/chat/v4/blocked", { puuid });
+  }
 }
