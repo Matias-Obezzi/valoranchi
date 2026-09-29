@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-29
+
 ### Added
 
 - Raw entry point `@valoranchi/riot-client/raw` with the transport, session, endpoints, local API, socket and validators.
