@@ -9,6 +9,7 @@ import type { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import type { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+import type { RiotLoadoutResponse } from "../src/riot/types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -732,6 +733,130 @@ describe("RiotClient facade", () => {
         // 12. unblockPlayer success: sends delete
         await client.unblockPlayer("b1");
         expect(deleteSpy).toHaveBeenCalledWith("/chat/v4/blocked", { puuid: "b1" });
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("validates loadout writes locally and sends network requests only when valid", async () => {
+      const tempDir = path.join(__dirname, "tmp-test-loadout-writes");
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      const lockfilePath = path.join(tempDir, "lockfile");
+      fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+      const entitlementsFixture = JSON.parse(
+        fs.readFileSync(path.join(__dirname, "fixtures", "entitlements.json"), "utf-8"),
+      );
+
+      let currentRawLoadout = {
+        Subject: "self-puuid",
+        Version: 1,
+        Guns: [
+          {
+            ID: "ee613ee3-4eb0-ab0e-0888-64939b533ee7",
+            SkinID: "4324a482-47da-4521-b3b0-4dbfcfefd779",
+            SkinLevelID: "4324a482-47da-4521-b3b0-4dbfcfefd779",
+            ChromaID: "4324a482-47da-4521-b3b0-4dbfcfefd779",
+            Attachments: [],
+          },
+        ],
+        ActiveExpressions: [],
+        Identity: {
+          PlayerCardID: "33cd272d-4860-9118-2e06-95bb39ad0419",
+          PlayerTitleID: "7a85e65d-4f11-c918-0929-c7931f6087d1",
+          AccountLevel: 50,
+          PreferredLevelBorderID: "border-1",
+          HideAccountLevel: false,
+        },
+        Incognito: false,
+      };
+
+      const putSpy = vi.fn().mockImplementation(async (url: string, body: unknown) => {
+        if (url.includes("/name-service/v2/players")) {
+          return [{ Subject: "self-puuid", GameName: "SelfPlayer", TagLine: "TAG" }];
+        }
+        if (url.includes("/playerloadout")) {
+          currentRawLoadout = body as typeof currentRawLoadout;
+          return currentRawLoadout;
+        }
+        return {};
+      });
+
+      const getSpy = vi.fn().mockImplementation(async (url: string) => {
+        if (url.includes("/store/v1/entitlements/")) return entitlementsFixture;
+        if (url.includes("/store/v1/wallet/")) return { Balances: {} };
+        if (url.includes("/account-xp/v1/players/")) return { Progress: { Level: 50, XP: 0 } };
+        if (url.includes("/personalization/v3/players/") && url.includes("/playerloadout")) {
+          return currentRawLoadout;
+        }
+        return {};
+      });
+
+      const mockLocalApi = {
+        entitlementsToken: async () => ({ accessToken: "a", token: "t", subject: "self-puuid" }),
+        valorantSession: async () => ({ region: "na", shard: "na" }),
+        close: vi.fn(),
+      } as unknown as RiotClientLocalApi;
+
+      const mockValorantApi = {
+        getClientVersion: async () => "1.0.0",
+        getCatalogue: async () => new Catalogue(catalogueData),
+      } as unknown as ValorantApi;
+
+      const client = new RiotClient({
+        lockfilePath,
+        gateway: {
+          get: getSpy,
+          put: putSpy,
+          post: vi.fn().mockResolvedValue({}),
+          getOrNull: vi.fn().mockResolvedValue(null),
+        } as unknown as HttpGateway,
+        valorantApi: mockValorantApi,
+        localApiFactory: () => mockLocalApi,
+      });
+
+      try {
+        // 1. Validation failure: unowned skin -> no PUT sent to loadout
+        await expect(
+          client.equip({
+            guns: [{ weapon: "Vandal", skin: "14f05da8-4ff6-4b8a-b9c1-52a1215b2447" }],
+          }),
+        ).rejects.toThrow(ValidationError);
+
+        expect(
+          putSpy.mock.calls.filter((c) => (c[0] as string).includes("/playerloadout")),
+        ).toHaveLength(0);
+
+        // 2. Validation failure: duplicate weapon in equipCollection -> no PUT
+        await expect(
+          client.equipCollection([
+            "4324a482-47da-4521-b3b0-4dbfcfefd779",
+            "8908f237-47b2-031a-e905-1a89c93cc8f5",
+          ]),
+        ).rejects.toThrow(ValidationError);
+
+        expect(
+          putSpy.mock.calls.filter((c) => (c[0] as string).includes("/playerloadout")),
+        ).toHaveLength(0);
+
+        // 3. Validation success: equip owned skin
+        const updated = await client.equip({
+          guns: [{ weapon: "Vandal", skin: "8908f237-47b2-031a-e905-1a89c93cc8f5" }],
+          incognito: true,
+        });
+
+        expect(updated.guns[0]?.skin.name).toBe("Prime Vandal");
+        expect(updated.incognito).toBe(true);
+
+        const loadoutPuts = putSpy.mock.calls.filter((c) =>
+          (c[0] as string).includes("/playerloadout"),
+        );
+        expect(loadoutPuts).toHaveLength(1);
+        const sentBody = loadoutPuts[0]?.[1] as RiotLoadoutResponse;
+        expect(sentBody.Subject).toBe("self-puuid");
+        expect(sentBody.Incognito).toBe(true);
+        expect(sentBody.Guns[0]?.SkinID).toBe("8908f237-47b2-031a-e905-1a89c93cc8f5");
+        expect(sentBody.Guns[0]?.Attachments).toEqual([]);
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }

@@ -33,6 +33,10 @@ import { FileResponseCache } from "./riot/ResponseCache.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import type { Session } from "./riot/Session.js";
 
+import type { LoadoutChange, LoadoutGunChange } from "./client/LoadoutValidator.js";
+
+export type { LoadoutChange, LoadoutGunChange };
+
 export interface RiotClientOptions {
   language?: string;
   lockfilePath?: string;
@@ -105,6 +109,12 @@ export class RiotClient {
   }
   async loadout(): Promise<Loadout> {
     return this.accountService.loadout();
+  }
+  async equip(change: LoadoutChange): Promise<Loadout> {
+    return this.accountService.equip(change);
+  }
+  async equipCollection(skinUuids: string[]): Promise<Loadout> {
+    return this.accountService.equipCollection(skinUuids);
   }
   async wallet(): Promise<Wallet> {
     return this.accountService.wallet();

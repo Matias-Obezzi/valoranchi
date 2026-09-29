@@ -1,6 +1,11 @@
 export { defaultResponseCacheDir } from "./riot/ResponseCache.js";
 export { defaultCatalogueDir } from "./catalogue/CatalogueStore.js";
-export { RiotClient, type RiotClientOptions } from "./RiotClient.js";
+export {
+  RiotClient,
+  type RiotClientOptions,
+  type LoadoutChange,
+  type LoadoutGunChange,
+} from "./RiotClient.js";
 export { RiotEvents, toFriendRequest, type RiotEventMap } from "./events/RiotEvents.js";
 export { TypedEmitter } from "./events/TypedEmitter.js";
 export {
