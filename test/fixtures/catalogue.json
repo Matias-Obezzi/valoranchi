@@ -210,5 +210,11 @@
       "endTime": "2026-12-31T00:00:00Z",
       "parentUuid": null
     }
+  ],
+  "levelBorders": [
+    {
+      "uuid": "border-1",
+      "startingLevel": 1
+    }
   ]
 }

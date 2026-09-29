@@ -20,6 +20,9 @@ function gatewayServing(version = versionResponse) {
     if ((endpoint as string) === "competitivetiers") {
       return { status: 200, data: [{ uuid: "set-1", tiers: sampleData.tiers }] };
     }
+    if ((endpoint as string) === "levelborders") {
+      return { status: 200, data: sampleData.levelBorders ?? [{ uuid: "border-1", startingLevel: 1 }] };
+    }
     return { status: 200, data: sampleData[endpoint] };
   });
 }
@@ -58,7 +61,7 @@ describe("FileCatalogueStore", () => {
       store,
     );
     await stale.getCatalogue("en-US");
-    expect(newer).toHaveBeenCalledTimes(13);
+    expect(newer).toHaveBeenCalledTimes(14);
     expect(store.read("en-US")?.version).toBe("release-10.01-1");
   });
 
@@ -79,7 +82,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
-    expect(gateway).toHaveBeenCalledTimes(13);
+    expect(gateway).toHaveBeenCalledTimes(14);
     expect(store.read("en-US")?.data.bundles).toBeDefined();
   });
 
@@ -100,7 +103,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getMapByPath("/Game/Maps/Ascent/Ascent")?.displayName).toBe("Ascent");
-    expect(gateway).toHaveBeenCalledTimes(13);
+    expect(gateway).toHaveBeenCalledTimes(14);
     expect(store.read("en-US")?.data.maps).toBeDefined();
   });
 
@@ -121,7 +124,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getTierByNumber(3)?.tierName).toBe("Iron 3");
-    expect(gateway).toHaveBeenCalledTimes(13);
+    expect(gateway).toHaveBeenCalledTimes(14);
     expect(store.read("en-US")?.data.tiers).toBeDefined();
   });
 
@@ -142,7 +145,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getSeason("season-act-1")?.displayName).toBe("ACT 1");
-    expect(gateway).toHaveBeenCalledTimes(13);
+    expect(gateway).toHaveBeenCalledTimes(14);
     expect(store.read("en-US")?.data.seasons).toBeDefined();
   });
 });

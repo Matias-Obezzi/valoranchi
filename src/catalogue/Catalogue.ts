@@ -7,6 +7,7 @@ import type {
   ValorantApiChroma,
   ValorantApiContentTier,
   ValorantApiCurrency,
+  ValorantApiLevelBorder,
   ValorantApiMap,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
@@ -22,6 +23,7 @@ export class Catalogue {
   readonly weapons: readonly ValorantApiWeapon[];
   readonly tiers: readonly ValorantApiTier[];
   readonly seasons: readonly ValorantApiSeason[];
+  readonly levelBorders: readonly ValorantApiLevelBorder[];
   private readonly weaponsByUuid = new Map<string, ValorantApiWeapon>();
   private readonly skinsByUuid = new Map<string, ValorantApiSkin>();
   private readonly skinLevelIndex = new Map<
@@ -47,11 +49,13 @@ export class Catalogue {
   private readonly mapsByPath = new Map<string, ValorantApiMap>();
   private readonly tierByNumber = new Map<number, ValorantApiTier>();
   private readonly seasonByUuid = new Map<string, ValorantApiSeason>();
+  private readonly levelBordersByUuid = new Map<string, ValorantApiLevelBorder>();
 
   constructor(data: ValorantApiCatalogueData) {
     this.weapons = data.weapons;
     this.tiers = data.tiers ?? [];
     this.seasons = data.seasons ?? [];
+    this.levelBorders = data.levelBorders ?? [];
     this.indexWeapons(data.weapons);
     this.indexBuddies(data.buddies);
     this.indexOtherEntities(data);
@@ -114,6 +118,13 @@ export class Catalogue {
     for (const season of this.seasons) {
       this.seasonByUuid.set(season.uuid.toLowerCase(), season);
     }
+    for (const border of this.levelBorders) {
+      this.levelBordersByUuid.set(border.uuid.toLowerCase(), border);
+    }
+  }
+
+  getLevelBorder(uuid: string): ValorantApiLevelBorder | undefined {
+    return this.levelBordersByUuid.get(uuid.toLowerCase());
   }
 
   findSkinAndWeaponByLevel(levelUuid: string) {

@@ -114,4 +114,36 @@ describe("CollectionBuilder", () => {
     expect(result.sprays).toHaveLength(1);
     expect(result.sprays[0]!.name).toBe("GG Spray");
   });
+
+  it("builds loadout from ActiveExpressions including flex and sprays", async () => {
+    const { LoadoutBuilder } = await import("../src/collection/LoadoutBuilder.js");
+    const catalogue = new Catalogue(catalogueData);
+    const raw = {
+      Subject: player.puuid,
+      Version: 1,
+      Guns: [],
+      ActiveExpressions: [
+        { TypeID: "03a572de-4234-31ed-d344-ababa488f981", AssetID: "flex-uuid-1" },
+        { TypeID: "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475", AssetID: "049386d3-4903-4f93-85b9-daaf91a27e7a" },
+      ],
+      Identity: {
+        PlayerCardID: "card-uuid",
+        PlayerTitleID: "title-uuid",
+        AccountLevel: 50,
+        HideAccountLevel: false,
+      },
+      Incognito: false,
+    };
+    const builder = new LoadoutBuilder(player, raw, catalogue);
+    const loadout = builder.build();
+
+    expect(loadout.flex).toEqual({
+      uuid: "flex-uuid-1",
+      name: "Flex",
+      icon: null,
+    });
+    expect(loadout.sprays).toHaveLength(1);
+    expect(loadout.sprays[0]?.slot).toBe("0");
+    expect(loadout.sprays[0]?.uuid).toBe("049386d3-4903-4f93-85b9-daaf91a27e7a");
+  });
 });

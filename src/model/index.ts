@@ -105,6 +105,7 @@ export type Loadout = {
   player: Player;
   guns: LoadoutGun[];
   sprays: Array<{ slot: string; uuid: string; name: string; icon: Image }>;
+  flex: { uuid: string; name: string; icon: Image } | null;
   card: OwnedCard | null;
   title: OwnedTitle | null;
   incognito: boolean;

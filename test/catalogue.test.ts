@@ -197,6 +197,8 @@ describe("ValorantApi", () => {
       if (url.includes("competitivetiers"))
         return { status: 200, data: [{ uuid: "set-1", tiers: sampleData.tiers }] };
       if (url.includes("seasons")) return { status: 200, data: sampleData.seasons };
+      if (url.includes("levelborders"))
+        return { status: 200, data: [{ uuid: "border-1", startingLevel: 1 }] };
       throw new Error(`Unexpected url: ${url}`);
     });
 
@@ -208,9 +210,10 @@ describe("ValorantApi", () => {
     const cat2 = await api.getCatalogue("en-US");
 
     expect(cat1.getWeapon("weapon-1")?.displayName).toBe("Vandal");
+    expect(cat1.getLevelBorder("border-1")?.startingLevel).toBe(1);
     expect(cat1.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
     expect(cat1.getTierByNumber(3)?.tierName).toBe("Iron 3");
     expect(cat2).toBe(cat1);
-    expect(mockGet).toHaveBeenCalledTimes(12);
+    expect(mockGet).toHaveBeenCalledTimes(13);
   });
 });

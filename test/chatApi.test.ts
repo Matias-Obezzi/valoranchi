@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ChatApi } from "../src/local/ChatApi.js";
-import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+import { RiotClientLocalApi, type LocalApiFetchFn } from "../src/local/RiotClientLocalApi.js";
 
 describe("ChatApi", () => {
   it("fetches friends, presences, requests, and blocked players", async () => {
@@ -194,7 +194,7 @@ describe("ChatApi", () => {
     };
 
     const localApi = new RiotClientLocalApi(5678, "pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof localApi.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
     });
     const chatApi = new ChatApi(localApi);
 

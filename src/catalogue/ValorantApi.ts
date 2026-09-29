@@ -8,6 +8,7 @@ import type {
   ValorantApiCatalogueData,
   ValorantApiContentTier,
   ValorantApiCurrency,
+  ValorantApiLevelBorder,
   ValorantApiMap,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
@@ -133,6 +134,7 @@ export class ValorantApi {
       mapsRes,
       compTiersRes,
       seasonsRes,
+      levelBordersRes,
     ] = await Promise.all([
       this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
       this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
@@ -146,6 +148,7 @@ export class ValorantApi {
       this.fetchEndpoint<ValorantApiMap[]>("maps", language),
       this.fetchEndpoint<ValorantApiTierGroup[]>("competitivetiers", language),
       this.fetchEndpoint<ValorantApiSeason[]>("seasons", language),
+      this.fetchEndpoint<ValorantApiLevelBorder[]>("levelborders", language),
     ]);
 
     const tierGroups = compTiersRes.data ?? [];
@@ -165,6 +168,7 @@ export class ValorantApi {
       maps: mapsRes.data,
       tiers,
       seasons: seasonsRes.data,
+      levelBorders: levelBordersRes.data,
     };
   }
 

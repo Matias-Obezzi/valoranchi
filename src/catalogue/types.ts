@@ -122,6 +122,11 @@ export interface ValorantApiSeason {
   parentUuid: string | null;
 }
 
+export interface ValorantApiLevelBorder {
+  uuid: string;
+  startingLevel: number;
+}
+
 export interface ValorantApiCatalogueData {
   weapons: ValorantApiWeapon[];
   playerCards: ValorantApiPlayerCard[];
@@ -135,4 +140,5 @@ export interface ValorantApiCatalogueData {
   maps: ValorantApiMap[];
   tiers?: ValorantApiTier[];
   seasons?: ValorantApiSeason[];
+  levelBorders?: ValorantApiLevelBorder[];
 }

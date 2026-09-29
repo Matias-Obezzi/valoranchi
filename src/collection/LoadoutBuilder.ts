@@ -1,6 +1,6 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
-import type { Loadout, LoadoutGun, OwnedCard, OwnedTitle, Player } from "../model/index.js";
-import type { RiotLoadoutGun, RiotLoadoutResponse } from "../riot/types.js";
+import type { Image, Loadout, LoadoutGun, OwnedCard, OwnedTitle, Player } from "../model/index.js";
+import { ENTITLEMENT_ITEM_TYPES, type RiotLoadoutGun, type RiotLoadoutResponse } from "../riot/types.js";
 
 export class LoadoutBuilder {
   private readonly player: Player;
@@ -16,15 +16,44 @@ export class LoadoutBuilder {
   build(): Loadout {
     const guns: LoadoutGun[] = (this.raw.Guns ?? []).map((gun) => this.buildGun(gun));
 
-    const sprays = (this.raw.Sprays ?? []).map((sp) => {
-      const spray = this.catalogue.getSpray(sp.SprayID);
-      return {
-        slot: sp.EquipSlotID,
-        uuid: sp.SprayID.toLowerCase(),
-        name: spray?.displayName ?? "",
-        icon: spray?.fullTransparentIcon ?? spray?.displayIcon ?? null,
-      };
-    });
+    let flex: { uuid: string; name: string; icon: Image } | null = null;
+    let sprays: Array<{ slot: string; uuid: string; name: string; icon: Image }>;
+
+    if (this.raw.ActiveExpressions && this.raw.ActiveExpressions.length > 0) {
+      const flexEntry = this.raw.ActiveExpressions.find(
+        (e) => e.TypeID.toLowerCase() === ENTITLEMENT_ITEM_TYPES.flex.toLowerCase(),
+      );
+      flex = flexEntry
+        ? {
+            uuid: flexEntry.AssetID.toLowerCase(),
+            name: "Flex",
+            icon: null,
+          }
+        : null;
+
+      const sprayEntries = this.raw.ActiveExpressions.filter(
+        (e) => e.TypeID.toLowerCase() === ENTITLEMENT_ITEM_TYPES.spray.toLowerCase(),
+      );
+      sprays = sprayEntries.map((entry, index) => {
+        const spray = this.catalogue.getSpray(entry.AssetID);
+        return {
+          slot: String(index),
+          uuid: entry.AssetID.toLowerCase(),
+          name: spray?.displayName ?? "",
+          icon: spray?.fullTransparentIcon ?? spray?.displayIcon ?? null,
+        };
+      });
+    } else {
+      sprays = (this.raw.Sprays ?? []).map((sp) => {
+        const spray = this.catalogue.getSpray(sp.SprayID);
+        return {
+          slot: sp.EquipSlotID,
+          uuid: sp.SprayID.toLowerCase(),
+          name: spray?.displayName ?? "",
+          icon: spray?.fullTransparentIcon ?? spray?.displayIcon ?? null,
+        };
+      });
+    }
 
     const cardEntity = this.raw.Identity?.PlayerCardID
       ? this.catalogue.getCard(this.raw.Identity.PlayerCardID)
@@ -54,6 +83,7 @@ export class LoadoutBuilder {
       player: this.player,
       guns,
       sprays,
+      flex,
       card,
       title,
       incognito: Boolean(this.raw.Incognito),

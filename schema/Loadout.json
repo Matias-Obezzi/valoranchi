@@ -36,6 +36,29 @@
             "additionalProperties": false
           }
         },
+        "flex": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "icon": {
+                  "$ref": "#/definitions/Image"
+                }
+              },
+              "required": ["uuid", "name", "icon"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "card": {
           "anyOf": [
             {
@@ -60,7 +83,7 @@
           "type": "boolean"
         }
       },
-      "required": ["player", "guns", "sprays", "card", "title", "incognito"],
+      "required": ["player", "guns", "sprays", "flex", "card", "title", "incognito"],
       "additionalProperties": false
     },
     "Player": {

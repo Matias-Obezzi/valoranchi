@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseLockfile } from "../src/local/Lockfile.js";
-import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+import { RiotClientLocalApi, type LocalApiFetchFn } from "../src/local/RiotClientLocalApi.js";
 import { parseRegionFromLog, resolveRegion, shardOf } from "../src/local/RegionResolver.js";
 import {
   RegionUnknownError,
@@ -289,7 +289,7 @@ describe("RiotClientLocalApi", () => {
     };
 
     const api = new RiotClientLocalApi(5678, "secret_pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
     });
 
     const res = await api.post<{ id: string }>("/chat/v6/messages", {
@@ -326,7 +326,7 @@ describe("RiotClientLocalApi", () => {
     };
 
     const api = new RiotClientLocalApi(5678, "secret_pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
     });
 
     const res = await api.delete("/chat/v4/friends", { puuid: "p1" });
@@ -352,7 +352,7 @@ describe("RiotClientLocalApi", () => {
     });
 
     const api = new RiotClientLocalApi(5678, "pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
       sleepFn: async () => {},
     });
 
@@ -381,7 +381,7 @@ describe("RiotClientLocalApi", () => {
     };
 
     const api = new RiotClientLocalApi(5678, "pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
       sleepFn: async () => {},
     });
 
@@ -399,7 +399,7 @@ describe("RiotClientLocalApi", () => {
     };
 
     const api = new RiotClientLocalApi(5678, "pass", {
-      fetchFn: mockFetch as unknown as Parameters<typeof api.get>[0] as never,
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
       sleepFn: async () => {},
     });
 

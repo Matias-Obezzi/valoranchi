@@ -56,9 +56,17 @@ export interface RiotLoadoutIdentity {
   HideAccountLevel: boolean;
 }
 
+export interface RiotActiveExpression {
+  TypeID: string;
+  AssetID: string;
+}
+
 export interface RiotLoadoutResponse {
+  Subject?: string;
+  Version?: number;
   Guns: RiotLoadoutGun[];
-  Sprays: RiotLoadoutSpray[];
+  ActiveExpressions?: RiotActiveExpression[];
+  Sprays?: RiotLoadoutSpray[];
   Identity: RiotLoadoutIdentity;
   Incognito: boolean;
 }
