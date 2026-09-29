@@ -34,6 +34,7 @@ Authorization: Basic cmlvdDpzMG1lQjRzMWNUMWszbgo=
 ```
 
 The local API responds with:
+
 - `accessToken`: An OAuth Bearer token representing your player session.
 - `token`: An Entitlements JWT issued by Riot for your account.
 - `subject`: Your account PUUID.

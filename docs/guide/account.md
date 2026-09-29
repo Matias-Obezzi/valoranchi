@@ -91,7 +91,10 @@ riotclient loadout
         "icon": "https://media.valorant-api.com/weaponskinlevels/7209796e-4f76-88c9-04fa-fb81498b5e9d/displayicon.png"
       },
       "level": { "uuid": "7209796e-4f76-88c9-04fa-fb81498b5e9d", "name": "Level 4" },
-      "chroma": { "uuid": "f90dfcb8-48dc-5db5-6490-67bb26ca9d9a", "name": "Prime Vandal (Variant 1 Orange)" },
+      "chroma": {
+        "uuid": "f90dfcb8-48dc-5db5-6490-67bb26ca9d9a",
+        "name": "Prime Vandal (Variant 1 Orange)"
+      },
       "buddy": null
     }
   ],
@@ -106,10 +109,8 @@ Input changes are validated locally against your inventory before any payload is
 
 ```ts
 const updated = await client.account.equip({
-  guns: [
-    { weapon: "Vandal", skin: "Prime Vandal" }
-  ],
-  incognito: true
+  guns: [{ weapon: "Vandal", skin: "Prime Vandal" }],
+  incognito: true,
 });
 ```
 
@@ -500,7 +501,7 @@ Requires explicit confirmation `{ confirm: true }` in code or `--confirm` in the
 
 ```ts
 const settings = await client.account.settings();
-settings.mouse.sensitivity = 0.40;
+settings.mouse.sensitivity = 0.4;
 await client.account.saveSettings(settings, { confirm: true });
 ```
 

@@ -14,7 +14,7 @@ hero:
       link: /reference/
     - theme: alt
       text: GitHub
-      link: https://github.com/Matias-Obezzi/valoranchi
+      link: https://github.com/Valoranchi/valoranchi
 
 features:
   - title: Validated Writes

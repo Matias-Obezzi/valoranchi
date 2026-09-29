@@ -15,15 +15,15 @@ All mutations run in dry-run mode by default. Pass `--yes` to authorize live cha
 
 ## Exit Codes
 
-| Code | Symbol | Meaning |
-| :--- | :--- | :--- |
-| `0` | `SUCCESS` | Successful execution. Output JSON is printed to stdout. |
-| `1` | `UNEXPECTED` | Unhandled error or runtime crash. |
-| `2` | `RIOT_CLIENT_NOT_RUNNING` | Riot Client lockfile was not found. Start Riot Client and log in. |
-| `3` | `RIOT_CLIENT_NOT_READY` | Riot Client is running but local loopback API is not yet ready. |
-| `4` | `REGION_UNKNOWN` | Active region and shard could not be determined. |
-| `5` | `RIOT_API_ERROR` | Remote Riot PVP service returned an HTTP error. |
-| `6` | `VALIDATION` | Local pre-flight validation check failed. |
+| Code | Symbol                    | Meaning                                                           |
+| :--- | :------------------------ | :---------------------------------------------------------------- |
+| `0`  | `SUCCESS`                 | Successful execution. Output JSON is printed to stdout.           |
+| `1`  | `UNEXPECTED`              | Unhandled error or runtime crash.                                 |
+| `2`  | `RIOT_CLIENT_NOT_RUNNING` | Riot Client lockfile was not found. Start Riot Client and log in. |
+| `3`  | `RIOT_CLIENT_NOT_READY`   | Riot Client is running but local loopback API is not yet ready.   |
+| `4`  | `REGION_UNKNOWN`          | Active region and shard could not be determined.                  |
+| `5`  | `RIOT_API_ERROR`          | Remote Riot PVP service returned an HTTP error.                   |
+| `6`  | `VALIDATION`              | Local pre-flight validation check failed.                         |
 
 ## Command Reference
 

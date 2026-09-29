@@ -172,7 +172,7 @@ Requires explicit dual confirmation (`{ confirm: true }` in code, or `--yes --co
 ```ts
 const order = await client.store.buy(
   { offerId: "4324a482-47da-4521-b3b0-4dbfcfefd779" },
-  { confirm: true }
+  { confirm: true },
 );
 ```
 

@@ -394,15 +394,9 @@ riotclient custom-game-configs
 
 ```json
 {
-  "maps": [
-    { "path": "/Game/Maps/Ascent/Ascent", "name": "Ascent" }
-  ],
-  "modes": [
-    { "path": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C", "name": "Standard" }
-  ],
-  "servers": [
-    { "id": "pdx", "name": "US West (Oregon)", "ping": 25 }
-  ]
+  "maps": [{ "path": "/Game/Maps/Ascent/Ascent", "name": "Ascent" }],
+  "modes": [{ "path": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C", "name": "Standard" }],
+  "servers": [{ "id": "pdx", "name": "US West (Oregon)", "ping": 25 }]
 }
 ```
 

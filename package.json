@@ -66,10 +66,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Matias-Obezzi/valoranchi.git"
+    "url": "git+https://github.com/Valoranchi/valoranchi.git"
   },
-  "homepage": "https://github.com/Matias-Obezzi/valoranchi#readme",
+  "homepage": "https://github.com/Valoranchi/valoranchi#readme",
   "bugs": {
-    "url": "https://github.com/Matias-Obezzi/valoranchi/issues"
+    "url": "https://github.com/Valoranchi/valoranchi/issues"
   }
 }

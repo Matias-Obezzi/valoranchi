@@ -244,7 +244,9 @@ Retrieves match history summaries for another player specified by PUUID.
 Operates identically to `list`, scoped to any target player account.
 
 ```ts
-const summaries = await client.matches.listFor("4a7b9c1d-1234-5678-9abc-def012345678", { count: 3 });
+const summaries = await client.matches.listFor("4a7b9c1d-1234-5678-9abc-def012345678", {
+  count: 3,
+});
 console.log(summaries);
 ```
 

@@ -1,11 +1,11 @@
 # @valoranchi/riot-client
 
-[![CI](https://github.com/Matias-Obezzi/valoranchi/actions/workflows/ci.yml/badge.svg)](https://github.com/Matias-Obezzi/valoranchi/actions/workflows/ci.yml)
+[![CI](https://github.com/Valoranchi/valoranchi/actions/workflows/ci.yml/badge.svg)](https://github.com/Valoranchi/valoranchi/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/@valoranchi/riot-client.svg)](https://www.npmjs.com/package/@valoranchi/riot-client)
 
 A TypeScript library and command-line tool for reading the local signed-in Riot Client session and retrieving player inventory, loadout, wallet balances, friends roster, presence, chat messages, and storefront offers for VALORANT.
 
-Documentation: [https://matias-obezzi.github.io/valoranchi/](https://matias-obezzi.github.io/valoranchi/)
+Documentation: [https://valoranchi.github.io/valoranchi/](https://valoranchi.github.io/valoranchi/)
 
 ## Installation
 

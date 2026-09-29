@@ -9,7 +9,9 @@ const typedocSidebarPath = path.resolve(__dirname, "../reference/typedoc-sidebar
 let typedocSidebar: DefaultTheme.SidebarItem[] = [];
 if (fs.existsSync(typedocSidebarPath)) {
   try {
-    typedocSidebar = JSON.parse(fs.readFileSync(typedocSidebarPath, "utf-8")) as DefaultTheme.SidebarItem[];
+    typedocSidebar = JSON.parse(
+      fs.readFileSync(typedocSidebarPath, "utf-8"),
+    ) as DefaultTheme.SidebarItem[];
   } catch {
     typedocSidebar = [];
   }
@@ -17,7 +19,8 @@ if (fs.existsSync(typedocSidebarPath)) {
 
 export default defineConfig({
   title: "@valoranchi/riot-client",
-  description: "TypeScript client and CLI for local Riot Client integration and Valorant inventory inspection.",
+  description:
+    "TypeScript client and CLI for local Riot Client integration and Valorant inventory inspection.",
   base: "/valoranchi/",
   cleanUrls: true,
   themeConfig: {
@@ -25,7 +28,7 @@ export default defineConfig({
       { text: "Guide", link: "/guide/getting-started" },
       { text: "Reference", link: "/reference/" },
       { text: "npm", link: "https://www.npmjs.com/package/@valoranchi/riot-client" },
-      { text: "GitHub", link: "https://github.com/Matias-Obezzi/valoranchi" },
+      { text: "GitHub", link: "https://github.com/Valoranchi/valoranchi" },
     ],
     sidebar: [
       {
@@ -48,10 +51,7 @@ export default defineConfig({
       },
       {
         text: "API Reference",
-        items: [
-          { text: "Overview", link: "/reference/" },
-          ...typedocSidebar,
-        ],
+        items: [{ text: "Overview", link: "/reference/" }, ...typedocSidebar],
       },
     ],
     search: {

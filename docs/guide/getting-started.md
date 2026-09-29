@@ -81,15 +81,15 @@ npx @valoranchi/riot-client whoami --pretty
 
 When running `riotclient` in automated scripts, inspect process exit codes to handle failure modes:
 
-| Exit Code | Symbol | Meaning |
-| :--- | :--- | :--- |
-| `0` | `SUCCESS` | Command completed successfully. JSON is written to stdout. |
-| `1` | `UNEXPECTED` | An unhandled exception occurred during execution. |
-| `2` | `RIOT_CLIENT_NOT_RUNNING` | Riot Client lockfile was not found on disk. Start Riot Client and log in. |
-| `3` | `RIOT_CLIENT_NOT_READY` | Riot Client process is running but loopback API is not yet responding. |
-| `4` | `REGION_UNKNOWN` | Active region and shard could not be resolved from client product sessions. |
-| `5` | `RIOT_API_ERROR` | Remote PVP endpoint rejected the request (e.g. HTTP 403 or 500). |
-| `6` | `VALIDATION` | Local pre-flight validation failed. Request was never sent to Riot servers. |
+| Exit Code | Symbol                    | Meaning                                                                     |
+| :-------- | :------------------------ | :-------------------------------------------------------------------------- |
+| `0`       | `SUCCESS`                 | Command completed successfully. JSON is written to stdout.                  |
+| `1`       | `UNEXPECTED`              | An unhandled exception occurred during execution.                           |
+| `2`       | `RIOT_CLIENT_NOT_RUNNING` | Riot Client lockfile was not found on disk. Start Riot Client and log in.   |
+| `3`       | `RIOT_CLIENT_NOT_READY`   | Riot Client process is running but loopback API is not yet responding.      |
+| `4`       | `REGION_UNKNOWN`          | Active region and shard could not be resolved from client product sessions. |
+| `5`       | `RIOT_API_ERROR`          | Remote PVP endpoint rejected the request (e.g. HTTP 403 or 500).            |
+| `6`       | `VALIDATION`              | Local pre-flight validation failed. Request was never sent to Riot servers. |
 
 When a command fails with a non-zero exit code, error details are printed to stderr as structured JSON:
 

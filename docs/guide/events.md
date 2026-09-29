@@ -42,20 +42,20 @@ await client.close();
 
 The library types all event payloads through `RiotEventMap`:
 
-| Event | Payload Type | Description |
-| :--- | :--- | :--- |
-| `connected` | `void` | Emitted when loopback WebSocket connection opens. |
-| `disconnected` | `void` | Emitted when loopback WebSocket connection drops or closes. |
-| `friend:presence` | `{ friend: Friend; change: "update" \| "offline" }` | Emitted when a friend updates state, queue, map, or party. |
-| `friend:added` | `Friend` | Emitted when a new friendship is accepted or added. |
-| `friend:removed` | `{ puuid: string }` | Emitted when a friend is unfriended. |
-| `friend:request` | `{ request: FriendRequest; change: "created" \| "resolved" }` | Emitted on incoming or outgoing friend request changes. |
-| `message` | `Message` | Emitted when receiving whispers or chat room messages. |
-| `party` | `{ partyId: string }` | Emitted when active party ID changes or members join/leave. |
-| `game` | `{ phase: "pregame" \| "ingame"; matchId: string }` | Emitted on game phase transitions (agent select or match start). |
-| `self:state` | `{ state: string \| null; presence: ValorantPresence \| null }` | Emitted when the local player's presence state updates. |
-| `raw` | `RiotFrame` | Emitted for every unprocessed JSON-RPC frame from Riot Client. |
-| `error` | `Error` | Emitted when a socket or parsing error occurs. |
+| Event             | Payload Type                                                    | Description                                                      |
+| :---------------- | :-------------------------------------------------------------- | :--------------------------------------------------------------- |
+| `connected`       | `void`                                                          | Emitted when loopback WebSocket connection opens.                |
+| `disconnected`    | `void`                                                          | Emitted when loopback WebSocket connection drops or closes.      |
+| `friend:presence` | `{ friend: Friend; change: "update" \| "offline" }`             | Emitted when a friend updates state, queue, map, or party.       |
+| `friend:added`    | `Friend`                                                        | Emitted when a new friendship is accepted or added.              |
+| `friend:removed`  | `{ puuid: string }`                                             | Emitted when a friend is unfriended.                             |
+| `friend:request`  | `{ request: FriendRequest; change: "created" \| "resolved" }`   | Emitted on incoming or outgoing friend request changes.          |
+| `message`         | `Message`                                                       | Emitted when receiving whispers or chat room messages.           |
+| `party`           | `{ partyId: string }`                                           | Emitted when active party ID changes or members join/leave.      |
+| `game`            | `{ phase: "pregame" \| "ingame"; matchId: string }`             | Emitted on game phase transitions (agent select or match start). |
+| `self:state`      | `{ state: string \| null; presence: ValorantPresence \| null }` | Emitted when the local player's presence state updates.          |
+| `raw`             | `RiotFrame`                                                     | Emitted for every unprocessed JSON-RPC frame from Riot Client.   |
+| `error`           | `Error`                                                         | Emitted when a socket or parsing error occurs.                   |
 
 ## Automatic Reconnection
 
