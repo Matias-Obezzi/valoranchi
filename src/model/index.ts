@@ -446,3 +446,144 @@ export type Party = {
   queueEnteredAt: string | null;
   members: PartyMember[];
 } | null;
+
+export type AccountXpHistoryEntry = {
+  matchId: string;
+  at: string;
+  before: { level: number; xp: number };
+  after: { level: number; xp: number };
+  delta: number;
+  sources: {
+    timePlayed: number;
+    matchWin: number;
+    firstWinOfTheDay: number;
+  };
+};
+
+export type AccountXp = {
+  level: number;
+  xp: number;
+  history: AccountXpHistoryEntry[];
+  nextFirstWinAt: string | null;
+};
+
+export type ContractReward = {
+  level: number;
+  type: string;
+  uuid: string;
+  name: string;
+  icon: Image;
+  unlocked: boolean;
+};
+
+export type ContractProgress = {
+  uuid: string;
+  name: string;
+  kind: "agent" | "season" | "event";
+  level: number;
+  progress: number;
+  nextLevelAt: number | null;
+  active: boolean;
+  rewards: ContractReward[];
+};
+
+export type Mission = {
+  uuid: string;
+  title: string;
+  progress: number;
+  target: number;
+  complete: boolean;
+  expiresAt: string | null;
+};
+
+export type Penalty = {
+  id: string;
+  reason: string;
+  expiresAt: string;
+};
+
+export type Favourite = {
+  skinUuid: string;
+  name: string;
+  weapon: string;
+};
+
+export type LeaderboardEntry = {
+  rank: number;
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  anonymized: boolean;
+  banned: boolean;
+  rating: number;
+  wins: number;
+  tier: Rank;
+};
+
+export type Leaderboard = {
+  season: string;
+  total: number;
+  entries: LeaderboardEntry[];
+  tierThresholds: Record<string, number>;
+};
+
+export type Offer = {
+  id: string;
+  item: StoreItem;
+  cost: Cost;
+  startedAt: string | null;
+};
+
+export type Order = {
+  id: string;
+  status: string;
+  item: StoreItem | null;
+  cost: Cost | null;
+};
+
+export type GameSession = {
+  state: string;
+  clientVersion: string;
+  playtimeMinutes: number;
+  restricted: boolean;
+};
+
+export type ContentSeason = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  startsAt: string;
+  endsAt: string;
+};
+
+export type ContentEvent = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  startsAt: string;
+  endsAt: string;
+};
+
+export type Content = {
+  act: ContentSeason | null;
+  episode: ContentSeason | null;
+  events: ContentEvent[];
+};
+
+export type QueueConfig = {
+  id: string;
+  enabled: boolean;
+  ranked: boolean;
+  teamSize: number;
+  minPartySize: number;
+  maxPartySize: number;
+  mode: string;
+};
+
+export type Premier = {
+  eligible: boolean | null;
+  roster: unknown;
+  season: unknown;
+  conferences: unknown;
+};
+

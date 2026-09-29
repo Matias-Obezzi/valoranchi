@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ContractProgress",
+  "definitions": {
+    "ContractProgress": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["agent", "season", "event"]
+        },
+        "level": {
+          "type": "number"
+        },
+        "progress": {
+          "type": "number"
+        },
+        "nextLevelAt": {
+          "type": ["number", "null"]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "rewards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContractReward"
+          }
+        }
+      },
+      "required": ["uuid", "name", "kind", "level", "progress", "nextLevelAt", "active", "rewards"],
+      "additionalProperties": false
+    },
+    "ContractReward": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "number"
+        },
+        "type": {
+          "type": "string"
+        },
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "unlocked": {
+          "type": "boolean"
+        }
+      },
+      "required": ["level", "type", "uuid", "name", "icon", "unlocked"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Leaderboard",
+  "definitions": {
+    "Leaderboard": {
+      "type": "object",
+      "properties": {
+        "season": {
+          "type": "string"
+        },
+        "total": {
+          "type": "number"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LeaderboardEntry"
+          }
+        },
+        "tierThresholds": {
+          "$ref": "#/definitions/Record%3Cstring%2Cnumber%3E"
+        }
+      },
+      "required": ["season", "total", "entries", "tierThresholds"],
+      "additionalProperties": false
+    },
+    "LeaderboardEntry": {
+      "type": "object",
+      "properties": {
+        "rank": {
+          "type": "number"
+        },
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "anonymized": {
+          "type": "boolean"
+        },
+        "banned": {
+          "type": "boolean"
+        },
+        "rating": {
+          "type": "number"
+        },
+        "wins": {
+          "type": "number"
+        },
+        "tier": {
+          "$ref": "#/definitions/Rank"
+        }
+      },
+      "required": [
+        "rank",
+        "puuid",
+        "gameName",
+        "tagLine",
+        "anonymized",
+        "banned",
+        "rating",
+        "wins",
+        "tier"
+      ],
+      "additionalProperties": false
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "Record<string,number>": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    }
+  }
+}

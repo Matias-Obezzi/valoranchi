@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/QueueConfig",
+  "definitions": {
+    "QueueConfig": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "ranked": {
+          "type": "boolean"
+        },
+        "teamSize": {
+          "type": "number"
+        },
+        "minPartySize": {
+          "type": "number"
+        },
+        "maxPartySize": {
+          "type": "number"
+        },
+        "mode": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "enabled", "ranked", "teamSize", "minPartySize", "maxPartySize", "mode"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -20,7 +20,21 @@ const types = [
   "RankChange",
   "LiveMatch",
   "Party",
+  "AccountXp",
+  "ContractProgress",
+  "Mission",
+  "Penalty",
+  "Favourite",
+  "LeaderboardEntry",
+  "Leaderboard",
+  "Offer",
+  "Order",
+  "GameSession",
+  "Content",
+  "QueueConfig",
+  "Premier",
 ];
+
 const schemaDir = path.resolve("schema");
 
 if (!fs.existsSync(schemaDir)) {

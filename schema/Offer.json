@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Offer",
+  "definitions": {
+    "Offer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "item": {
+          "$ref": "#/definitions/StoreItem"
+        },
+        "cost": {
+          "$ref": "#/definitions/Cost"
+        },
+        "startedAt": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["id", "item", "cost", "startedAt"],
+      "additionalProperties": false
+    },
+    "StoreItem": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "skin"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "weapon": {
+              "type": "string"
+            },
+            "tier": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Tier"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            },
+            "levelUuid": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "uuid", "name", "weapon", "tier", "icon", "levelUuid"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["buddy", "spray", "card", "title", "agent", "flex"]
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            }
+          },
+          "required": ["kind", "uuid", "name", "icon"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "currency"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            }
+          },
+          "required": ["kind", "uuid", "name", "amount"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "other"
+            },
+            "uuid": {
+              "type": "string"
+            },
+            "typeUuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "null"
+            }
+          },
+          "required": ["kind", "uuid", "typeUuid", "name"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Tier": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "number"
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "rank", "icon"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "Cost": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "currencyUuid": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "required": ["currency", "currencyUuid", "amount"],
+      "additionalProperties": false
+    }
+  }
+}

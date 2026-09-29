@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/AccountXp",
+  "definitions": {
+    "AccountXp": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "number"
+        },
+        "xp": {
+          "type": "number"
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AccountXpHistoryEntry"
+          }
+        },
+        "nextFirstWinAt": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["level", "xp", "history", "nextFirstWinAt"],
+      "additionalProperties": false
+    },
+    "AccountXpHistoryEntry": {
+      "type": "object",
+      "properties": {
+        "matchId": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "before": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "number"
+            },
+            "xp": {
+              "type": "number"
+            }
+          },
+          "required": ["level", "xp"],
+          "additionalProperties": false
+        },
+        "after": {
+          "type": "object",
+          "properties": {
+            "level": {
+              "type": "number"
+            },
+            "xp": {
+              "type": "number"
+            }
+          },
+          "required": ["level", "xp"],
+          "additionalProperties": false
+        },
+        "delta": {
+          "type": "number"
+        },
+        "sources": {
+          "type": "object",
+          "properties": {
+            "timePlayed": {
+              "type": "number"
+            },
+            "matchWin": {
+              "type": "number"
+            },
+            "firstWinOfTheDay": {
+              "type": "number"
+            }
+          },
+          "required": ["timePlayed", "matchWin", "firstWinOfTheDay"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["matchId", "at", "before", "after", "delta", "sources"],
+      "additionalProperties": false
+    }
+  }
+}

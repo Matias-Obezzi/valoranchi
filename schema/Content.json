@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Content",
+  "definitions": {
+    "Content": {
+      "type": "object",
+      "properties": {
+        "act": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContentSeason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "episode": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContentSeason"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContentEvent"
+          }
+        }
+      },
+      "required": ["act", "episode", "events"],
+      "additionalProperties": false
+    },
+    "ContentSeason": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "startsAt": {
+          "type": "string"
+        },
+        "endsAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "isActive", "startsAt", "endsAt"],
+      "additionalProperties": false
+    },
+    "ContentEvent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "startsAt": {
+          "type": "string"
+        },
+        "endsAt": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "isActive", "startsAt", "endsAt"],
+      "additionalProperties": false
+    }
+  }
+}
