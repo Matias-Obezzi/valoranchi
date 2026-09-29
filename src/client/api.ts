@@ -1,6 +1,7 @@
 import type {
   AccountXp,
   BlockedPlayer,
+  ClientInfo,
   Content,
   ContractProgress,
   Conversation,
@@ -19,9 +20,11 @@ import type {
   Offer,
   Order,
   OwnedItems,
+  Participant,
   Party,
   Penalty,
   Player,
+  PlayerSettings,
   Premier,
   QueueConfig,
   RankChange,
@@ -59,6 +62,13 @@ export interface AccountApi {
   validateSetLeaderboardAnonymized(anonymized: boolean): Promise<{ seasonId: string; Anonymize: boolean }>;
   session(): Promise<GameSession>;
   config(): Promise<Record<string, unknown>>;
+  settings(): Promise<PlayerSettings>;
+  validateSaveSettings(
+    data: unknown,
+    options?: { confirm?: boolean },
+  ): Promise<{ type: string; data: Record<string, unknown> }>;
+  saveSettings(data: unknown, options?: { confirm?: boolean }): Promise<PlayerSettings>;
+  client(): Promise<ClientInfo>;
 }
 
 export interface SocialApi {
@@ -89,6 +99,7 @@ export interface SocialApi {
   validateBlockPlayer(target: string): Promise<{ puuid: string }>;
   unblockPlayer(puuid: string): Promise<BlockedPlayer[]>;
   validateUnblockPlayer(puuid: string): Promise<{ puuid: string }>;
+  participants(cid?: string): Promise<Participant[]>;
 }
 
 export interface StoreApi {

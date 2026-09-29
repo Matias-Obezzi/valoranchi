@@ -3,9 +3,11 @@ import { CollectionBuilder } from "../collection/CollectionBuilder.js";
 import { GameSessionBuilder } from "../collection/GameSessionBuilder.js";
 import { LoadoutBuilder } from "../collection/LoadoutBuilder.js";
 import { LoadoutWriter } from "../collection/LoadoutWriter.js";
+import { PlayerSettingsBuilder } from "../collection/PlayerSettingsBuilder.js";
 import { ValidationError } from "../errors.js";
 import type {
   AccountXp,
+  ClientInfo,
   ContractProgress,
   Favourite,
   GameSession,
@@ -14,6 +16,7 @@ import type {
   OwnedItems,
   Penalty,
   Player,
+  PlayerSettings,
   Wallet,
 } from "../model/index.js";
 import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
@@ -319,6 +322,104 @@ export class AccountService implements AccountApi {
     const session = await this.context.sessions.session();
     const raw = await this.context.api(session).clientConfig();
     return (raw.Collapsed ?? raw) as Record<string, unknown>;
+  }
+
+  async settings(): Promise<PlayerSettings> {
+    const localApi = this.context.sessions.localApi();
+    const gameAuth = await localApi.gameAuthorization();
+    if (!gameAuth) {
+      throw new ValidationError("game-not-running", "Valorant must be running to access player settings");
+    }
+    const res = await localApi.get<{ type?: string; data?: Record<string, unknown> }>(
+      "/player-preferences/v1/data-json/Ares.PlayerSettings",
+      { Authorization: gameAuth },
+    );
+    return PlayerSettingsBuilder.build(res?.data ?? {});
+  }
+
+  async validateSaveSettings(
+    data: unknown,
+    options?: { confirm?: boolean },
+  ): Promise<{ type: string; data: Record<string, unknown> }> {
+    if (options?.confirm !== true) {
+      throw new ValidationError("confirm-required", "Settings save requires confirmation");
+    }
+    const localApi = this.context.sessions.localApi();
+    const gameAuth = await localApi.gameAuthorization();
+    if (!gameAuth) {
+      throw new ValidationError("game-not-running", "Valorant must be running to save player settings");
+    }
+    const payload =
+      typeof data === "object" && data !== null && "raw" in data && typeof (data as { raw: unknown }).raw === "object"
+        ? ((data as { raw: Record<string, unknown> }).raw ?? {})
+        : (data as Record<string, unknown>);
+    return { type: "Ares.PlayerSettings", data: payload };
+  }
+
+  async saveSettings(data: unknown, options?: { confirm?: boolean }): Promise<PlayerSettings> {
+    const validated = await this.validateSaveSettings(data, options);
+    const localApi = this.context.sessions.localApi();
+    const gameAuth = await localApi.gameAuthorization();
+    await localApi.put("/player-preferences/v1/data-json/Ares.PlayerSettings", validated, {
+      Authorization: gameAuth!,
+    });
+    return this.settings();
+  }
+
+  async client(): Promise<ClientInfo> {
+    const localApi = this.context.sessions.localApi();
+    const [regionLocale, activeAlias, externalSessions] = await Promise.all([
+      localApi.get<{ locale?: string; region?: string }>("/riotclient/region-locale").catch(() => null),
+      localApi
+        .get<{ active?: boolean; game_name?: string; tag_line?: string }>(
+          "/player-account/aliases/v1/active",
+        )
+        .catch(() => null),
+      localApi
+        .get<
+          Record<
+            string,
+            {
+              productId?: string;
+              version?: string;
+              patchlineId?: string;
+              launchConfiguration?: { arguments?: string[]; patchline?: string };
+            }
+          >
+        >("/product-session/v1/external-sessions")
+        .catch(() => null),
+    ]);
+
+    const valorant = Object.values(externalSessions ?? {}).find(
+      (entry) => entry.productId?.toLowerCase() === "valorant",
+    );
+
+    const valorantRunning = Boolean(valorant);
+    const valorantVersion =
+      valorant?.version ??
+      valorant?.launchConfiguration?.arguments
+        ?.find((a) => a.startsWith("-client-version="))
+        ?.split("=")[1] ??
+      null;
+    const patchline =
+      valorant?.patchlineId ??
+      valorant?.launchConfiguration?.patchline ??
+      valorant?.launchConfiguration?.arguments
+        ?.find((a) => a.startsWith("-patchline="))
+        ?.split("=")[1] ??
+      null;
+
+    return {
+      locale: regionLocale?.locale ?? "en_US",
+      region: regionLocale?.region ?? "",
+      riotId: {
+        gameName: activeAlias?.game_name ?? "",
+        tagLine: activeAlias?.tag_line ?? "",
+      },
+      valorantRunning,
+      valorantVersion,
+      patchline,
+    };
   }
 }
 

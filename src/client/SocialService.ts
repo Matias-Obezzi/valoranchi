@@ -9,6 +9,7 @@ import type {
   Friend,
   FriendRequest,
   Message,
+  Participant,
 } from "../model/index.js";
 import type { SocialApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -212,5 +213,20 @@ export class SocialService implements SocialApi {
     const body = await this.validateUnblockPlayer(puuid);
     await this.chatApi().unblockPlayer(body.puuid);
     return this.blocked();
+  }
+
+  async participants(cid?: string): Promise<Participant[]> {
+    const raw = await this.chatApi().participants(cid);
+    return raw.map((p) => ({
+      cid: p.cid ?? "",
+      puuid: p.puuid ?? "",
+      gameName: p.game_name ?? "",
+      tagLine: p.game_tag ?? "",
+      name: p.name ?? "",
+      pid: p.pid ?? "",
+      region: p.region ?? "",
+      muted: Boolean(p.muted),
+      activePlatform: p.activePlatform ?? null,
+    }));
   }
 }
