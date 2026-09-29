@@ -5,7 +5,12 @@ export {
   type RiotClientOptions,
   type LoadoutChange,
   type LoadoutGunChange,
+  type PartyActionRequest,
 } from "./RiotClient.js";
+export {
+  PartyValidator,
+  type PartyAction,
+} from "./client/PartyValidator.js";
 export { RiotEvents, toFriendRequest, type RiotEventMap } from "./events/RiotEvents.js";
 export { TypedEmitter } from "./events/TypedEmitter.js";
 export {

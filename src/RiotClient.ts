@@ -5,6 +5,7 @@ import { createPlayer, type ClientContext } from "./client/ClientContext.js";
 import { EventsService } from "./client/EventsService.js";
 import { LiveMatchService } from "./client/LiveMatchService.js";
 import { MatchService } from "./client/MatchService.js";
+import { PartyService } from "./client/PartyService.js";
 import { SessionManager } from "./client/SessionManager.js";
 import { SocialService } from "./client/SocialService.js";
 import { StoreService } from "./client/StoreService.js";
@@ -35,8 +36,9 @@ import type { Session } from "./riot/Session.js";
 import type { RiotLoadoutResponse } from "./riot/types.js";
 
 import type { LoadoutChange, LoadoutGunChange } from "./client/LoadoutValidator.js";
+import type { PartyActionRequest } from "./client/PartyValidator.js";
 
-export type { LoadoutChange, LoadoutGunChange };
+export type { LoadoutChange, LoadoutGunChange, PartyActionRequest };
 
 export interface RiotClientOptions {
   language?: string;
@@ -56,6 +58,7 @@ export class RiotClient {
   private readonly storeService: StoreService;
   private readonly matchService: MatchService;
   private readonly liveMatchService: LiveMatchService;
+  private readonly partyService: PartyService;
   private readonly eventsService: EventsService;
 
   constructor(options: RiotClientOptions = {}) {
@@ -91,6 +94,7 @@ export class RiotClient {
     this.storeService = new StoreService(context);
     this.matchService = new MatchService(context);
     this.liveMatchService = new LiveMatchService(context);
+    this.partyService = new PartyService(context);
     this.eventsService = new EventsService(context);
   }
 
@@ -214,6 +218,78 @@ export class RiotClient {
     return this.liveMatchService.liveMatch(options);
   }
   async party(): Promise<Party> {
-    return this.liveMatchService.party();
+    return this.partyService.party();
+  }
+  async invite(riotId: string): Promise<Party> {
+    return this.partyService.invite(riotId);
+  }
+  async validateInvite(riotId: string): Promise<PartyActionRequest> {
+    return this.partyService.validateInvite(riotId);
+  }
+  async kick(puuid: string): Promise<Party> {
+    return this.partyService.kick(puuid);
+  }
+  async validateKick(puuid: string): Promise<PartyActionRequest> {
+    return this.partyService.validateKick(puuid);
+  }
+  async promote(puuid: string): Promise<Party> {
+    return this.partyService.promote(puuid);
+  }
+  async validatePromote(puuid: string): Promise<PartyActionRequest> {
+    return this.partyService.validatePromote(puuid);
+  }
+  async createInviteCode(): Promise<Party> {
+    return this.partyService.createInviteCode();
+  }
+  async validateCreateInviteCode(): Promise<PartyActionRequest> {
+    return this.partyService.validateCreateInviteCode();
+  }
+  async revokeInviteCode(): Promise<Party> {
+    return this.partyService.revokeInviteCode();
+  }
+  async validateRevokeInviteCode(): Promise<PartyActionRequest> {
+    return this.partyService.validateRevokeInviteCode();
+  }
+  async joinByCode(code: string): Promise<Party> {
+    return this.partyService.joinByCode(code);
+  }
+  async validateJoinByCode(code: string): Promise<PartyActionRequest> {
+    return this.partyService.validateJoinByCode(code);
+  }
+  async setReady(ready: boolean): Promise<Party> {
+    return this.partyService.setReady(ready);
+  }
+  async validateSetReady(ready: boolean): Promise<PartyActionRequest> {
+    return this.partyService.validateSetReady(ready);
+  }
+  async setQueue(queue: string): Promise<Party> {
+    return this.partyService.setQueue(queue);
+  }
+  async validateSetQueue(queue: string): Promise<PartyActionRequest> {
+    return this.partyService.validateSetQueue(queue);
+  }
+  async setAccessibility(accessibility: "open" | "closed"): Promise<Party> {
+    return this.partyService.setAccessibility(accessibility);
+  }
+  async validateSetAccessibility(accessibility: "open" | "closed"): Promise<PartyActionRequest> {
+    return this.partyService.validateSetAccessibility(accessibility);
+  }
+  async startMatchmaking(): Promise<Party> {
+    return this.partyService.startMatchmaking();
+  }
+  async validateStartMatchmaking(): Promise<PartyActionRequest> {
+    return this.partyService.validateStartMatchmaking();
+  }
+  async stopMatchmaking(): Promise<Party> {
+    return this.partyService.stopMatchmaking();
+  }
+  async validateStopMatchmaking(): Promise<PartyActionRequest> {
+    return this.partyService.validateStopMatchmaking();
+  }
+  async leave(): Promise<Party> {
+    return this.partyService.leave();
+  }
+  async validateLeave(): Promise<PartyActionRequest> {
+    return this.partyService.validateLeave();
   }
 }
