@@ -20,6 +20,18 @@ export { PartyValidator, type PartyAction } from "./client/PartyValidator.js";
 export { RiotEvents, toFriendRequest, type RiotEventMap } from "./events/RiotEvents.js";
 export { TypedEmitter } from "./events/TypedEmitter.js";
 export {
+  FriendsWatcher,
+  MatchWatcher,
+  formatPresenceActivity,
+  type FriendsWatcherOptions,
+  type MatchWatcherOptions,
+  type WatchApi,
+  type MatchWatchEventMap,
+  type MatchWatchItem,
+  type FriendsWatchEventMap,
+  type FriendsWatchItem,
+} from "./watch/index.js";
+export {
   RiotSocket,
   parseFrame,
   type RiotFrame,

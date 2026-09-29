@@ -113,6 +113,8 @@ Raw (unsupported):
 
 Events:
   watch            Stream real-time events as JSON lines until interrupted
+  watch-match      Stream match lifecycle events until interrupted
+  watch-friends    Stream friend activity and presence events until interrupted
 
 Options:
   --yes              Execute write command (default is dry-run)
@@ -276,6 +278,52 @@ export async function runWatch(
   });
 
   await client.close();
+  return 0;
+}
+
+export async function runWatchMatch(client: RiotClient): Promise<number> {
+  const watcher = client.watch.match();
+  const onSignal = () => {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+  };
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+
+  try {
+    for await (const item of watcher) {
+      process.stdout.write(`${JSON.stringify(item)}\n`);
+    }
+  } finally {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+    await client.close();
+  }
+  return 0;
+}
+
+export async function runWatchFriends(client: RiotClient): Promise<number> {
+  const watcher = client.watch.friends();
+  const onSignal = () => {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+  };
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+
+  try {
+    for await (const item of watcher) {
+      process.stdout.write(`${JSON.stringify(item)}\n`);
+    }
+  } finally {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+    await client.close();
+  }
   return 0;
 }
 
@@ -1167,6 +1215,14 @@ export async function runCli(args: string[]): Promise<number> {
         only: parsed.values.only,
         raw: parsed.values.raw,
       });
+    }
+
+    if (command === "watch-match") {
+      return await runWatchMatch(client);
+    }
+
+    if (command === "watch-friends") {
+      return await runWatchFriends(client);
     }
 
     const count = parsed.values.count ? Number(parsed.values.count) : undefined;

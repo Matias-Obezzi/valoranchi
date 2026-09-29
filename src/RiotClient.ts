@@ -25,6 +25,7 @@ import { HttpGateway } from "./riot/HttpGateway.js";
 import { defaultResponseCacheDir, FileResponseCache } from "./riot/ResponseCache.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import type { Session } from "./riot/Session.js";
+import { WatchService, type WatchApi } from "./watch/index.js";
 
 export type { LoadoutChange, LoadoutGunChange, PartyActionRequest };
 
@@ -117,6 +118,7 @@ export class RiotClient {
   readonly store: StoreApi;
   readonly matches: MatchesApi;
   readonly party: PartyApi;
+  readonly watch: WatchApi;
   readonly local: LocalRawApi;
   readonly riot: RiotRawApi;
 
@@ -161,6 +163,7 @@ export class RiotClient {
     this.local = new LocalRawService(this.sessions);
     this.riot = new RiotRawService(this.sessions, gateway);
     this.eventsService = new EventsService(context);
+    this.watch = new WatchService(() => this.events(), this.matches);
   }
 
   events(): RiotEvents {
