@@ -126,9 +126,7 @@ export class RiotClient {
     try {
       const session = await chatApi.session();
       if (session?.puuid) return session.puuid;
-    } catch {
-      // ignore session error
-    }
+    } catch {}
     try {
       const session = await this.getSession();
       return session.puuid;

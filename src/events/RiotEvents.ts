@@ -108,9 +108,7 @@ export class RiotEvents extends TypedEmitter<RiotEventMap> {
           this.rawFriendsByPuuid.set(f.puuid, f);
         }
       }
-    } catch {
-      // ignore read failure
-    }
+    } catch {}
   }
 
   private bindSocket(): void {
@@ -334,9 +332,7 @@ export class RiotEvents extends TypedEmitter<RiotEventMap> {
     if (!this.chatSession) {
       try {
         this.chatSession = await this.chatApi.session();
-      } catch {
-        // ignore session load failure
-      }
+      } catch {}
     }
     return this.chatSession;
   }
