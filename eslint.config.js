@@ -24,6 +24,13 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "schema/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "schema/**",
+      "docs/reference/**",
+      "docs/.vitepress/dist/**",
+      "docs/.vitepress/cache/**",
+    ],
   },
 );

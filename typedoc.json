@@ -1,0 +1,11 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts", "src/raw.ts"],
+  "out": "docs/reference",
+  "docsRoot": "docs",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "readme": "none",
+  "validation": {
+    "notExported": false
+  }
+}
