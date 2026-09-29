@@ -14,10 +14,17 @@ import type {
   RatingTrend,
   PerformanceSummary,
   PlayerAssessment,
+  MatchSyncResult,
 } from "../model/index.js";
 import { ratingTrend } from "../analysis/ratingTrend.js";
 import { performanceSummary } from "../analysis/performanceSummary.js";
 import { playerAssessment } from "../analysis/playerAssessment.js";
+import {
+  loadKnownMatches,
+  saveKnownMatches,
+  syncMatches,
+} from "../analysis/matchSync.js";
+import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -83,6 +90,57 @@ export class MatchService implements MatchesApi {
     return options?.queue
       ? summaries.filter((s) => s.queue.toLowerCase() === options.queue!.toLowerCase())
       : summaries;
+  }
+
+  private async fetchMatchListPage(
+    puuid: string,
+    start: number,
+    count: number,
+  ): Promise<MatchSummary[]> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+    const page = await api.matchHistory(start, start + count, undefined, puuid);
+    const history = page.History ?? [];
+    if (history.length === 0) return [];
+
+    return Promise.all(
+      history.map(async (item) => {
+        try {
+          const details = await api.matchDetails(item.MatchID);
+          return MatchBuilder.toSummary(details, catalogue);
+        } catch {
+          return {
+            id: item.MatchID,
+            startedAt: new Date(item.GameStartTime).toISOString(),
+            queue: item.QueueID,
+            map: { uuid: null, name: null, path: "" },
+          };
+        }
+      }),
+    );
+  }
+
+  async sync(options?: { maxPages?: number }): Promise<MatchSyncResult> {
+    const session = await this.context.sessions.session();
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    const known = loadKnownMatches(cacheDir, session.puuid);
+    const knownIds = new Set(known.map((m) => m.id));
+
+    const fetcher = (startIndex: number) =>
+      this.fetchMatchListPage(session.puuid, startIndex, 20);
+
+    const added = await syncMatches(fetcher, knownIds, { maxPages: options?.maxPages });
+    const allMatches = [...added, ...known];
+    saveKnownMatches(cacheDir, session.puuid, allMatches);
+    const total = loadKnownMatches(cacheDir, session.puuid).length;
+    return { added, total };
+  }
+
+  async known(puuid?: string): Promise<MatchSummary[]> {
+    const targetPuuid = puuid ?? (await this.context.sessions.session()).puuid;
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    return loadKnownMatches(cacheDir, targetPuuid);
   }
 
   async get(id: string): Promise<Match> {

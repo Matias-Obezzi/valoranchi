@@ -58,6 +58,7 @@ Store:
 
 Matches:
   matches          Print recent match history summaries
+  matches-sync     Synchronize match history to local cache [--pages <n>]
   match <id>       Print full match details by ID
   mmr              Print current rank, rating, and MMR breakdown
   rank-history     Print competitive rating adjustments and tier changes
@@ -288,6 +289,7 @@ interface CliCommandOptions {
   matchId?: string;
   yes?: boolean;
   days?: number;
+  pages?: number;
   positionals?: string[];
   rawValues?: Record<string, unknown>;
 }
@@ -493,6 +495,8 @@ async function executeGameCommand(
   switch (command) {
     case "matches":
       return client.matches.list({ count: options?.count, queue: options?.queue });
+    case "matches-sync":
+      return client.matches.sync({ maxPages: options?.pages });
     case "match":
       if (!options?.matchId) throw new Error("Missing match ID: riotclient match <id>");
       return client.matches.get(options.matchId);
@@ -1135,6 +1139,7 @@ export async function runCli(args: string[]): Promise<number> {
       rule: { type: "string", multiple: true },
       body: { type: "string" },
       days: { type: "string" },
+      pages: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -1176,6 +1181,7 @@ export async function runCli(args: string[]): Promise<number> {
       matchId: command === "match" ? parsed.positionals[1] : undefined,
       yes: Boolean(parsed.values.yes),
       days: parsed.values.days ? Number(parsed.values.days) : undefined,
+      pages: parsed.values.pages ? Number(parsed.values.pages) : undefined,
       positionals: parsed.positionals,
       rawValues: parsed.values,
     });

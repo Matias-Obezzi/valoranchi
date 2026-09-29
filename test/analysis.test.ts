@@ -13,11 +13,16 @@ import {
   recordStoreRotation,
   saveStoreHistory,
 } from "../src/analysis/storeHistory.js";
+import {
+  loadKnownMatches,
+  saveKnownMatches,
+  syncMatches,
+} from "../src/analysis/matchSync.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
-import type { Loadout, Mmr, Offer, OwnedItems, Store, StoreHistory } from "../src/model/index.js";
+import type { Loadout, MatchSummary, Mmr, Offer, OwnedItems, Store, StoreHistory } from "../src/model/index.js";
 import type { LoadoutChange } from "../src/client/LoadoutValidator.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
@@ -679,6 +684,65 @@ describe("storeHistory", () => {
     }
   });
 });
+
+describe("matchSync", () => {
+  it("syncMatches stops when hitting known ID", async () => {
+    const fetcher = async (startIndex: number): Promise<MatchSummary[]> => {
+      if (startIndex === 0) {
+        return [
+          { id: "m3", startedAt: "2026-01-03T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+          { id: "m2", startedAt: "2026-01-02T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        ];
+      }
+      return [
+        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+      ];
+    };
+    const knownIds = new Set(["m2"]);
+    const added = await syncMatches(fetcher, knownIds, { maxPages: 5, pageSize: 2 });
+    expect(added).toHaveLength(1);
+    expect(added[0]?.id).toBe("m3");
+  });
+
+  it("syncMatches stops at maxPages", async () => {
+    let pagesFetched = 0;
+    const fetcher = async (startIndex: number): Promise<MatchSummary[]> => {
+      pagesFetched++;
+      return [
+        { id: `match-${startIndex}`, startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        { id: `match-${startIndex + 1}`, startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+      ];
+    };
+    const knownIds = new Set<string>();
+    const added = await syncMatches(fetcher, knownIds, { maxPages: 2, pageSize: 2 });
+    expect(pagesFetched).toBe(2);
+    expect(added).toHaveLength(4);
+  });
+
+  it("saveKnownMatches deduplicates and sorts by startedAt descending", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "match-sync-test-"));
+    try {
+      const matches: MatchSummary[] = [
+        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        { id: "m3", startedAt: "2026-01-03T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        { id: "m2", startedAt: "2026-01-02T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+      ];
+      saveKnownMatches(tempDir, "player-1", matches);
+      const loaded = loadKnownMatches(tempDir, "player-1");
+      expect(loaded).toHaveLength(3);
+      expect(loaded[0]?.id).toBe("m3");
+      expect(loaded[1]?.id).toBe("m2");
+      expect(loaded[2]?.id).toBe("m1");
+
+      const empty = loadKnownMatches(tempDir, "nonexistent");
+      expect(empty).toEqual([]);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
+
 
 
 

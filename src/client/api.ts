@@ -18,6 +18,7 @@ import type {
   LoadoutDiff,
   Match,
   MatchSummary,
+  MatchSyncResult,
   Message,
   Mission,
   Mmr,
@@ -134,6 +135,8 @@ export interface StoreApi {
 
 export interface MatchesApi {
   list(options?: { count?: number; queue?: string }): Promise<MatchSummary[]>;
+  sync(options?: { maxPages?: number }): Promise<MatchSyncResult>;
+  known(puuid?: string): Promise<MatchSummary[]>;
   get(id: string): Promise<Match>;
   mmr(): Promise<Mmr>;
   rankHistory(options?: { count?: number }): Promise<RankChange[]>;

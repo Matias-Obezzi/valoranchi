@@ -107,4 +107,9 @@ export {
   loadStoreHistory,
   saveStoreHistory,
 } from "./analysis/storeHistory.js";
+export {
+  loadKnownMatches,
+  saveKnownMatches,
+  syncMatches,
+} from "./analysis/matchSync.js";
 
