@@ -548,11 +548,7 @@ import {
 } from "@valoranchi/riot-client/raw";
 
 const gateway = new HttpGateway();
-const valorantApi = new ValorantApi(
-  gateway,
-  new MemoryCatalogueCache(),
-  new FileCatalogueStore(),
-);
+const valorantApi = new ValorantApi(gateway, new MemoryCatalogueCache(), new FileCatalogueStore());
 const sessions = new SessionManager({ valorantApi });
 
 const session = await sessions.session();
