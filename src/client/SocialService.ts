@@ -63,24 +63,35 @@ export class SocialService {
     return new MessagesBuilder(friends, session).buildMessages(rawMessages);
   }
 
-  async sendMessage(
-    to: { puuid: string } | { conversationId: string },
+  async validateSendMessage(
+    to: { puuid: string } | { conversationId: string } | { riotId: string },
     text: string,
-  ): Promise<Message> {
+  ): Promise<{ cid: string; message: string; type: "chat" | "groupchat" }> {
     ChatValidator.validateMessageText(text);
     const chatApi = this.chatApi();
-    const [rawFriends, convs, session] = await Promise.all([
+    const [rawFriends, convs] = await Promise.all([
       chatApi.friends(),
       this.conversations(),
-      chatApi.session(),
     ]);
     const { cid, type } = ChatValidator.validateMessageTarget(to, rawFriends, convs);
-    const rawMsg = await chatApi.sendMessage(cid, text, type);
-    const isRoom = type === "groupchat";
+    return { cid, message: text, type };
+  }
+
+  async sendMessage(
+    to: { puuid: string } | { conversationId: string } | { riotId: string },
+    text: string,
+  ): Promise<Message> {
+    const chatApi = this.chatApi();
+    const [body, session] = await Promise.all([
+      this.validateSendMessage(to, text),
+      chatApi.session(),
+    ]);
+    const rawMsg = await chatApi.sendMessage(body.cid, body.message, body.type);
+    const isRoom = body.type === "groupchat";
     const at = rawMsg?.time ? new Date(Number(rawMsg.time)).toISOString() : new Date().toISOString();
     return {
       id: rawMsg?.id || rawMsg?.mid || String(Date.now()),
-      conversationId: cid,
+      conversationId: body.cid,
       from: {
         puuid: session?.puuid ?? "",
         gameName: session?.game_name ?? "",
@@ -93,7 +104,7 @@ export class SocialService {
     };
   }
 
-  async sendFriendRequest(riotId: string): Promise<FriendRequest[]> {
+  async validateSendFriendRequest(riotId: string): Promise<{ game_name: string; game_tag: string }> {
     const chatApi = this.chatApi();
     const [friends, requests, session] = await Promise.all([
       this.friends(),
@@ -106,43 +117,67 @@ export class SocialService {
       friends,
       requests,
     );
-    await chatApi.sendFriendRequest(gameName, gameTag);
+    return { game_name: gameName, game_tag: gameTag };
+  }
+
+  async sendFriendRequest(riotId: string): Promise<FriendRequest[]> {
+    const body = await this.validateSendFriendRequest(riotId);
+    await this.chatApi().sendFriendRequest(body.game_name, body.game_tag);
     return this.friendRequests();
   }
 
-  async acceptFriendRequest(puuid: string): Promise<Friend[]> {
+  async validateAcceptFriendRequest(puuid: string): Promise<{ game_name: string; game_tag: string }> {
     const chatApi = this.chatApi();
     const rawRequests = await chatApi.friendRequests();
     const { gameName, gameTag } = ChatValidator.validateAcceptFriendRequest(puuid, rawRequests);
-    await chatApi.sendFriendRequest(gameName, gameTag);
+    return { game_name: gameName, game_tag: gameTag };
+  }
+
+  async acceptFriendRequest(puuid: string): Promise<Friend[]> {
+    const body = await this.validateAcceptFriendRequest(puuid);
+    await this.chatApi().sendFriendRequest(body.game_name, body.game_tag);
     return this.friends();
   }
 
-  async declineFriendRequest(puuid: string): Promise<FriendRequest[]> {
+  async validateDeclineFriendRequest(puuid: string): Promise<{ puuid: string }> {
     const chatApi = this.chatApi();
     const rawRequests = await chatApi.friendRequests();
     ChatValidator.validateDeclineFriendRequest(puuid, rawRequests);
-    await chatApi.deleteFriendRequest(puuid);
+    return { puuid };
+  }
+
+  async declineFriendRequest(puuid: string): Promise<FriendRequest[]> {
+    const body = await this.validateDeclineFriendRequest(puuid);
+    await this.chatApi().deleteFriendRequest(body.puuid);
     return this.friendRequests();
   }
 
-  async cancelFriendRequest(puuid: string): Promise<FriendRequest[]> {
+  async validateCancelFriendRequest(puuid: string): Promise<{ puuid: string }> {
     const chatApi = this.chatApi();
     const rawRequests = await chatApi.friendRequests();
     ChatValidator.validateCancelFriendRequest(puuid, rawRequests);
-    await chatApi.deleteFriendRequest(puuid);
+    return { puuid };
+  }
+
+  async cancelFriendRequest(puuid: string): Promise<FriendRequest[]> {
+    const body = await this.validateCancelFriendRequest(puuid);
+    await this.chatApi().deleteFriendRequest(body.puuid);
     return this.friendRequests();
   }
 
-  async removeFriend(puuid: string): Promise<Friend[]> {
-    const chatApi = this.chatApi();
+  async validateRemoveFriend(puuid: string): Promise<{ puuid: string }> {
     const friends = await this.friends();
     ChatValidator.validateRemoveFriend(puuid, friends);
-    await chatApi.removeFriend(puuid);
+    return { puuid };
+  }
+
+  async removeFriend(puuid: string): Promise<Friend[]> {
+    const body = await this.validateRemoveFriend(puuid);
+    await this.chatApi().removeFriend(body.puuid);
     return this.friends();
   }
 
-  async blockPlayer(target: string): Promise<BlockedPlayer[]> {
+  async validateBlockPlayer(target: string): Promise<{ puuid: string }> {
     const chatApi = this.chatApi();
     const [blocked, friends, requests, session] = await Promise.all([
       this.blocked(),
@@ -157,15 +192,24 @@ export class SocialService {
       friends,
       requests,
     );
-    await chatApi.blockPlayer(puuid);
+    return { puuid };
+  }
+
+  async blockPlayer(target: string): Promise<BlockedPlayer[]> {
+    const body = await this.validateBlockPlayer(target);
+    await this.chatApi().blockPlayer(body.puuid);
     return this.blocked();
   }
 
-  async unblockPlayer(puuid: string): Promise<BlockedPlayer[]> {
-    const chatApi = this.chatApi();
+  async validateUnblockPlayer(puuid: string): Promise<{ puuid: string }> {
     const blocked = await this.blocked();
     ChatValidator.validateUnblockPlayer(puuid, blocked);
-    await chatApi.unblockPlayer(puuid);
+    return { puuid };
+  }
+
+  async unblockPlayer(puuid: string): Promise<BlockedPlayer[]> {
+    const body = await this.validateUnblockPlayer(puuid);
+    await this.chatApi().unblockPlayer(body.puuid);
     return this.blocked();
   }
 }

@@ -3,7 +3,7 @@ import { LoadoutBuilder } from "../collection/LoadoutBuilder.js";
 import { LoadoutWriter } from "../collection/LoadoutWriter.js";
 import { ValidationError } from "../errors.js";
 import type { Loadout, OwnedItems, Player, Wallet } from "../model/index.js";
-import { CURRENCY_UUIDS } from "../riot/types.js";
+import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
 import type { ClientContext } from "./ClientContext.js";
 import { LoadoutValidator, type LoadoutChange, type LoadoutGunChange } from "./LoadoutValidator.js";
 
@@ -42,13 +42,13 @@ export class AccountService {
     return new LoadoutBuilder(player, rawLoadout, catalogue).build();
   }
 
-  async equip(change: LoadoutChange): Promise<Loadout> {
-    if (!this.hasLoadoutChanges(change)) {
-      return this.loadout();
-    }
-
+  async validateEquip(change: LoadoutChange): Promise<RiotLoadoutResponse> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
+
+    if (!this.hasLoadoutChanges(change)) {
+      return api.loadout();
+    }
 
     const [currentRaw, ownedItems, catalogue, rawEntitlements] = await Promise.all([
       api.loadout(),
@@ -65,17 +65,40 @@ export class AccountService {
       change,
     );
 
-    const putBody = LoadoutWriter.buildPutBody(validatedRaw);
+    return LoadoutWriter.buildPutBody(validatedRaw);
+  }
+
+  async equip(change: LoadoutChange): Promise<Loadout> {
+    if (!this.hasLoadoutChanges(change)) {
+      return this.loadout();
+    }
+
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const putBody = await this.validateEquip(change);
+
     await api.putLoadout(putBody);
     api.invalidateLoadout();
     return this.loadout();
+  }
+
+  async validateEquipCollection(skinUuids: string[]): Promise<RiotLoadoutResponse> {
+    if (!skinUuids || skinUuids.length === 0) {
+      return this.validateEquip({});
+    }
+    const gunChanges = await this.resolveCollectionGunChanges(skinUuids);
+    return this.validateEquip({ guns: gunChanges });
   }
 
   async equipCollection(skinUuids: string[]): Promise<Loadout> {
     if (!skinUuids || skinUuids.length === 0) {
       return this.loadout();
     }
+    const gunChanges = await this.resolveCollectionGunChanges(skinUuids);
+    return this.equip({ guns: gunChanges });
+  }
 
+  private async resolveCollectionGunChanges(skinUuids: string[]): Promise<LoadoutGunChange[]> {
     const catalogue = await this.context.catalogue();
     const seenWeapons = new Set<string>();
     const gunChanges: LoadoutGunChange[] = [];
@@ -109,7 +132,7 @@ export class AccountService {
       });
     }
 
-    return this.equip({ guns: gunChanges });
+    return gunChanges;
   }
 
   private hasLoadoutChanges(change?: LoadoutChange): boolean {

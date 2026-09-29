@@ -15,10 +15,28 @@ export class ChatValidator {
   }
 
   static validateMessageTarget(
-    to: { puuid: string } | { conversationId: string },
+    to: { puuid: string } | { conversationId: string } | { riotId: string },
     friends: RawChatFriend[],
     conversations: Conversation[],
   ): { cid: string; type: "chat" | "groupchat" } {
+    if ("riotId" in to) {
+      const { gameName, gameTag } = ChatValidator.parseRiotId(to.riotId);
+      const friend = friends.find(
+        (f) =>
+          f.game_name.toLowerCase() === gameName.toLowerCase() &&
+          f.game_tag.toLowerCase() === gameTag.toLowerCase(),
+      );
+      if (!friend) {
+        throw new ValidationError("not-a-friend", `Player ${to.riotId} is not a friend`, {
+          riotId: to.riotId,
+        });
+      }
+      return {
+        cid: `${friend.puuid}@${friend.region}.pvp.net`,
+        type: "chat",
+      };
+    }
+
     if ("puuid" in to) {
       const friend = friends.find((f) => f.puuid === to.puuid);
       if (!friend) {
@@ -47,7 +65,7 @@ export class ChatValidator {
       };
     }
 
-    throw new ValidationError("invalid-target", "Target must specify puuid or conversationId");
+    throw new ValidationError("invalid-target", "Target must specify puuid, conversationId, or riotId");
   }
 
   static parseRiotId(riotId: string): { gameName: string; gameTag: string } {

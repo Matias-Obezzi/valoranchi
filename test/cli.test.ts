@@ -268,3 +268,210 @@ describe("CLI watch command", () => {
     expect(lines[0]!.event).toBe("party");
   });
 });
+
+describe("CLI write commands and dry-run", () => {
+  it("defaults to dry-run and prints validated body on equip", async () => {
+    let output = "";
+    const originalStdout = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    const fakePutBody = { Subject: "p1", Version: 1, Guns: [], ActiveExpressions: [] };
+    const validateSpy = vi
+      .spyOn(RiotClient.prototype, "validateEquip")
+      .mockResolvedValue(fakePutBody as never);
+    const equipSpy = vi.spyOn(RiotClient.prototype, "equip").mockResolvedValue({} as never);
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    try {
+      const code = await runCli(["equip", "--card", "card-1", "--incognito", "on"]);
+      expect(code).toBe(0);
+      expect(validateSpy).toHaveBeenCalledTimes(1);
+      expect(validateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ card: "card-1", incognito: true }),
+      );
+      expect(equipSpy).not.toHaveBeenCalled();
+      expect(JSON.parse(output.trim())).toEqual(fakePutBody);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("executes write when --yes is passed to equip", async () => {
+    let output = "";
+    const originalStdout = process.stdout.write;
+    process.stdout.write = ((chunk: string) => {
+      output += chunk;
+      return true;
+    }) as typeof process.stdout.write;
+
+    const fakeLoadout = { guns: [], incognito: true };
+    const equipSpy = vi
+      .spyOn(RiotClient.prototype, "equip")
+      .mockResolvedValue(fakeLoadout as never);
+    const validateSpy = vi.spyOn(RiotClient.prototype, "validateEquip");
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    try {
+      const code = await runCli(["equip", "--card", "card-1", "--yes"]);
+      expect(code).toBe(0);
+      expect(equipSpy).toHaveBeenCalledTimes(1);
+      expect(validateSpy).not.toHaveBeenCalled();
+      expect(JSON.parse(output.trim())).toEqual(fakeLoadout);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("outputs exit code 6 and formatted error on ValidationError in equip", async () => {
+    let stderrOutput = "";
+    const originalStderr = process.stderr.write;
+    process.stderr.write = ((chunk: string) => {
+      stderrOutput += chunk;
+      return true;
+    }) as typeof process.stderr.write;
+
+    vi.spyOn(RiotClient.prototype, "validateEquip").mockRejectedValue(
+      new ValidationError("card-not-owned", "Card not owned", { card: "bad-card" }),
+    );
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    try {
+      const code = await runCli(["equip", "--card", "bad-card"]);
+      expect(code).toBe(6);
+      const parsed = JSON.parse(stderrOutput.trim());
+      expect(parsed).toEqual({
+        error: {
+          code: "VALIDATION",
+          reason: "card-not-owned",
+          message: "Card not owned",
+          details: { card: "bad-card" },
+        },
+      });
+    } finally {
+      process.stderr.write = originalStderr;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("handles social write commands with dry-run and --yes", async () => {
+    const originalStdout = process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    const valSendSpy = vi
+      .spyOn(RiotClient.prototype, "validateSendMessage")
+      .mockResolvedValue({ cid: "c1", message: "hi", type: "chat" });
+    const sendSpy = vi.spyOn(RiotClient.prototype, "sendMessage").mockResolvedValue({} as never);
+
+    const valReqSpy = vi
+      .spyOn(RiotClient.prototype, "validateSendFriendRequest")
+      .mockResolvedValue({ game_name: "A", game_tag: "1" });
+    const reqSpy = vi
+      .spyOn(RiotClient.prototype, "sendFriendRequest")
+      .mockResolvedValue([] as never);
+
+    const valAcceptSpy = vi
+      .spyOn(RiotClient.prototype, "validateAcceptFriendRequest")
+      .mockResolvedValue({ game_name: "B", game_tag: "2" });
+    const acceptSpy = vi
+      .spyOn(RiotClient.prototype, "acceptFriendRequest")
+      .mockResolvedValue([] as never);
+
+    const valDeclineSpy = vi
+      .spyOn(RiotClient.prototype, "validateDeclineFriendRequest")
+      .mockResolvedValue({ puuid: "p1" });
+    const declineSpy = vi
+      .spyOn(RiotClient.prototype, "declineFriendRequest")
+      .mockResolvedValue([] as never);
+
+    const valCancelSpy = vi
+      .spyOn(RiotClient.prototype, "validateCancelFriendRequest")
+      .mockResolvedValue({ puuid: "p2" });
+    const cancelSpy = vi
+      .spyOn(RiotClient.prototype, "cancelFriendRequest")
+      .mockResolvedValue([] as never);
+
+    const valRemoveSpy = vi
+      .spyOn(RiotClient.prototype, "validateRemoveFriend")
+      .mockResolvedValue({ puuid: "p3" });
+    const removeSpy = vi
+      .spyOn(RiotClient.prototype, "removeFriend")
+      .mockResolvedValue([] as never);
+
+    const valBlockSpy = vi
+      .spyOn(RiotClient.prototype, "validateBlockPlayer")
+      .mockResolvedValue({ puuid: "p4" });
+    const blockSpy = vi.spyOn(RiotClient.prototype, "blockPlayer").mockResolvedValue([] as never);
+
+    const valUnblockSpy = vi
+      .spyOn(RiotClient.prototype, "validateUnblockPlayer")
+      .mockResolvedValue({ puuid: "p5" });
+    const unblockSpy = vi
+      .spyOn(RiotClient.prototype, "unblockPlayer")
+      .mockResolvedValue([] as never);
+
+    const valEquipColSpy = vi
+      .spyOn(RiotClient.prototype, "validateEquipCollection")
+      .mockResolvedValue({} as never);
+    const equipColSpy = vi
+      .spyOn(RiotClient.prototype, "equipCollection")
+      .mockResolvedValue({} as never);
+
+    try {
+      // Dry-runs (no --yes)
+      expect(await runCli(["send", "--to", "player#123", "--text", "hello"])).toBe(0);
+      expect(valSendSpy).toHaveBeenCalledTimes(1);
+      expect(sendSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["friend-request", "Bob#999"])).toBe(0);
+      expect(valReqSpy).toHaveBeenCalledWith("Bob#999");
+      expect(reqSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["friend-accept", "puuid-1"])).toBe(0);
+      expect(valAcceptSpy).toHaveBeenCalledWith("puuid-1");
+      expect(acceptSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["friend-decline", "puuid-2"])).toBe(0);
+      expect(valDeclineSpy).toHaveBeenCalledWith("puuid-2");
+      expect(declineSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["friend-cancel", "puuid-3"])).toBe(0);
+      expect(valCancelSpy).toHaveBeenCalledWith("puuid-3");
+      expect(cancelSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["friend-remove", "puuid-4"])).toBe(0);
+      expect(valRemoveSpy).toHaveBeenCalledWith("puuid-4");
+      expect(removeSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["block", "puuid-5"])).toBe(0);
+      expect(valBlockSpy).toHaveBeenCalledWith("puuid-5");
+      expect(blockSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["unblock", "puuid-6"])).toBe(0);
+      expect(valUnblockSpy).toHaveBeenCalledWith("puuid-6");
+      expect(unblockSpy).not.toHaveBeenCalled();
+
+      expect(await runCli(["equip-collection", "skin-1,skin-2"])).toBe(0);
+      expect(valEquipColSpy).toHaveBeenCalledWith(["skin-1", "skin-2"]);
+      expect(equipColSpy).not.toHaveBeenCalled();
+
+      // With --yes
+      expect(await runCli(["send", "--to", "player#123", "--text", "hello", "--yes"])).toBe(0);
+      expect(sendSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["friend-request", "Bob#999", "--yes"])).toBe(0);
+      expect(reqSpy).toHaveBeenCalledWith("Bob#999");
+
+      expect(await runCli(["equip-collection", "skin-1,skin-2", "--yes"])).toBe(0);
+      expect(equipColSpy).toHaveBeenCalledWith(["skin-1", "skin-2"]);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+});

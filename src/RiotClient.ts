@@ -32,6 +32,7 @@ import { HttpGateway } from "./riot/HttpGateway.js";
 import { FileResponseCache } from "./riot/ResponseCache.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import type { Session } from "./riot/Session.js";
+import type { RiotLoadoutResponse } from "./riot/types.js";
 
 import type { LoadoutChange, LoadoutGunChange } from "./client/LoadoutValidator.js";
 
@@ -113,8 +114,14 @@ export class RiotClient {
   async equip(change: LoadoutChange): Promise<Loadout> {
     return this.accountService.equip(change);
   }
+  async validateEquip(change: LoadoutChange): Promise<RiotLoadoutResponse> {
+    return this.accountService.validateEquip(change);
+  }
   async equipCollection(skinUuids: string[]): Promise<Loadout> {
     return this.accountService.equipCollection(skinUuids);
+  }
+  async validateEquipCollection(skinUuids: string[]): Promise<RiotLoadoutResponse> {
+    return this.accountService.validateEquipCollection(skinUuids);
   }
   async wallet(): Promise<Wallet> {
     return this.accountService.wallet();
@@ -128,17 +135,32 @@ export class RiotClient {
   async sendFriendRequest(riotId: string): Promise<FriendRequest[]> {
     return this.socialService.sendFriendRequest(riotId);
   }
+  async validateSendFriendRequest(riotId: string): Promise<{ game_name: string; game_tag: string }> {
+    return this.socialService.validateSendFriendRequest(riotId);
+  }
   async acceptFriendRequest(puuid: string): Promise<Friend[]> {
     return this.socialService.acceptFriendRequest(puuid);
+  }
+  async validateAcceptFriendRequest(puuid: string): Promise<{ game_name: string; game_tag: string }> {
+    return this.socialService.validateAcceptFriendRequest(puuid);
   }
   async declineFriendRequest(puuid: string): Promise<FriendRequest[]> {
     return this.socialService.declineFriendRequest(puuid);
   }
+  async validateDeclineFriendRequest(puuid: string): Promise<{ puuid: string }> {
+    return this.socialService.validateDeclineFriendRequest(puuid);
+  }
   async cancelFriendRequest(puuid: string): Promise<FriendRequest[]> {
     return this.socialService.cancelFriendRequest(puuid);
   }
+  async validateCancelFriendRequest(puuid: string): Promise<{ puuid: string }> {
+    return this.socialService.validateCancelFriendRequest(puuid);
+  }
   async removeFriend(puuid: string): Promise<Friend[]> {
     return this.socialService.removeFriend(puuid);
+  }
+  async validateRemoveFriend(puuid: string): Promise<{ puuid: string }> {
+    return this.socialService.validateRemoveFriend(puuid);
   }
   async blocked(): Promise<BlockedPlayer[]> {
     return this.socialService.blocked();
@@ -146,8 +168,14 @@ export class RiotClient {
   async blockPlayer(target: string): Promise<BlockedPlayer[]> {
     return this.socialService.blockPlayer(target);
   }
+  async validateBlockPlayer(target: string): Promise<{ puuid: string }> {
+    return this.socialService.validateBlockPlayer(target);
+  }
   async unblockPlayer(puuid: string): Promise<BlockedPlayer[]> {
     return this.socialService.unblockPlayer(puuid);
+  }
+  async validateUnblockPlayer(puuid: string): Promise<{ puuid: string }> {
+    return this.socialService.validateUnblockPlayer(puuid);
   }
   async conversations(): Promise<Conversation[]> {
     return this.socialService.conversations();
@@ -156,10 +184,16 @@ export class RiotClient {
     return this.socialService.messages(conversationId);
   }
   async sendMessage(
-    to: { puuid: string } | { conversationId: string },
+    to: { puuid: string } | { conversationId: string } | { riotId: string },
     text: string,
   ): Promise<Message> {
     return this.socialService.sendMessage(to, text);
+  }
+  async validateSendMessage(
+    to: { puuid: string } | { conversationId: string } | { riotId: string },
+    text: string,
+  ): Promise<{ cid: string; message: string; type: "chat" | "groupchat" }> {
+    return this.socialService.validateSendMessage(to, text);
   }
   async store(options?: { language?: string }): Promise<Store> {
     return this.storeService.store(options);

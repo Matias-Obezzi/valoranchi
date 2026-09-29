@@ -11,7 +11,7 @@ import {
 
 export interface LoadoutGunChange {
   weapon: string;
-  skin: string;
+  skin?: string;
   level?: string;
   chroma?: string;
   buddy?: string | null;
@@ -19,7 +19,7 @@ export interface LoadoutGunChange {
 
 export interface LoadoutChange {
   guns?: LoadoutGunChange[];
-  sprays?: Array<string | null>;
+  sprays?: Array<string | null | undefined>;
   flex?: string | null;
   card?: string;
   title?: string;
@@ -225,49 +225,64 @@ export class LoadoutValidator {
         });
       }
 
-      const skin = catalogue.getSkin(change.skin);
-      if (!skin) {
-        throw new ValidationError("unknown-item", `Unknown skin: ${change.skin}`, {
-          skin: change.skin,
-        });
-      }
+      let skinUuid: string;
+      let levelUuid: string;
+      let chromaUuid: string;
 
-      if (!weapon.skins.some((s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase())) {
-        throw new ValidationError(
-          "skin-not-for-weapon",
-          `Skin ${skin.displayName} is not for weapon ${weapon.displayName}`,
-          { weapon: weapon.uuid, skin: skin.uuid },
+      if (change.skin) {
+        const skin = catalogue.getSkin(change.skin);
+        if (!skin) {
+          throw new ValidationError("unknown-item", `Unknown skin: ${change.skin}`, {
+            skin: change.skin,
+          });
+        }
+
+        if (!weapon.skins.some((s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase())) {
+          throw new ValidationError(
+            "skin-not-for-weapon",
+            `Skin ${skin.displayName} is not for weapon ${weapon.displayName}`,
+            { weapon: weapon.uuid, skin: skin.uuid },
+          );
+        }
+
+        const isDefaultSkin = skin.contentTierUuid === null || !skin.contentTierUuid;
+        const ownedWeapon = ownedItems.weapons.find(
+          (w) => w.uuid.toLowerCase() === weapon!.uuid.toLowerCase(),
         );
+        const ownedSkin = ownedWeapon?.skins.find(
+          (s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase(),
+        );
+
+        if (!isDefaultSkin && !ownedSkin?.levels.some((l) => l.owned)) {
+          throw new ValidationError("skin-not-owned", `Skin is not owned: ${skin.displayName}`, {
+            skin: skin.uuid,
+          });
+        }
+
+        skinUuid = skin.uuid.toLowerCase();
+        levelUuid = this.resolveLevel(change.level, skin, isDefaultSkin, ownedSkin, catalogue);
+        chromaUuid = this.resolveChroma(
+          change.chroma,
+          skin,
+          isDefaultSkin,
+          ownedSkin,
+          catalogue,
+        );
+      } else {
+        const existingGun = nextGuns.find((g) => g.ID.toLowerCase() === weapon!.uuid.toLowerCase());
+        if (!existingGun) {
+          throw new ValidationError("unknown-item", `No skin found for weapon: ${weapon.displayName}`);
+        }
+        skinUuid = existingGun.SkinID;
+        levelUuid = existingGun.SkinLevelID;
+        chromaUuid = existingGun.ChromaID;
       }
-
-      const isDefaultSkin = skin.contentTierUuid === null || !skin.contentTierUuid;
-      const ownedWeapon = ownedItems.weapons.find(
-        (w) => w.uuid.toLowerCase() === weapon!.uuid.toLowerCase(),
-      );
-      const ownedSkin = ownedWeapon?.skins.find(
-        (s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase(),
-      );
-
-      if (!isDefaultSkin && !ownedSkin?.levels.some((l) => l.owned)) {
-        throw new ValidationError("skin-not-owned", `Skin is not owned: ${skin.displayName}`, {
-          skin: skin.uuid,
-        });
-      }
-
-      const levelUuid = this.resolveLevel(change.level, skin, isDefaultSkin, ownedSkin, catalogue);
-      const chromaUuid = this.resolveChroma(
-        change.chroma,
-        skin,
-        isDefaultSkin,
-        ownedSkin,
-        catalogue,
-      );
 
       let targetGun = nextGuns.find((g) => g.ID.toLowerCase() === weapon!.uuid.toLowerCase());
       if (!targetGun) {
         targetGun = {
           ID: weapon.uuid.toLowerCase(),
-          SkinID: skin.uuid.toLowerCase(),
+          SkinID: skinUuid,
           SkinLevelID: levelUuid,
           ChromaID: chromaUuid,
           Attachments: [],
@@ -279,7 +294,7 @@ export class LoadoutValidator {
       resolvedChanges.push({
         targetGun,
         weaponUuid: weapon.uuid.toLowerCase(),
-        skinUuid: skin.uuid.toLowerCase(),
+        skinUuid,
         levelUuid,
         chromaUuid,
         buddyUuid: change.buddy,
