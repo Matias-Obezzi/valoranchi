@@ -16,9 +16,19 @@ Commands:
   conversations    Print whisper and match chat conversations
   messages         Print chat messages (filter with --cid <id>)
   store            Print daily, night market, bundle, and accessory offers
+  matches          Print recent match history summaries
+  match <id>       Print full match details by ID
+  mmr              Print current rank, rating, and MMR breakdown
+  rank-history     Print competitive rating adjustments and tier changes
+  live             Print live pregame or in-game lobby status and loadouts
+  party            Print current party details and members
   watch            Stream real-time events as JSON lines until interrupted
 
 Options:
+  --count <n>        Number of matches or rank history entries to fetch
+  --queue <queue>    Queue filter (e.g. competitive, unrated)
+  --ranks            Fetch MMR and rank for each player in live match
+  --no-loadouts      Skip fetching player loadouts in live match
   --only <events>    Comma-separated list of event names to print
   --raw              Include raw client event frames
   --cid <id>         Conversation ID for filtering messages
@@ -134,10 +144,22 @@ export async function runWatch(
   return 0;
 }
 
-async function executeCommand(
+interface CliCommandOptions {
+  language?: string;
+  cid?: string;
+  count?: number;
+  queue?: string;
+  ranks?: boolean;
+  loadouts?: boolean;
+  matchId?: string;
+}
+
+const UNKNOWN_COMMAND = Symbol("UNKNOWN_COMMAND");
+
+async function executeStandardCommand(
   client: RiotClient,
   command: string,
-  options?: { language?: string; cid?: string },
+  options?: CliCommandOptions,
 ): Promise<unknown> {
   switch (command) {
     case "whoami":
@@ -161,8 +183,44 @@ async function executeCommand(
     case "store":
       return client.store({ language: options?.language });
     default:
-      return null;
+      return UNKNOWN_COMMAND;
   }
+}
+
+async function executeGameCommand(
+  client: RiotClient,
+  command: string,
+  options?: CliCommandOptions,
+): Promise<unknown> {
+  switch (command) {
+    case "matches":
+      return client.matches({ count: options?.count, queue: options?.queue });
+    case "match":
+      if (!options?.matchId) {
+        throw new Error("Missing match ID: riotclient match <id>");
+      }
+      return client.match(options.matchId);
+    case "mmr":
+      return client.mmr();
+    case "rank-history":
+      return client.rankHistory({ count: options?.count });
+    case "live":
+      return client.liveMatch({ ranks: options?.ranks, loadouts: options?.loadouts });
+    case "party":
+      return client.party();
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
+async function executeCommand(
+  client: RiotClient,
+  command: string,
+  options?: CliCommandOptions,
+): Promise<unknown> {
+  const std = await executeStandardCommand(client, command, options);
+  if (std !== UNKNOWN_COMMAND) return std;
+  return executeGameCommand(client, command, options);
 }
 
 export async function runCli(args: string[]): Promise<number> {
@@ -170,6 +228,11 @@ export async function runCli(args: string[]): Promise<number> {
     args,
     options: {
       cid: { type: "string" },
+      count: { type: "string" },
+      queue: { type: "string" },
+      ranks: { type: "boolean", default: false },
+      "no-loadouts": { type: "boolean", default: false },
+      loadouts: { type: "boolean" },
       language: { type: "string" },
       cache: { type: "string" },
       only: { type: "string" },
@@ -206,11 +269,18 @@ export async function runCli(args: string[]): Promise<number> {
       });
     }
 
+    const count = parsed.values.count ? Number(parsed.values.count) : undefined;
+    const loadouts = parsed.values["no-loadouts"] ? false : (parsed.values.loadouts ?? true);
     const result = await executeCommand(client, command, {
       language: parsed.values.language,
       cid: parsed.values.cid,
+      count,
+      queue: parsed.values.queue,
+      ranks: Boolean(parsed.values.ranks),
+      loadouts,
+      matchId: command === "match" ? parsed.positionals[1] : undefined,
     });
-    if (result === null) {
+    if (result === UNKNOWN_COMMAND) {
       process.stderr.write(`Unknown command: ${command}\n\n${USAGE}`);
       return 1;
     }

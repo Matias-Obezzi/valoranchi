@@ -107,6 +107,16 @@ describe("CLI entrypoint and flags", () => {
       accessories: null,
       radianite: [],
     });
+    const matchesSpy = vi.spyOn(RiotClient.prototype, "matches").mockResolvedValue([]);
+    const matchSpy = vi.spyOn(RiotClient.prototype, "match").mockResolvedValue({} as never);
+    const mmrSpy = vi.spyOn(RiotClient.prototype, "mmr").mockResolvedValue({} as never);
+    const rankHistorySpy = vi
+      .spyOn(RiotClient.prototype, "rankHistory")
+      .mockResolvedValue([] as never);
+    const liveSpy = vi
+      .spyOn(RiotClient.prototype, "liveMatch")
+      .mockResolvedValue({ phase: "none" });
+    const partySpy = vi.spyOn(RiotClient.prototype, "party").mockResolvedValue(null);
 
     try {
       expect(await runCli(["friends"])).toBe(0);
@@ -127,10 +137,39 @@ describe("CLI entrypoint and flags", () => {
       expect(await runCli(["store"])).toBe(0);
       expect(storeSpy).toHaveBeenCalledTimes(1);
 
-      expect(closeSpy).toHaveBeenCalledTimes(6);
+      expect(await runCli(["matches", "--count", "5", "--queue", "competitive"])).toBe(0);
+      expect(matchesSpy).toHaveBeenCalledWith({ count: 5, queue: "competitive" });
+
+      expect(await runCli(["match", "match-uuid-1"])).toBe(0);
+      expect(matchSpy).toHaveBeenCalledWith("match-uuid-1");
+
+      expect(await runCli(["mmr"])).toBe(0);
+      expect(mmrSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["rank-history", "--count", "3"])).toBe(0);
+      expect(rankHistorySpy).toHaveBeenCalledWith({ count: 3 });
+
+      expect(await runCli(["live", "--ranks", "--no-loadouts"])).toBe(0);
+      expect(liveSpy).toHaveBeenCalledWith({ ranks: true, loadouts: false });
+
+      expect(await runCli(["party"])).toBe(0);
+      expect(partySpy).toHaveBeenCalledTimes(1);
+
+      expect(closeSpy).toHaveBeenCalledTimes(12);
     } finally {
       process.stdout.write = originalStdout;
       vi.restoreAllMocks();
+    }
+  });
+
+  it("handles missing match ID with an error", async () => {
+    const originalStderr = process.stderr.write;
+    process.stderr.write = (() => true) as typeof process.stderr.write;
+    try {
+      const code = await runCli(["match"]);
+      expect(code).toBe(1);
+    } finally {
+      process.stderr.write = originalStderr;
     }
   });
 });

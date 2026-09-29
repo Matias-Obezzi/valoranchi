@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Mmr",
+  "definitions": {
+    "Mmr": {
+      "type": "object",
+      "properties": {
+        "current": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rank"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "peak": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "act": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "required": ["uuid", "name"],
+                  "additionalProperties": false
+                },
+                "tier": {
+                  "type": "number"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "division": {
+                  "type": ["string", "null"]
+                },
+                "icon": {
+                  "$ref": "#/definitions/Image"
+                },
+                "rating": {
+                  "type": ["number", "null"]
+                }
+              },
+              "required": ["act", "division", "icon", "name", "rating", "tier"]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "act": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": ["string", "null"]
+                },
+                "games": {
+                  "type": "number"
+                },
+                "wins": {
+                  "type": "number"
+                },
+                "gamesNeededForRating": {
+                  "type": "number"
+                }
+              },
+              "required": ["uuid", "name", "games", "wins", "gamesNeededForRating"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lastUpdate": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "matchId": {
+                  "type": "string"
+                },
+                "at": {
+                  "type": "string"
+                },
+                "before": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Rank"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "after": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Rank"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "earned": {
+                  "type": "number"
+                },
+                "movement": {
+                  "type": "string"
+                }
+              },
+              "required": ["matchId", "at", "before", "after", "earned", "movement"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "leaderboardAnonymized": {
+          "type": "boolean"
+        }
+      },
+      "required": ["current", "peak", "act", "lastUpdate", "leaderboardAnonymized"],
+      "additionalProperties": false
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    }
+  }
+}

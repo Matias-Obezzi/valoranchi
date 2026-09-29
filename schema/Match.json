@@ -1,0 +1,494 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Match",
+  "definitions": {
+    "Match": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "startedAt": {
+          "type": "string"
+        },
+        "lengthMs": {
+          "type": "number"
+        },
+        "completed": {
+          "type": "boolean"
+        },
+        "queue": {
+          "type": "string"
+        },
+        "ranked": {
+          "type": "boolean"
+        },
+        "custom": {
+          "type": "boolean"
+        },
+        "customName": {
+          "type": ["string", "null"]
+        },
+        "map": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": ["string", "null"]
+            },
+            "name": {
+              "type": ["string", "null"]
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": ["uuid", "name", "path"],
+          "additionalProperties": false
+        },
+        "mode": {
+          "type": "string"
+        },
+        "season": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": ["uuid", "name"],
+          "additionalProperties": false
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "won": {
+                "type": "boolean"
+              },
+              "roundsWon": {
+                "type": "number"
+              },
+              "roundsPlayed": {
+                "type": "number"
+              }
+            },
+            "required": ["id", "won", "roundsWon", "roundsPlayed"],
+            "additionalProperties": false
+          }
+        },
+        "players": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MatchPlayer"
+          }
+        },
+        "rounds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MatchRound"
+          }
+        },
+        "self": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "team": {
+                  "type": "string"
+                },
+                "won": {
+                  "type": ["boolean", "null"]
+                }
+              },
+              "required": ["team", "won"],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "replayRecorded": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "startedAt",
+        "lengthMs",
+        "completed",
+        "queue",
+        "ranked",
+        "custom",
+        "customName",
+        "map",
+        "mode",
+        "season",
+        "teams",
+        "players",
+        "rounds",
+        "self",
+        "replayRecorded"
+      ],
+      "additionalProperties": false
+    },
+    "MatchPlayer": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "team": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": ["string", "null"]
+        },
+        "agent": {
+          "$ref": "#/definitions/Agent"
+        },
+        "rank": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rank"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accountLevel": {
+          "type": "number"
+        },
+        "card": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedCard"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedTitle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stats": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "score": {
+                  "type": "number"
+                },
+                "kills": {
+                  "type": "number"
+                },
+                "deaths": {
+                  "type": "number"
+                },
+                "assists": {
+                  "type": "number"
+                },
+                "roundsPlayed": {
+                  "type": "number"
+                },
+                "headshots": {
+                  "type": "number"
+                },
+                "bodyshots": {
+                  "type": "number"
+                },
+                "legshots": {
+                  "type": "number"
+                },
+                "damage": {
+                  "type": "number"
+                },
+                "firstBloods": {
+                  "type": "number"
+                },
+                "plants": {
+                  "type": "number"
+                },
+                "defuses": {
+                  "type": "number"
+                },
+                "abilityCasts": {
+                  "type": "object",
+                  "properties": {
+                    "c": {
+                      "type": "number"
+                    },
+                    "q": {
+                      "type": "number"
+                    },
+                    "e": {
+                      "type": "number"
+                    },
+                    "x": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["c", "q", "e", "x"],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "score",
+                "kills",
+                "deaths",
+                "assists",
+                "roundsPlayed",
+                "headshots",
+                "bodyshots",
+                "legshots",
+                "damage",
+                "firstBloods",
+                "plants",
+                "defuses",
+                "abilityCasts"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "puuid",
+        "gameName",
+        "tagLine",
+        "team",
+        "partyId",
+        "agent",
+        "rank",
+        "accountLevel",
+        "card",
+        "title",
+        "stats"
+      ],
+      "additionalProperties": false
+    },
+    "Agent": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            },
+            "role": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": ["uuid", "name", "icon", "role"],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    },
+    "OwnedCard": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "small": {
+          "$ref": "#/definitions/Image"
+        },
+        "wide": {
+          "$ref": "#/definitions/Image"
+        },
+        "large": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "small", "wide", "large"],
+      "additionalProperties": false
+    },
+    "OwnedTitle": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["uuid", "name", "text"],
+      "additionalProperties": false
+    },
+    "MatchRound": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "number"
+        },
+        "winner": {
+          "type": "string"
+        },
+        "result": {
+          "type": "string"
+        },
+        "ceremony": {
+          "type": ["string", "null"]
+        },
+        "site": {
+          "type": ["string", "null"]
+        },
+        "planter": {
+          "type": ["string", "null"]
+        },
+        "defuser": {
+          "type": ["string", "null"]
+        },
+        "plantedAt": {
+          "type": ["number", "null"]
+        },
+        "defusedAt": {
+          "type": ["number", "null"]
+        },
+        "kills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "type": "number"
+              },
+              "roundTime": {
+                "type": "number"
+              },
+              "killer": {
+                "type": "string"
+              },
+              "victim": {
+                "type": "string"
+              },
+              "assistants": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "weapon": {
+                "type": "object",
+                "properties": {
+                  "uuid": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": ["string", "null"]
+                  },
+                  "kind": {
+                    "type": "string"
+                  }
+                },
+                "required": ["uuid", "name", "kind"],
+                "additionalProperties": false
+              },
+              "location": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["x", "y"],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": ["at", "roundTime", "killer", "victim", "assistants", "weapon", "location"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "number",
+        "winner",
+        "result",
+        "ceremony",
+        "site",
+        "planter",
+        "defuser",
+        "plantedAt",
+        "defusedAt",
+        "kills"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -14,6 +14,12 @@ const types = [
   "Conversation",
   "Message",
   "Store",
+  "MatchSummary",
+  "Match",
+  "Mmr",
+  "RankChange",
+  "LiveMatch",
+  "Party",
 ];
 const schemaDir = path.resolve("schema");
 

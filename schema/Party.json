@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Party",
+  "definitions": {
+    "Party": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "accessibility": {
+              "type": "string",
+              "enum": ["open", "closed"]
+            },
+            "queue": {
+              "type": ["string", "null"]
+            },
+            "inviteCode": {
+              "type": ["string", "null"]
+            },
+            "queueEnteredAt": {
+              "type": ["string", "null"]
+            },
+            "members": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PartyMember"
+              }
+            }
+          },
+          "required": [
+            "id",
+            "state",
+            "accessibility",
+            "queue",
+            "inviteCode",
+            "queueEnteredAt",
+            "members"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "PartyMember": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": ["string", "null"]
+        },
+        "tagLine": {
+          "type": ["string", "null"]
+        },
+        "owner": {
+          "type": "boolean"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "rank": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rank"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "accountLevel": {
+          "type": ["number", "null"]
+        },
+        "card": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedCard"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedTitle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "incognito": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "puuid",
+        "gameName",
+        "tagLine",
+        "owner",
+        "ready",
+        "rank",
+        "accountLevel",
+        "card",
+        "title",
+        "incognito"
+      ],
+      "additionalProperties": false
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "OwnedCard": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "small": {
+          "$ref": "#/definitions/Image"
+        },
+        "wide": {
+          "$ref": "#/definitions/Image"
+        },
+        "large": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "small", "wide", "large"],
+      "additionalProperties": false
+    },
+    "OwnedTitle": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["uuid", "name", "text"],
+      "additionalProperties": false
+    }
+  }
+}

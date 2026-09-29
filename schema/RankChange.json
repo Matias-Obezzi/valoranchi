@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/RankChange",
+  "definitions": {
+    "RankChange": {
+      "type": "object",
+      "properties": {
+        "matchId": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string"
+        },
+        "map": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": ["string", "null"]
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": ["name", "path"],
+          "additionalProperties": false
+        },
+        "before": {
+          "$ref": "#/definitions/Rank"
+        },
+        "after": {
+          "$ref": "#/definitions/Rank"
+        },
+        "earned": {
+          "type": "number"
+        },
+        "bonus": {
+          "type": "number"
+        },
+        "movement": {
+          "type": "string"
+        },
+        "afkPenalty": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "matchId",
+        "at",
+        "map",
+        "before",
+        "after",
+        "earned",
+        "bonus",
+        "movement",
+        "afkPenalty"
+      ],
+      "additionalProperties": false
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    }
+  }
+}

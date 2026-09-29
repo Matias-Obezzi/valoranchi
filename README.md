@@ -55,6 +55,32 @@ const messages = await client.messages();
 const store = await client.store({ language: "en-US" });
 console.log(store);
 
+// 9. Get recent match history summaries
+const matchSummaries = await client.matches({ count: 5, queue: "competitive" });
+console.log(matchSummaries);
+
+// 10. Get full match details by match ID
+if (matchSummaries.length > 0) {
+  const match = await client.match(matchSummaries[0].id);
+  console.log(match);
+}
+
+// 11. Get competitive MMR breakdown and current rank
+const mmr = await client.mmr();
+console.log(mmr);
+
+// 12. Get rank change history (competitive rating updates)
+const rankChanges = await client.rankHistory({ count: 5 });
+console.log(rankChanges);
+
+// 13. Get live match state (pregame agent select, in-game, range, or none)
+const live = await client.liveMatch({ ranks: true });
+console.log(live);
+
+// 14. Get current party details and members
+const party = await client.party();
+console.log(party);
+
 // Close the local loopback client agent when finished
 await client.close();
 ```
@@ -117,6 +143,12 @@ riotclient blocked
 riotclient conversations
 riotclient messages --cid <conversation-id>
 riotclient store --pretty
+riotclient matches --count 5
+riotclient match <match-id>
+riotclient mmr --pretty
+riotclient rank-history --count 5
+riotclient live --ranks
+riotclient party
 riotclient watch
 ```
 
@@ -130,6 +162,71 @@ Example trimmed output from `riotclient whoami --pretty`:
   "region": "na",
   "shard": "na",
   "accountLevel": 128
+}
+```
+
+Example trimmed output from `riotclient live --ranks --pretty`:
+
+```json
+{
+  "phase": "ingame",
+  "matchId": "c9284241-1234-5678-9abc-def012345678",
+  "queue": "competitive",
+  "ranked": true,
+  "map": {
+    "uuid": "7eaecc1b-4337-bbf6-6ab9-04b8f06b3319",
+    "name": "Ascent",
+    "path": "/Game/Maps/Ascent/Ascent"
+  },
+  "mode": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+  "phaseEndsInMs": null,
+  "allies": [
+    {
+      "puuid": "4a7b9c1d-1234-5678-9abc-def012345678",
+      "gameName": "Player",
+      "tagLine": "NA1",
+      "incognito": false,
+      "team": "Blue",
+      "agent": {
+        "uuid": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+        "name": "Jett",
+        "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+        "role": "Duelist"
+      },
+      "selection": "locked",
+      "accountLevel": 128,
+      "rank": {
+        "tier": 17,
+        "name": "Diamond 3",
+        "division": "3",
+        "icon": "https://media.valorant-api.com/competitivetiers/03621f52-4cd8-5e5e-4318-00a25e1144cd/17/largeicon.png",
+        "rating": 45
+      }
+    }
+  ],
+  "enemies": [],
+  "self": {
+    "puuid": "4a7b9c1d-1234-5678-9abc-def012345678",
+    "gameName": "Player",
+    "tagLine": "NA1",
+    "incognito": false,
+    "team": "Blue",
+    "agent": {
+      "uuid": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+      "name": "Jett",
+      "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+      "role": "Duelist"
+    },
+    "selection": "locked",
+    "accountLevel": 128,
+    "rank": {
+      "tier": 17,
+      "name": "Diamond 3",
+      "division": "3",
+      "icon": "https://media.valorant-api.com/competitivetiers/03621f52-4cd8-5e5e-4318-00a25e1144cd/17/largeicon.png",
+      "rating": 45
+    }
+  }
 }
 ```
 

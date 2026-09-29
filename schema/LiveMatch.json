@@ -1,0 +1,354 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/LiveMatch",
+  "definitions": {
+    "LiveMatch": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "phase": {
+              "type": "string",
+              "const": "none"
+            }
+          },
+          "required": ["phase"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "phase": {
+              "type": "string",
+              "const": "range"
+            },
+            "matchId": {
+              "type": "string"
+            }
+          },
+          "required": ["phase", "matchId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "phase": {
+              "type": "string",
+              "enum": ["pregame", "ingame"]
+            },
+            "matchId": {
+              "type": "string"
+            },
+            "queue": {
+              "type": ["string", "null"]
+            },
+            "ranked": {
+              "type": "boolean"
+            },
+            "map": {
+              "type": "object",
+              "properties": {
+                "uuid": {
+                  "type": ["string", "null"]
+                },
+                "name": {
+                  "type": ["string", "null"]
+                },
+                "path": {
+                  "type": "string"
+                }
+              },
+              "required": ["uuid", "name", "path"],
+              "additionalProperties": false
+            },
+            "mode": {
+              "type": ["string", "null"]
+            },
+            "phaseEndsInMs": {
+              "type": ["number", "null"]
+            },
+            "allies": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/LiveMatchPlayer"
+              }
+            },
+            "enemies": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/LiveMatchPlayer"
+              }
+            },
+            "self": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/LiveMatchPlayer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "phase",
+            "matchId",
+            "queue",
+            "ranked",
+            "map",
+            "mode",
+            "phaseEndsInMs",
+            "allies",
+            "enemies",
+            "self"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "LiveMatchPlayer": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": ["string", "null"]
+        },
+        "tagLine": {
+          "type": ["string", "null"]
+        },
+        "incognito": {
+          "type": "boolean"
+        },
+        "team": {
+          "type": "string"
+        },
+        "agent": {
+          "$ref": "#/definitions/Agent"
+        },
+        "selection": {
+          "type": ["string", "null"],
+          "enum": ["none", "selected", "locked", null]
+        },
+        "accountLevel": {
+          "type": ["number", "null"]
+        },
+        "card": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedCard"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OwnedTitle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rank": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rank"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "partyId": {
+          "type": ["string", "null"]
+        },
+        "loadout": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "weapon": {
+                    "type": "object",
+                    "properties": {
+                      "uuid": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": ["string", "null"]
+                      }
+                    },
+                    "required": ["uuid", "name"],
+                    "additionalProperties": false
+                  },
+                  "skin": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "uuid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": ["string", "null"]
+                          },
+                          "icon": {
+                            "$ref": "#/definitions/Image"
+                          }
+                        },
+                        "required": ["uuid", "name", "icon"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "buddy": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "uuid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": ["string", "null"]
+                          },
+                          "icon": {
+                            "$ref": "#/definitions/Image"
+                          }
+                        },
+                        "required": ["uuid", "name", "icon"],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": ["weapon", "skin", "buddy"],
+                "additionalProperties": false
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "puuid",
+        "gameName",
+        "tagLine",
+        "incognito",
+        "team",
+        "agent",
+        "selection",
+        "accountLevel",
+        "card",
+        "title",
+        "rank",
+        "partyId",
+        "loadout"
+      ],
+      "additionalProperties": false
+    },
+    "Agent": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            },
+            "role": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": ["uuid", "name", "icon", "role"],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Image": {
+      "type": ["string", "null"]
+    },
+    "OwnedCard": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "small": {
+          "$ref": "#/definitions/Image"
+        },
+        "wide": {
+          "$ref": "#/definitions/Image"
+        },
+        "large": {
+          "$ref": "#/definitions/Image"
+        }
+      },
+      "required": ["uuid", "name", "small", "wide", "large"],
+      "additionalProperties": false
+    },
+    "OwnedTitle": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["uuid", "name", "text"],
+      "additionalProperties": false
+    },
+    "Rank": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "division": {
+          "type": ["string", "null"]
+        },
+        "icon": {
+          "$ref": "#/definitions/Image"
+        },
+        "rating": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["tier", "name", "division", "icon", "rating"],
+      "additionalProperties": false
+    }
+  }
+}
