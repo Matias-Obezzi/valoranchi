@@ -24,7 +24,7 @@ import type {
 import { diffLoadout, exportLoadout } from "../analysis/loadoutDiff.js";
 import { collectionValue } from "../analysis/collectionValue.js";
 import { StoreOffersBuilder } from "../collection/StoreOffersBuilder.js";
-import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
+import { CURRENCY_UUIDS, type RiotLoadoutResponse, type RiotOffersResponse } from "../riot/types.js";
 import { AccountValidator } from "./AccountValidator.js";
 import type { AccountApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -147,7 +147,7 @@ export class AccountService implements AccountApi {
     const api = this.context.api(session);
     const [owned, rawOffers, catalogue] = await Promise.all([
       this.ownedItems(),
-      api.offers(),
+      api.offers().catch(() => ({ Offers: [] } as RiotOffersResponse)),
       this.context.catalogue(),
     ]);
     const offers = new StoreOffersBuilder(catalogue).buildOffers(rawOffers);
