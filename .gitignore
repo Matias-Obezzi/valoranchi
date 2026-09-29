@@ -4,3 +4,8 @@ docs/reference
 docs/.vitepress/dist
 docs/.vitepress/cache
 release
+bin/
+obj/
+target/
+__pycache__/
+*.pyc
