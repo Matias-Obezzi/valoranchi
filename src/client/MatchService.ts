@@ -13,9 +13,11 @@ import type {
   RankChange,
   RatingTrend,
   PerformanceSummary,
+  PlayerAssessment,
 } from "../model/index.js";
 import { ratingTrend } from "../analysis/ratingTrend.js";
 import { performanceSummary } from "../analysis/performanceSummary.js";
+import { playerAssessment } from "../analysis/playerAssessment.js";
 import type { RiotMatchHistoryItem } from "../riot/types.js";
 import type { MatchesApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -324,5 +326,42 @@ export class MatchService implements MatchesApi {
     }
 
     return performanceSummary(matches, puuid, catalogue);
+  }
+
+  async assess(puuid?: string): Promise<PlayerAssessment> {
+    const session = await this.context.sessions.session();
+    const targetPuuid = puuid ?? session.puuid;
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+
+    let accountLevel = 0;
+    if (targetPuuid === session.puuid) {
+      const player = await this.context.player(session);
+      accountLevel = player.accountLevel;
+    } else {
+      try {
+        const history = await api.matchHistory(0, 1, undefined, targetPuuid);
+        if (history.History && history.History.length > 0) {
+          const details = await api.matchDetails(history.History[0]!.MatchID);
+          const p = details.players?.find((pl) => pl.subject === targetPuuid);
+          accountLevel = p?.accountLevel ?? 0;
+        }
+      } catch {
+        accountLevel = 0;
+      }
+    }
+
+    const [rawMmr, rawUpdates] = await Promise.all([
+      api.mmr(targetPuuid),
+      api.competitiveUpdates(0, 20, "competitive", targetPuuid).catch(() => ({ Matches: [] })),
+    ]);
+
+    const mmr = new MmrBuilder(catalogue).buildMmr(rawMmr, rawUpdates.Matches ?? []);
+    return playerAssessment({
+      puuid: targetPuuid,
+      accountLevel,
+      mmr,
+      updates: rawUpdates.Matches ?? [],
+    });
   }
 }

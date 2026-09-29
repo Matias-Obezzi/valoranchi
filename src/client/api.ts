@@ -29,6 +29,7 @@ import type {
   Penalty,
   PerformanceSummary,
   Player,
+  PlayerAssessment,
   PlayerSettings,
   Premier,
   QueueConfig,
@@ -160,6 +161,7 @@ export interface MatchesApi {
     puuid?: string;
     onProgress?: (done: number, total: number) => void;
   }): Promise<PerformanceSummary>;
+  assess(puuid?: string): Promise<PlayerAssessment>;
 }
 
 export interface PartyApi {

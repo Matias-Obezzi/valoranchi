@@ -1,4 +1,5 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
+import { playerAssessment } from "../analysis/playerAssessment.js";
 import { LiveMatchBuilder } from "../collection/LiveMatchBuilder.js";
 import { MmrBuilder } from "../collection/MmrBuilder.js";
 import type { LiveMatch, Rank } from "../model/index.js";
@@ -35,15 +36,14 @@ export class LiveMatchService {
     const pregame = await api.pregamePlayer();
     if (pregame?.MatchID) {
       const match = await api.pregameMatch(pregame.MatchID);
-      const puuids = [
-        ...(match.AllyTeam?.Players ?? []).map((p) => p.Subject),
-        ...(match.EnemyTeam?.Players ?? []).map((p) => p.Subject),
-      ];
+      const allPlayers = [...(match.AllyTeam?.Players ?? []), ...(match.EnemyTeam?.Players ?? [])];
+      const puuids = allPlayers.map((p) => p.Subject);
+      const accountLevels = new Map(allPlayers.map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]));
       const names = await resolveLobbyNames(api, puuids);
-      const ranks = options?.ranks
-        ? await this.resolveLobbyRanks(api, puuids, catalogue)
-        : new Map<string, Rank | null>();
-      return builder.buildPregame(match, names, ranks, session.puuid);
+      const { ranks, warnings } = options?.ranks
+        ? await this.resolveLobbyRanksAndWarnings(api, puuids, accountLevels, catalogue)
+        : { ranks: new Map<string, Rank | null>(), warnings: new Map<string, string[]>() };
+      return builder.buildPregame(match, names, ranks, session.puuid, warnings);
     }
 
     const core = await api.coreGamePlayer();
@@ -53,46 +53,58 @@ export class LiveMatchService {
         return { phase: "range", matchId: match.MatchID };
       }
       const puuids = (match.Players ?? []).map((p) => p.Subject);
+      const accountLevels = new Map((match.Players ?? []).map((p) => [p.Subject, p.PlayerIdentity?.AccountLevel ?? null]));
       const names = await resolveLobbyNames(api, puuids);
       const rawLoadouts =
         options?.loadouts !== false ? await api.coreGameLoadouts(core.MatchID) : null;
-      const ranks = options?.ranks
-        ? await this.resolveLobbyRanks(api, puuids, catalogue)
-        : new Map<string, Rank | null>();
-      return builder.buildCoreGame(match, rawLoadouts, names, ranks, session.puuid);
+      const { ranks, warnings } = options?.ranks
+        ? await this.resolveLobbyRanksAndWarnings(api, puuids, accountLevels, catalogue)
+        : { ranks: new Map<string, Rank | null>(), warnings: new Map<string, string[]>() };
+      return builder.buildCoreGame(match, rawLoadouts, names, ranks, session.puuid, warnings);
     }
 
     return { phase: "none" };
   }
 
-  private async resolveLobbyRanks(
+  private async resolveLobbyRanksAndWarnings(
     api: RiotApi,
     puuids: string[],
+    accountLevels: Map<string, number | null>,
     catalogue: Catalogue,
-  ): Promise<Map<string, Rank | null>> {
+  ): Promise<{ ranks: Map<string, Rank | null>; warnings: Map<string, string[]> }> {
     const ranks = new Map<string, Rank | null>();
+    const warnings = new Map<string, string[]>();
     const mmrBuilder = new MmrBuilder(catalogue);
     const unique = Array.from(new Set(puuids.filter(Boolean)));
 
     for (let i = 0; i < unique.length; i++) {
       const puuid = unique[i]!;
-      if (this.liveRankCache.has(puuid)) {
-        ranks.set(puuid, this.liveRankCache.get(puuid)!);
-        continue;
-      }
       if (i > 0) {
         await new Promise((r) => setTimeout(r, 250));
       }
       try {
-        const raw = await api.mmr(puuid);
-        const mmr = mmrBuilder.buildMmr(raw);
+        const [raw, rawUpdates] = await Promise.all([
+          api.mmr(puuid),
+          api.competitiveUpdates(0, 20, "competitive", puuid).catch(() => ({ Matches: [] })),
+        ]);
+        const mmr = mmrBuilder.buildMmr(raw, rawUpdates.Matches ?? []);
         this.liveRankCache.set(puuid, mmr.current);
         ranks.set(puuid, mmr.current);
+
+        const level = accountLevels.get(puuid) ?? null;
+        const assessment = playerAssessment({
+          puuid,
+          accountLevel: level,
+          mmr,
+          updates: rawUpdates.Matches ?? [],
+        });
+        warnings.set(puuid, assessment.warnings);
       } catch {
         this.liveRankCache.set(puuid, null);
         ranks.set(puuid, null);
+        warnings.set(puuid, []);
       }
     }
-    return ranks;
+    return { ranks, warnings };
   }
 }

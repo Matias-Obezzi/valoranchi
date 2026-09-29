@@ -2,7 +2,7 @@ import type { Rank, RatingTrend } from "../model/index.js";
 import type { RiotCompetitiveUpdate } from "../riot/types.js";
 import { calculateRankAverages } from "../collection/RankFit.js";
 
-function calculateStreak(updates: RiotCompetitiveUpdate[]): RatingTrend["streak"] {
+export function calculateStreak(updates: RiotCompetitiveUpdate[]): RatingTrend["streak"] {
   if (updates.length === 0) return { kind: null, length: 0 };
   const firstEarned = updates[0]!.RankedRatingEarned;
   if (firstEarned === 0) return { kind: null, length: 0 };

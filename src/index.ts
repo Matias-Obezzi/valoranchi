@@ -94,3 +94,4 @@ export type {
 } from "./model/index.js";
 export { ratingTrend } from "./analysis/ratingTrend.js";
 export { performanceSummary } from "./analysis/performanceSummary.js";
+export { playerAssessment } from "./analysis/playerAssessment.js";

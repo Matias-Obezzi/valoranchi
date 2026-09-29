@@ -3,10 +3,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ratingTrend } from "../src/analysis/ratingTrend.js";
 import { performanceSummary } from "../src/analysis/performanceSummary.js";
+import { playerAssessment } from "../src/analysis/playerAssessment.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
+import type { Mmr } from "../src/model/index.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
 const catalogue = new Catalogue(
@@ -189,4 +191,132 @@ describe("performanceSummary", () => {
     expect(summary.worst.map?.name).toBe("Bind");
   });
 });
+
+function createMockMmr(overrides?: Partial<Mmr>): Mmr {
+  return {
+    current: null,
+    fit: {
+      verdict: null,
+      ranksAbove: 0,
+      expected: null,
+      averageGain: null,
+      averageLoss: null,
+      sample: 0,
+    },
+    peak: null,
+    act: null,
+    lastUpdate: null,
+    leaderboardAnonymized: false,
+    ...overrides,
+  };
+}
+
+describe("playerAssessment", () => {
+  it("flags low-level-high-rank when account level is under 50 and tier is Platinum or higher", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(15, 50),
+      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 30,
+      mmr,
+      updates: [],
+    });
+
+    expect(assessment.warnings).toContain("low-level-high-rank");
+    expect(assessment.flags.find((f) => f.flag === "low-level-high-rank")?.reason).toContain(
+      "Account level 30 under 50 with Platinum or higher rank",
+    );
+  });
+
+  it("flags inflated when rank fit verdict is above", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(12, 50),
+      fit: { verdict: "above", ranksAbove: -1, expected: null, averageGain: 10, averageLoss: 20, sample: 5 },
+      act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 60,
+      mmr,
+      updates: [],
+    });
+
+    expect(assessment.warnings).toContain("inflated");
+  });
+
+  it("flags underranked when rank fit is below with two ranks", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(12, 50),
+      fit: { verdict: "below", ranksAbove: 2, expected: null, averageGain: 35, averageLoss: 10, sample: 5 },
+      act: { uuid: "act-1", name: "Act 1", games: 10, wins: 8, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 60,
+      mmr,
+      updates: [],
+    });
+
+    expect(assessment.warnings).toContain("underranked");
+  });
+
+  it("flags long-streak when streak is 5 or more", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(12, 50),
+      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 60,
+      mmr,
+      updates: twentyUpdates,
+    });
+
+    expect(assessment.warnings).toContain("long-streak");
+    expect(assessment.flags.find((f) => f.flag === "long-streak")?.reason).toBe(
+      "5-game win streak",
+    );
+  });
+
+  it("flags new-act when fewer than 5 games this act", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(12, 50),
+      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 3 },
+      act: { uuid: "act-1", name: "Act 1", games: 3, wins: 2, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 60,
+      mmr,
+      updates: [],
+    });
+
+    expect(assessment.warnings).toContain("new-act");
+    expect(assessment.flags.find((f) => f.flag === "new-act")?.reason).toContain(
+      "Fewer than 5 competitive games played this act (3)",
+    );
+  });
+
+  it("returns no flags for normal accounts", () => {
+    const mmr = createMockMmr({
+      current: resolver.fromTier(12, 50),
+      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
+    });
+    const assessment = playerAssessment({
+      puuid: "p1",
+      accountLevel: 80,
+      mmr,
+      updates: [],
+    });
+
+    expect(assessment.flags).toHaveLength(0);
+    expect(assessment.warnings).toHaveLength(0);
+  });
+});
+
 
