@@ -8,6 +8,7 @@ import { ValidationError } from "../errors.js";
 import type {
   AccountXp,
   ClientInfo,
+  CollectionValue,
   ContractProgress,
   Favourite,
   GameSession,
@@ -21,6 +22,8 @@ import type {
   Wallet,
 } from "../model/index.js";
 import { diffLoadout, exportLoadout } from "../analysis/loadoutDiff.js";
+import { collectionValue } from "../analysis/collectionValue.js";
+import { StoreOffersBuilder } from "../collection/StoreOffersBuilder.js";
 import { CURRENCY_UUIDS, type RiotLoadoutResponse } from "../riot/types.js";
 import { AccountValidator } from "./AccountValidator.js";
 import type { AccountApi } from "./api.js";
@@ -137,6 +140,18 @@ export class AccountService implements AccountApi {
   async exportLoadout(): Promise<LoadoutChange> {
     const current = await this.loadout();
     return exportLoadout(current);
+  }
+
+  async collectionValue(): Promise<CollectionValue> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const [owned, rawOffers, catalogue] = await Promise.all([
+      this.ownedItems(),
+      api.offers(),
+      this.context.catalogue(),
+    ]);
+    const offers = new StoreOffersBuilder(catalogue).buildOffers(rawOffers);
+    return collectionValue(owned, offers, catalogue);
   }
 
   private async resolveCollectionGunChanges(skinUuids: string[]): Promise<LoadoutGunChange[]> {

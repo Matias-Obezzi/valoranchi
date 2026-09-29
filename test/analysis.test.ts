@@ -5,11 +5,12 @@ import { ratingTrend } from "../src/analysis/ratingTrend.js";
 import { performanceSummary } from "../src/analysis/performanceSummary.js";
 import { playerAssessment } from "../src/analysis/playerAssessment.js";
 import { diffLoadout, exportLoadout } from "../src/analysis/loadoutDiff.js";
+import { collectionValue } from "../src/analysis/collectionValue.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
-import type { Loadout, Mmr } from "../src/model/index.js";
+import type { Loadout, Mmr, Offer, OwnedItems } from "../src/model/index.js";
 import type { LoadoutChange } from "../src/client/LoadoutValidator.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
@@ -25,6 +26,13 @@ const twentyUpdates = JSON.parse(
     "utf-8",
   ),
 ) as RiotCompetitiveUpdate[];
+
+const fixtureOffers = JSON.parse(
+  fs.readFileSync(
+    path.join(import.meta.dirname, "fixtures", "analysis", "offers.json"),
+    "utf-8",
+  ),
+) as Offer[];
 
 describe("ratingTrend", () => {
   it("computes all trend fields from twenty competitive updates", () => {
@@ -437,6 +445,122 @@ describe("loadoutDiff and exportLoadout", () => {
     expect(diff.identity).toHaveLength(0);
   });
 });
+
+describe("collectionValue", () => {
+  it("calculates collection value with known prices, upgrade costs, and groupings", () => {
+    const vandal = catalogue.weapons.find((w) => w.displayName === "Vandal")!;
+    const standardSkin = vandal.skins.find((s) => s.displayName === "Standard Vandal")!;
+    const primeSkin = vandal.skins.find((s) => s.displayName === "Prime Vandal")!;
+    const reaverSkin = vandal.skins.find((s) => s.displayName === "Reaver Vandal")!;
+
+    const owned: OwnedItems = {
+      language: "en-US",
+      generatedAt: "2026-01-01T00:00:00.000Z",
+      player: {
+        puuid: "p1",
+        gameName: "Player",
+        tagLine: "1234",
+        region: "na",
+        shard: "na",
+        accountLevel: 50,
+      },
+      weapons: [
+        {
+          uuid: vandal.uuid,
+          name: vandal.displayName,
+          category: vandal.category,
+          skinsOwned: 4,
+          skinsTotal: 4,
+          skins: [
+            {
+              uuid: standardSkin.uuid,
+              name: standardSkin.displayName,
+              tier: null,
+              icon: null,
+              levels: [{ uuid: standardSkin.levels[0]!.uuid, name: standardSkin.levels[0]!.displayName, owned: true }],
+              chromas: [{ uuid: standardSkin.chromas[0]!.uuid, name: standardSkin.chromas[0]!.displayName, owned: true, swatch: null }],
+            },
+            {
+              uuid: primeSkin.uuid,
+              name: primeSkin.displayName,
+              tier: { uuid: "e046854e-406c-37f4-6607-19a9ba8426fc", name: "Premium", rank: 3, icon: null },
+              icon: null,
+              levels: [
+                { uuid: primeSkin.levels[0]!.uuid, name: primeSkin.levels[0]!.displayName, owned: true },
+                { uuid: primeSkin.levels[1]!.uuid, name: primeSkin.levels[1]!.displayName, owned: true },
+              ],
+              chromas: [
+                { uuid: primeSkin.chromas[0]!.uuid, name: primeSkin.chromas[0]!.displayName, owned: true, swatch: null },
+                { uuid: primeSkin.chromas[1]!.uuid, name: primeSkin.chromas[1]!.displayName, owned: true, swatch: null },
+              ],
+            },
+            {
+              uuid: reaverSkin.uuid,
+              name: reaverSkin.displayName,
+              tier: { uuid: "e046854e-406c-37f4-6607-19a9ba8426fc", name: "Premium", rank: 3, icon: null },
+              icon: null,
+              levels: [
+                { uuid: reaverSkin.levels[0]!.uuid, name: reaverSkin.levels[0]!.displayName, owned: true },
+              ],
+              chromas: [
+                { uuid: reaverSkin.chromas[0]!.uuid, name: reaverSkin.chromas[0]!.displayName, owned: true, swatch: null },
+              ],
+            },
+            {
+              uuid: "unknown-skin-uuid",
+              name: "Mystery Vandal",
+              tier: { uuid: "exclusive-tier-uuid", name: "Exclusive", rank: 4, icon: null },
+              icon: null,
+              levels: [
+                { uuid: "mystery-l1", name: "Mystery Level 1", owned: true },
+                { uuid: "mystery-l2", name: "Mystery Level 2", owned: true },
+              ],
+              chromas: [
+                { uuid: "mystery-c1", name: "Mystery Chroma 1", owned: true, swatch: null },
+              ],
+            },
+          ],
+        },
+      ],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+
+    const val = collectionValue(owned, fixtureOffers, catalogue);
+
+    expect(val.total.vp).toBe(3550);
+    expect(val.total.radianite).toBe(35);
+    expect(val.total.priced).toBe(3);
+    expect(val.total.totalItems).toBe(4);
+
+    expect(val.byWeapon).toHaveLength(1);
+    expect(val.byWeapon[0]?.name).toBe("Vandal");
+    expect(val.byWeapon[0]?.vp).toBe(3550);
+    expect(val.byWeapon[0]?.radianite).toBe(35);
+    expect(val.byWeapon[0]?.items).toBe(4);
+    expect(val.byWeapon[0]?.priced).toBe(3);
+
+    expect(val.byTier).toHaveLength(3);
+    const standardTier = val.byTier.find((t) => t.name === "Standard");
+    expect(standardTier?.vp).toBe(0);
+    expect(standardTier?.items).toBe(1);
+
+    const premiumTier = val.byTier.find((t) => t.name === "Premium");
+    expect(premiumTier?.vp).toBe(3550);
+    expect(premiumTier?.items).toBe(2);
+    expect(premiumTier?.radianite).toBe(25);
+
+    const exclusiveTier = val.byTier.find((t) => t.name === "Exclusive");
+    expect(exclusiveTier?.vp).toBe(0);
+    expect(exclusiveTier?.priced).toBe(0);
+    expect(exclusiveTier?.items).toBe(1);
+    expect(exclusiveTier?.radianite).toBe(10);
+  });
+});
+
 
 
 

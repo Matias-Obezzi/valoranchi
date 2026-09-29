@@ -8,6 +8,7 @@ export const USAGE = `Usage: riotclient <command> [options]
 Account:
   whoami           Print signed-in player profile and region
   owned-items      Print owned inventory items
+  collection-value Calculate estimated VP and Radianite value of owned collection
   loadout          Print currently equipped loadout
   wallet           Print VP, Radianite, and Kingdom Credits balances
   xp               Print account level, XP progression and recent match XP history
@@ -424,6 +425,8 @@ async function executeStandardCommand(
       return client.account.whoami();
     case "owned-items":
       return client.account.ownedItems({ language: options?.language });
+    case "collection-value":
+      return client.account.collectionValue();
     case "loadout":
       return client.account.loadout();
     case "wallet":

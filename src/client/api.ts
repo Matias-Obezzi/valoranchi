@@ -2,6 +2,7 @@ import type {
   AccountXp,
   BlockedPlayer,
   ClientInfo,
+  CollectionValue,
   Content,
   ContractProgress,
   Conversation,
@@ -56,6 +57,7 @@ export interface AccountApi {
   equipPreset(preset: LoadoutChange): Promise<Loadout>;
   validateEquipPreset(preset: LoadoutChange): Promise<RiotLoadoutResponse>;
   exportLoadout(): Promise<LoadoutChange>;
+  collectionValue(): Promise<CollectionValue>;
   wallet(): Promise<Wallet>;
   xp(): Promise<AccountXp>;
   contracts(): Promise<ContractProgress[]>;

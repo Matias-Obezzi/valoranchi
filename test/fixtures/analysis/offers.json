@@ -21,5 +21,28 @@
       "amount": 1775
     },
     "startedAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "offer-prime-vandal",
+    "item": {
+      "kind": "skin",
+      "uuid": "8908f237-47b2-031a-e905-1a89c93cc8f5",
+      "name": "Prime Vandal",
+      "weapon": "Vandal",
+      "tier": {
+        "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
+        "name": "Premium",
+        "rank": 3,
+        "icon": null
+      },
+      "icon": null,
+      "levelUuid": "7209796e-4f76-88c9-04fa-fb81498b5e9d"
+    },
+    "cost": {
+      "currency": "Valorant Points",
+      "currencyUuid": "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+      "amount": 1775
+    },
+    "startedAt": "2026-01-01T00:00:00.000Z"
   }
 ]
