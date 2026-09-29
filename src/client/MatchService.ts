@@ -178,7 +178,9 @@ export class MatchService implements MatchesApi {
     };
   }
 
-  async validateSelectAgent(agent: string): Promise<{ matchId: string; agentUuid: string }> {
+  async validateSelectAgent(
+    agent: string,
+  ): Promise<{ method: string; path: string; matchId: string; agentUuid: string }> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const catalogue = await this.context.catalogue();
@@ -196,6 +198,7 @@ export class MatchService implements MatchesApi {
       entitlements,
       agent,
       session.puuid,
+      "select",
     );
   }
 
@@ -206,8 +209,28 @@ export class MatchService implements MatchesApi {
     return this.live();
   }
 
-  async validateLockAgent(agent: string): Promise<{ matchId: string; agentUuid: string }> {
-    return this.validateSelectAgent(agent);
+  async validateLockAgent(
+    agent: string,
+  ): Promise<{ method: string; path: string; matchId: string; agentUuid: string }> {
+    const session = await this.context.sessions.session();
+    const api = this.context.api(session);
+    const catalogue = await this.context.catalogue();
+    const pregame = await api.pregamePlayer();
+    if (!pregame?.MatchID) {
+      throw new ValidationError("not-in-pregame", "Not currently in pregame agent select");
+    }
+    const [pregameMatch, entitlements] = await Promise.all([
+      api.pregameMatch(pregame.MatchID),
+      api.entitlements(),
+    ]);
+    return MatchValidator.validateSelectOrLock(
+      pregameMatch,
+      catalogue,
+      entitlements,
+      agent,
+      session.puuid,
+      "lock",
+    );
   }
 
   async lockAgent(agent: string): Promise<LiveMatch> {
@@ -217,7 +240,9 @@ export class MatchService implements MatchesApi {
     return this.live();
   }
 
-  async validateDodge(options?: { confirm?: boolean }): Promise<{ matchId: string }> {
+  async validateDodge(
+    options?: { confirm?: boolean },
+  ): Promise<{ method: string; path: string; matchId: string }> {
     const session = await this.context.sessions.session();
     const pregame = await this.context.api(session).pregamePlayer();
     return MatchValidator.validateDodge(pregame, options);
@@ -232,7 +257,7 @@ export class MatchService implements MatchesApi {
 
   async validateLeaveMatch(
     options?: { confirm?: boolean },
-  ): Promise<{ matchId: string; puuid: string }> {
+  ): Promise<{ method: string; path: string; matchId: string; puuid: string }> {
     const session = await this.context.sessions.session();
     const core = await this.context.api(session).coreGamePlayer();
     return MatchValidator.validateLeaveMatch(core, session.puuid, options);

@@ -15,7 +15,8 @@ export class MatchValidator {
     entitlements: RiotEntitlementsResponse,
     agentQuery: string,
     selfPuuid: string,
-  ): { matchId: string; agentUuid: string } {
+    action: "select" | "lock" = "select",
+  ): { method: string; path: string; matchId: string; agentUuid: string } {
     if (!pregameMatch || !pregameMatch.ID) {
       throw new ValidationError("not-in-pregame", "Not currently in pregame agent select");
     }
@@ -31,7 +32,12 @@ export class MatchValidator {
     this.assertNotLockedByAlly(pregameMatch, agent.uuid, selfPuuid);
     this.assertSelfNotLocked(pregameMatch, selfPuuid);
 
-    return { matchId: pregameMatch.ID, agentUuid: agent.uuid };
+    return {
+      method: "POST",
+      path: `/pregame/v1/matches/${encodeURIComponent(pregameMatch.ID)}/${action}/${encodeURIComponent(agent.uuid)}`,
+      matchId: pregameMatch.ID,
+      agentUuid: agent.uuid,
+    };
   }
 
   private static assertAgentOwned(
@@ -90,7 +96,7 @@ export class MatchValidator {
   static validateDodge(
     pregamePlayer: RiotPregamePlayerResponse | null | undefined,
     options?: { confirm?: boolean },
-  ): { matchId: string } {
+  ): { method: string; path: string; matchId: string } {
     if (options?.confirm !== true) {
       throw new ValidationError(
         "confirm-required",
@@ -100,14 +106,18 @@ export class MatchValidator {
     if (!pregamePlayer?.MatchID) {
       throw new ValidationError("not-in-pregame", "Not currently in pregame agent select");
     }
-    return { matchId: pregamePlayer.MatchID };
+    return {
+      method: "POST",
+      path: `/pregame/v1/matches/${encodeURIComponent(pregamePlayer.MatchID)}/quit`,
+      matchId: pregamePlayer.MatchID,
+    };
   }
 
   static validateLeaveMatch(
     corePlayer: RiotCoreGamePlayerResponse | null | undefined,
     selfPuuid: string,
     options?: { confirm?: boolean },
-  ): { matchId: string; puuid: string } {
+  ): { method: string; path: string; matchId: string; puuid: string } {
     if (options?.confirm !== true) {
       throw new ValidationError(
         "confirm-required",
@@ -117,6 +127,11 @@ export class MatchValidator {
     if (!corePlayer?.MatchID) {
       throw new ValidationError("not-in-match", "Not currently in a match");
     }
-    return { matchId: corePlayer.MatchID, puuid: selfPuuid };
+    return {
+      method: "POST",
+      path: `/core-game/v1/players/${encodeURIComponent(selfPuuid)}/disassociate/${encodeURIComponent(corePlayer.MatchID)}`,
+      matchId: corePlayer.MatchID,
+      puuid: selfPuuid,
+    };
   }
 }

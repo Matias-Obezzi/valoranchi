@@ -105,6 +105,46 @@ const premier = await client.matches.premier();
 const queues = await client.party.queues();
 const customGameConfigs = await client.party.customGameConfigs();
 
+// 19. Agent select & match actions
+await client.matches.selectAgent("Jett");
+await client.matches.lockAgent("Jett");
+await client.matches.dodge({ confirm: true });
+await client.matches.leaveMatch({ confirm: true });
+
+// 20. Party invitations & join requests
+const invites = await client.party.invites();
+await client.party.join(partyId);
+await client.party.declineInvite(inviteId);
+const requests = await client.party.requests();
+await client.party.requestToJoin(partyId);
+await client.party.declineRequest(requestId);
+
+// 21. Custom games & party controls
+await client.party.makeCustomGame();
+await client.party.setCustomGameSettings({
+  map: "Ascent",
+  mode: "Standard",
+  server: "pdx",
+  rules: { AllowGameModifiers: true },
+});
+await client.party.setTeam(puuid, "TeamOne");
+await client.party.startCustomGame();
+await client.party.balanceTeams();
+await client.party.makeDefault("competitive");
+await client.party.setPreferredServers(["pdx", "sjc"]);
+await client.party.setModerator(puuid, true);
+await client.party.refresh();
+
+// 22. Cloud Player Settings & Local API
+const clientInfo = await client.account.client();
+const participants = await client.social.participants();
+const settings = await client.account.settings();
+await client.account.saveSettings(settings, { confirm: true });
+
+// 23. Raw escape hatches (unsupported surface)
+const rawLocal = await client.local.get("/riotclient/region-locale");
+const rawRiot = await client.riot.get("https://pd.na.a.pvp.net/account-xp/v1/players/" + puuid);
+
 // Close the local loopback client agent when finished
 await client.close();
 ```
@@ -425,6 +465,30 @@ Every party write is validated against the live party state before any request r
 - `invalid-code`: Thrown when invite code is not 6 to 12 alphanumeric characters.
 - `invite-code-missing`: Thrown when revoking an invite code but none is active.
 - `restricted`: Thrown on matchmaking join when party has active restriction penalty seconds.
+- `invite-missing`: Thrown when joining or declining an invite that does not exist in player record.
+- `request-missing`: Thrown when declining a join request that is not pending on the party.
+- `not-custom-game`: Thrown when setting custom game settings, membership, or starting when party is not in custom game mode.
+- `map-not-enabled`: Thrown when setting a custom game map that is not enabled in configs.
+- `mode-not-enabled`: Thrown when setting a custom game mode that is not enabled in configs.
+- `server-unknown`: Thrown when setting a custom game or preferred server that does not exist in ping info.
+- `no-team-players`: Thrown when starting a custom game without any players on TeamOne or TeamTwo.
+
+### Agent Select & Match Validation Rules
+
+- `not-in-pregame`: Thrown when selecting, locking, or dodging while not in pregame agent select.
+- `unknown-agent`: Thrown when selecting or locking an agent UUID or name not present or non-playable in catalogue.
+- `agent-not-owned`: Thrown when selecting or locking an agent not unlocked and not base content.
+- `agent-locked-by-ally`: Thrown when attempting to select or lock an agent already locked by a teammate.
+- `already-locked`: Thrown when selecting or locking after having already locked in an agent.
+- `confirm-required`: Thrown when executing `dodge`, `leaveMatch`, or `saveSettings` without explicit confirmation.
+- `not-in-match`: Thrown when attempting to leave a match while not in an active game.
+
+### Player Settings & Local API Caveats
+
+- `game-not-running`: Thrown when accessing or saving cloud player settings without VALORANT running. The local endpoint requires basic authentication using the `-remoting-auth-token` passed to VALORANT's process launch arguments.
+- **Settings synchronization**: VALORANT re-reads settings from Riot's cloud only upon process launch. Writing settings with `account.saveSettings()` updates the cloud copy, but if the in-game Settings menu is opened in a running VALORANT client, the game client will overwrite the cloud copy with its in-memory settings.
+- **Own Presence Writes**: Updating own presence (`PUT /chat/v2/me`) is not supported by this client version and is skipped.
+- **Raw Escape Hatches**: `client.local` and `client.riot` provide low-level HTTP access (`get`, `post`, `put`, `delete`) to local loopback and remote Riot endpoints respectively. This is provided as an escape hatch for unmodeled routes and is an unsupported surface.
 
 ### Dry-Run by Default in CLI
 

@@ -17,6 +17,9 @@ Account:
   favourites       Print favorited weapon skins
   session          Print current client session loop state and playtime
   config           Print shared client configuration mapping
+  client           Print client identity, locale, region, and Valorant running state
+  settings         Print cloud player settings (--raw for unprocessed dump)
+  settings-save    Save player settings from JSON file (<file.json>, requires --yes --confirm)
   equip            Equip skins, buddies, sprays, card, title, border, flex (dry-run, --yes to apply)
   equip-collection Equip a collection of skins (<skinUuid,...>) (dry-run, --yes to apply)
   contract-activate Activate an agent contract (<uuid>) (dry-run, --yes to apply)
@@ -30,6 +33,7 @@ Social:
   blocked          Print blocked players
   conversations    Print whisper and match chat conversations
   messages         Print chat messages (filter with --cid <id>)
+  participants     Print chat participants (filter with --cid <id>)
   send             Send chat message (--to <puuid|name#tag|cid> --text <msg>)
   friend-request   Send friend request (<name#tag>)
   friend-accept    Accept friend request (<puuid>)
@@ -58,6 +62,10 @@ Matches:
   leaderboard      Print competitive leaderboard [--season] [--start] [--size] [--query]
   content          Print active act, episode and live events
   premier          Print premier eligibility, roster, and season info
+  agent-select     Select an agent in pregame (<uuid|name>) (dry-run, --yes to apply)
+  agent-lock       Lock in an agent in pregame (<uuid|name>) (dry-run, --yes to apply)
+  dodge            Dodge pregame agent select (requires --yes --confirm)
+  leave-match      Leave active in-game match (requires --yes --confirm)
 
 Party:
   party            Print current party details and members
@@ -67,7 +75,21 @@ Party:
   party-kick       Kick member from party (<puuid>)
   party-promote    Promote member to party owner (<puuid>)
   party-code       Generate or revoke party invite code [--revoke]
-  party-join       Join party by invite code (<code>)
+  party-join       Join party by invite code or party ID (<partyId|code>)
+  party-invites    Print incoming party invites
+  party-requests   Print incoming party join requests
+  party-decline-invite Decline party invite (<id>) (dry-run, --yes to apply)
+  party-request    Request to join party (<partyId>) (dry-run, --yes to apply)
+  party-decline-request Decline party join request (<id>) (dry-run, --yes to apply)
+  custom-game      Convert party into a custom game (dry-run, --yes to apply)
+  custom-game-settings Configure custom game (--map <name> --mode <name> [--server <id>] [--rule k=v...])
+  custom-game-team Set member custom game team (<puuid> <team>) (dry-run, --yes to apply)
+  custom-game-start Start custom game match (dry-run, --yes to apply)
+  custom-game-balance Balance custom game teams (dry-run, --yes to apply)
+  party-default    Set party default queue (<queue>) (dry-run, --yes to apply)
+  party-servers    Set preferred game servers (<id,...>) (dry-run, --yes to apply)
+  party-moderator  Set member moderator status (<puuid> on|off) (dry-run, --yes to apply)
+  party-refresh    Refresh party member pings and identity (dry-run, --yes to apply)
   party-ready      Set party ready state (on|off)
   party-queue      Change party queue (<queue>)
   party-access     Set party accessibility (open|closed)
@@ -75,12 +97,16 @@ Party:
   party-stop       Stop party matchmaking
   party-leave      Leave current party
 
+Raw (unsupported):
+  local            Send raw request to local Riot client API (<get|post|put|delete> <path> [--body json])
+  riot             Send raw request to remote Riot game servers (<get|post|put|delete> <url> [--body json])
+
 Events:
   watch            Stream real-time events as JSON lines until interrupted
 
 Options:
   --yes              Execute write command (default is dry-run)
-  --confirm          Confirm purchase (required with buy --yes)
+  --confirm          Confirm write action (required with buy, dodge, leave-match, settings-save)
   --offer <id>       Store offer ID to purchase
   --bundle <id>      Store bundle ID to purchase
   --badge <on|off>   Hide or show act rank badge
@@ -105,9 +131,14 @@ Options:
   --queue <queue>    Queue filter (e.g. competitive, unrated)
   --ranks            Fetch MMR and rank for each player in live match
   --no-loadouts      Skip fetching player loadouts in live match
+  --map <name>       Map name or path for custom game
+  --mode <name>      Game mode name or path for custom game
+  --server <id>      Server pod ID for custom game
+  --rule <spec>      Game rule override: <name>=<value> (repeatable)
+  --body <json>      JSON request body for local and riot raw commands
   --only <events>    Comma-separated list of event names to print
-  --raw              Include raw client event frames
-  --cid <id>         Conversation ID for filtering messages
+  --raw              Include raw client event frames or unformatted settings
+  --cid <id>         Conversation ID for filtering messages or participants
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
   --pretty           Pretty-print JSON output
@@ -403,6 +434,14 @@ async function executeStandardCommand(
       return client.store.offers();
     case "order":
       return client.store.order(requirePositional(pos, 1, "Usage: riotclient order <id>"));
+    case "client":
+      return client.account.client();
+    case "participants":
+      return client.social.participants(options?.cid);
+    case "settings": {
+      const settings = await client.account.settings();
+      return options?.rawValues?.raw ? settings.raw : settings;
+    }
     default:
       return UNKNOWN_COMMAND;
   }
@@ -649,8 +688,12 @@ async function executePartyCommand(
         ? (yes ? client.party.revokeInviteCode() : client.party.validateRevokeInviteCode())
         : (yes ? client.party.createInviteCode() : client.party.validateCreateInviteCode());
     case "party-join": {
-      const code = requirePositional(pos, 1, "Usage: riotclient party-join <code>");
-      return yes ? client.party.joinByCode(code) : client.party.validateJoinByCode(code);
+      const target = requirePositional(pos, 1, "Usage: riotclient party-join <partyId|code>");
+      const isPartyId = target.includes("-") || target.length >= 32;
+      if (isPartyId) {
+        return yes ? client.party.join(target) : client.party.validateJoin(target);
+      }
+      return yes ? client.party.joinByCode(target) : client.party.validateJoinByCode(target);
     }
     case "party-ready": {
       const ready = parseBooleanFlag(
@@ -701,17 +744,237 @@ async function executeWriteCommand(
   return executeStoreWriteCommand(client, command, yes, vals);
 }
 
+async function executePartyExtraCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  pos: string[],
+): Promise<unknown> {
+  switch (command) {
+    case "party-invites":
+      return client.party.invites();
+    case "party-requests":
+      return client.party.requests();
+    case "party-decline-invite": {
+      const id = requirePositional(pos, 1, "Usage: riotclient party-decline-invite <id>");
+      return yes ? client.party.declineInvite(id) : client.party.validateDeclineInvite(id);
+    }
+    case "party-request": {
+      const id = requirePositional(pos, 1, "Usage: riotclient party-request <partyId>");
+      return yes ? client.party.requestToJoin(id) : client.party.validateRequestToJoin(id);
+    }
+    case "party-decline-request": {
+      const id = requirePositional(pos, 1, "Usage: riotclient party-decline-request <id>");
+      return yes ? client.party.declineRequest(id) : client.party.validateDeclineRequest(id);
+    }
+    case "party-default": {
+      const queue = requirePositional(pos, 1, "Usage: riotclient party-default <queue>");
+      return yes ? client.party.makeDefault(queue) : client.party.validateMakeDefault(queue);
+    }
+    case "party-servers": {
+      const raw = requirePositional(pos, 1, "Usage: riotclient party-servers <id,...>");
+      const ids = raw.split(",").map((s) => s.trim()).filter(Boolean);
+      return yes ? client.party.setPreferredServers(ids) : client.party.validateSetPreferredServers(ids);
+    }
+    case "party-moderator": {
+      const puuid = requirePositional(pos, 1, "Usage: riotclient party-moderator <puuid> on|off");
+      const mod = parseBooleanFlag("moderator", requirePositional(pos, 2, "Usage: riotclient party-moderator <puuid> on|off"));
+      return yes ? client.party.setModerator(puuid, Boolean(mod)) : client.party.validateSetModerator(puuid, Boolean(mod));
+    }
+    case "party-refresh":
+      return yes ? client.party.refresh() : client.party.validateRefresh();
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
+function parseCustomGameRules(vals: Record<string, unknown>): Record<string, unknown> {
+  const ruleList = Array.isArray(vals.rule) ? (vals.rule as string[]) : vals.rule ? [String(vals.rule)] : [];
+  const rules: Record<string, unknown> = {};
+  for (const r of ruleList) {
+    const idx = r.indexOf("=");
+    if (idx !== -1) {
+      const k = r.slice(0, idx);
+      const v = r.slice(idx + 1);
+      rules[k] = v === "true" ? true : v === "false" ? false : isNaN(Number(v)) ? v : Number(v);
+    }
+  }
+  return rules;
+}
+
+async function executeCustomGameCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  switch (command) {
+    case "custom-game":
+      return yes ? client.party.makeCustomGame() : client.party.validateMakeCustomGame();
+    case "custom-game-settings": {
+      const map = vals.map as string | undefined;
+      const mode = vals.mode as string | undefined;
+      if (!map || !mode) {
+        throw new ValidationError(
+          "invalid-argument",
+          "Usage: riotclient custom-game-settings --map <name> --mode <name> [--server <id>] [--rule k=v...]",
+        );
+      }
+      const settings = {
+        map,
+        mode,
+        server: vals.server ? String(vals.server) : null,
+        rules: parseCustomGameRules(vals),
+      };
+      return yes
+        ? client.party.setCustomGameSettings(settings)
+        : client.party.validateSetCustomGameSettings(settings);
+    }
+    case "custom-game-team": {
+      const puuid = requirePositional(pos, 1, "Usage: riotclient custom-game-team <puuid> <team>");
+      const team = requirePositional(pos, 2, "Usage: riotclient custom-game-team <puuid> <team>");
+      return yes ? client.party.setTeam(puuid, team) : client.party.validateSetTeam(puuid, team);
+    }
+    case "custom-game-start":
+      return yes ? client.party.startCustomGame() : client.party.validateStartCustomGame();
+    case "custom-game-balance":
+      return yes ? client.party.balanceTeams() : client.party.validateBalanceTeams();
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
+async function executeMatchActionCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  switch (command) {
+    case "agent-select": {
+      const agent = requirePositional(pos, 1, "Usage: riotclient agent-select <uuid|name>");
+      return yes ? client.matches.selectAgent(agent) : client.matches.validateSelectAgent(agent);
+    }
+    case "agent-lock": {
+      const agent = requirePositional(pos, 1, "Usage: riotclient agent-lock <uuid|name>");
+      return yes ? client.matches.lockAgent(agent) : client.matches.validateLockAgent(agent);
+    }
+    case "dodge": {
+      if (!yes) {
+        return client.matches.validateDodge({ confirm: true }).catch(async () => {
+          return { method: "POST", path: "/pregame/v1/matches/{matchId}/quit" };
+        });
+      }
+      if (!vals.confirm) {
+        throw new ValidationError("confirm-required", "Dodge requires explicit confirmation: pass --confirm with --yes");
+      }
+      return client.matches.dodge({ confirm: true });
+    }
+    case "leave-match": {
+      if (!yes) {
+        return client.matches.validateLeaveMatch({ confirm: true }).catch(async () => {
+          return { method: "POST", path: "/core-game/v1/players/{puuid}/disassociate/{matchId}" };
+        });
+      }
+      if (!vals.confirm) {
+        throw new ValidationError("confirm-required", "Leaving match requires explicit confirmation: pass --confirm with --yes");
+      }
+      return client.matches.leaveMatch({ confirm: true });
+    }
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
+async function executeSettingsCommand(
+  client: RiotClient,
+  command: string,
+  yes: boolean,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  if (command !== "settings-save") return UNKNOWN_COMMAND;
+  const filePath = requirePositional(pos, 1, "Usage: riotclient settings-save <file.json> [--yes --confirm]");
+  const content = JSON.parse(readFileSync(filePath, "utf-8")) as unknown;
+  if (!yes) {
+    return client.account.validateSaveSettings(content, { confirm: true });
+  }
+  if (!vals.confirm) {
+    throw new ValidationError(
+      "confirm-required",
+      "Settings save requires explicit confirmation: pass --confirm with --yes",
+    );
+  }
+  return client.account.saveSettings(content, { confirm: true });
+}
+
+async function executeRawCommand(
+  client: RiotClient,
+  command: string,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  if (command !== "local" && command !== "riot") return UNKNOWN_COMMAND;
+  const method = requirePositional(
+    pos,
+    1,
+    `Usage: riotclient ${command} <get|post|put|delete> <path|url> [--body json]`,
+  ).toLowerCase();
+  const target = requirePositional(
+    pos,
+    2,
+    `Usage: riotclient ${command} <get|post|put|delete> <path|url> [--body json]`,
+  );
+  const body = vals.body
+    ? typeof vals.body === "string"
+      ? JSON.parse(vals.body)
+      : vals.body
+    : undefined;
+  const targetApi = command === "local" ? client.local : client.riot;
+  switch (method) {
+    case "get":
+      return targetApi.get(target);
+    case "post":
+      return targetApi.post(target, body);
+    case "put":
+      return targetApi.put(target, body);
+    case "delete":
+      return targetApi.delete(target, body);
+    default:
+      throw new ValidationError(
+        "invalid-argument",
+        `Unknown HTTP method: ${method}. Expected get, post, put, or delete`,
+      );
+  }
+}
+
 async function executeCommand(
   client: RiotClient,
   command: string,
   options?: CliCommandOptions,
 ): Promise<unknown> {
+  const pos = options?.positionals ?? [];
+  const vals = options?.rawValues ?? {};
+  const yes = Boolean(options?.yes);
+
   const std = await executeStandardCommand(client, command, options);
   if (std !== UNKNOWN_COMMAND) return std;
   const game = await executeGameCommand(client, command, options);
   if (game !== UNKNOWN_COMMAND) return game;
   const party = await executePartyCommand(client, command, options);
   if (party !== UNKNOWN_COMMAND) return party;
+  const partyExtra = await executePartyExtraCommand(client, command, yes, pos);
+  if (partyExtra !== UNKNOWN_COMMAND) return partyExtra;
+  const custom = await executeCustomGameCommand(client, command, yes, pos, vals);
+  if (custom !== UNKNOWN_COMMAND) return custom;
+  const matchAct = await executeMatchActionCommand(client, command, yes, pos, vals);
+  if (matchAct !== UNKNOWN_COMMAND) return matchAct;
+  const raw = await executeRawCommand(client, command, pos, vals);
+  if (raw !== UNKNOWN_COMMAND) return raw;
+  const setts = await executeSettingsCommand(client, command, yes, pos, vals);
+  if (setts !== UNKNOWN_COMMAND) return setts;
   return executeWriteCommand(client, command, options);
 }
 
@@ -757,6 +1020,11 @@ export async function runCli(args: string[]): Promise<number> {
       confirm: { type: "boolean", default: false },
       badge: { type: "string" },
       leaderboard: { type: "string" },
+      map: { type: "string" },
+      mode: { type: "string" },
+      server: { type: "string" },
+      rule: { type: "string", multiple: true },
+      body: { type: "string" },
     },
     allowPositionals: true,
   });

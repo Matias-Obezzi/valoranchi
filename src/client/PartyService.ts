@@ -264,7 +264,19 @@ export class PartyService implements PartyApi {
     return { declined: true, inviteId };
   }
 
+  async validateRequestToJoin(
+    partyId: string,
+  ): Promise<{ method: string; path: string; body: unknown }> {
+    const session = await this.context.sessions.session();
+    return {
+      method: "POST",
+      path: `/parties/v1/parties/${encodeURIComponent(partyId)}/request`,
+      body: { Subjects: [session.puuid] },
+    };
+  }
+
   async requestToJoin(partyId: string): Promise<{ requested: boolean; partyId: string }> {
+    await this.validateRequestToJoin(partyId);
     const session = await this.context.sessions.session();
     await this.context.api(session).requestPartyJoin(partyId, session.puuid);
     return { requested: true, partyId };
@@ -496,6 +508,22 @@ export class PartyService implements PartyApi {
       .api(session)
       .setPlayerModeratorStatus(validated.partyId, validated.puuid, validated.isModerator);
     return this.current();
+  }
+
+  async validateRefresh(): Promise<{ method: string; paths: string[] }> {
+    const session = await this.context.sessions.session();
+    const partyPlayer = await this.context.api(session).partyPlayer();
+    if (!partyPlayer?.CurrentPartyID) {
+      throw new ValidationError("no-party", "Not currently in a party");
+    }
+    return {
+      method: "POST",
+      paths: [
+        `/parties/v1/parties/members/${encodeURIComponent(session.puuid)}/refreshPings`,
+        `/parties/v1/parties/members/${encodeURIComponent(session.puuid)}/refreshCompetitiveTier`,
+        `/parties/v1/parties/members/${encodeURIComponent(session.puuid)}/refreshPlayerIdentity`,
+      ],
+    };
   }
 
   async refresh(): Promise<Party> {

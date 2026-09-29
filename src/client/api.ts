@@ -134,13 +134,21 @@ export interface MatchesApi {
   content(): Promise<Content>;
   premier(): Promise<Premier>;
   selectAgent(agent: string): Promise<LiveMatch>;
-  validateSelectAgent(agent: string): Promise<{ matchId: string; agentUuid: string }>;
+  validateSelectAgent(
+    agent: string,
+  ): Promise<{ method: string; path: string; matchId: string; agentUuid: string }>;
   lockAgent(agent: string): Promise<LiveMatch>;
-  validateLockAgent(agent: string): Promise<{ matchId: string; agentUuid: string }>;
+  validateLockAgent(
+    agent: string,
+  ): Promise<{ method: string; path: string; matchId: string; agentUuid: string }>;
   dodge(options?: { confirm?: boolean }): Promise<{ dodged: boolean; matchId: string }>;
-  validateDodge(options?: { confirm?: boolean }): Promise<{ matchId: string }>;
+  validateDodge(
+    options?: { confirm?: boolean },
+  ): Promise<{ method: string; path: string; matchId: string }>;
   leaveMatch(options?: { confirm?: boolean }): Promise<{ left: boolean; matchId: string }>;
-  validateLeaveMatch(options?: { confirm?: boolean }): Promise<{ matchId: string; puuid: string }>;
+  validateLeaveMatch(
+    options?: { confirm?: boolean },
+  ): Promise<{ method: string; path: string; matchId: string; puuid: string }>;
 }
 
 export interface PartyApi {
@@ -176,6 +184,7 @@ export interface PartyApi {
   declineInvite(inviteId: string): Promise<{ declined: boolean; inviteId: string }>;
   validateDeclineInvite(inviteId: string): Promise<{ partyId: string; inviteId: string }>;
   requestToJoin(partyId: string): Promise<{ requested: boolean; partyId: string }>;
+  validateRequestToJoin(partyId: string): Promise<{ method: string; path: string; body: unknown }>;
   declineRequest(requestId: string): Promise<{ declined: boolean; requestId: string }>;
   validateDeclineRequest(requestId: string): Promise<{ partyId: string; requestId: string }>;
   invites(): Promise<PartyInvite[]>;
@@ -203,6 +212,7 @@ export interface PartyApi {
     isModerator: boolean,
   ): Promise<{ partyId: string; puuid: string; isModerator: boolean }>;
   refresh(): Promise<Party>;
+  validateRefresh(): Promise<{ method: string; paths: string[] }>;
 }
 
 export interface LocalRawApi {
