@@ -7,6 +7,13 @@ export {
   type LoadoutGunChange,
   type PartyActionRequest,
 } from "./RiotClient.js";
+export type {
+  AccountApi,
+  SocialApi,
+  StoreApi,
+  MatchesApi,
+  PartyApi,
+} from "./client/api.js";
 export {
   PartyValidator,
   type PartyAction,
