@@ -7,7 +7,6 @@ import { PartyService } from "../src/client/PartyService.js";
 import { SocialService } from "../src/client/SocialService.js";
 import { StoreService } from "../src/client/StoreService.js";
 import { SessionManager } from "../src/client/SessionManager.js";
-import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
 import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
 import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
@@ -141,9 +140,7 @@ describe("CLI entrypoint and flags", () => {
     const rankHistorySpy = vi
       .spyOn(MatchService.prototype, "rankHistory")
       .mockResolvedValue([] as never);
-    const liveSpy = vi
-      .spyOn(MatchService.prototype, "live")
-      .mockResolvedValue({ phase: "none" });
+    const liveSpy = vi.spyOn(MatchService.prototype, "live").mockResolvedValue({ phase: "none" });
     const partySpy = vi.spyOn(PartyService.prototype, "current").mockResolvedValue(null);
 
     try {
@@ -415,7 +412,9 @@ describe("CLI write commands and dry-run", () => {
     const valBlockSpy = vi
       .spyOn(SocialService.prototype, "validateBlockPlayer")
       .mockResolvedValue({ puuid: "p4" });
-    const blockSpy = vi.spyOn(SocialService.prototype, "blockPlayer").mockResolvedValue([] as never);
+    const blockSpy = vi
+      .spyOn(SocialService.prototype, "blockPlayer")
+      .mockResolvedValue([] as never);
 
     const valUnblockSpy = vi
       .spyOn(SocialService.prototype, "validateUnblockPlayer")
@@ -512,12 +511,16 @@ describe("CLI write commands and dry-run", () => {
     const valCreateCodeSpy = vi
       .spyOn(PartyService.prototype, "validateCreateInviteCode")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/invitecode" });
-    const createCodeSpy = vi.spyOn(PartyService.prototype, "createInviteCode").mockResolvedValue({} as never);
+    const createCodeSpy = vi
+      .spyOn(PartyService.prototype, "createInviteCode")
+      .mockResolvedValue({} as never);
 
     const valRevokeCodeSpy = vi
       .spyOn(PartyService.prototype, "validateRevokeInviteCode")
       .mockResolvedValue({ method: "DELETE", path: "/parties/v1/parties/p1/invitecode" });
-    const revokeCodeSpy = vi.spyOn(PartyService.prototype, "revokeInviteCode").mockResolvedValue({} as never);
+    const revokeCodeSpy = vi
+      .spyOn(PartyService.prototype, "revokeInviteCode")
+      .mockResolvedValue({} as never);
 
     const valJoinSpy = vi
       .spyOn(PartyService.prototype, "validateJoinByCode")
@@ -526,28 +529,46 @@ describe("CLI write commands and dry-run", () => {
 
     const valReadySpy = vi
       .spyOn(PartyService.prototype, "validateSetReady")
-      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/members/self/setReady", body: { ready: true } });
+      .mockResolvedValue({
+        method: "POST",
+        path: "/parties/v1/parties/p1/members/self/setReady",
+        body: { ready: true },
+      });
     const readySpy = vi.spyOn(PartyService.prototype, "setReady").mockResolvedValue({} as never);
 
     const valQueueSpy = vi
       .spyOn(PartyService.prototype, "validateSetQueue")
-      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/queue", body: { queueID: "competitive" } });
+      .mockResolvedValue({
+        method: "POST",
+        path: "/parties/v1/parties/p1/queue",
+        body: { queueID: "competitive" },
+      });
     const queueSpy = vi.spyOn(PartyService.prototype, "setQueue").mockResolvedValue({} as never);
 
     const valAccessSpy = vi
       .spyOn(PartyService.prototype, "validateSetAccessibility")
-      .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/accessibility", body: { accessibility: "OPEN" } });
-    const accessSpy = vi.spyOn(PartyService.prototype, "setAccessibility").mockResolvedValue({} as never);
+      .mockResolvedValue({
+        method: "POST",
+        path: "/parties/v1/parties/p1/accessibility",
+        body: { accessibility: "OPEN" },
+      });
+    const accessSpy = vi
+      .spyOn(PartyService.prototype, "setAccessibility")
+      .mockResolvedValue({} as never);
 
     const valStartSpy = vi
       .spyOn(PartyService.prototype, "validateStartMatchmaking")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/join" });
-    const startSpy = vi.spyOn(PartyService.prototype, "startMatchmaking").mockResolvedValue({} as never);
+    const startSpy = vi
+      .spyOn(PartyService.prototype, "startMatchmaking")
+      .mockResolvedValue({} as never);
 
     const valStopSpy = vi
       .spyOn(PartyService.prototype, "validateStopMatchmaking")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/leave" });
-    const stopSpy = vi.spyOn(PartyService.prototype, "stopMatchmaking").mockResolvedValue({} as never);
+    const stopSpy = vi
+      .spyOn(PartyService.prototype, "stopMatchmaking")
+      .mockResolvedValue({} as never);
 
     const valLeaveSpy = vi
       .spyOn(PartyService.prototype, "validateLeave")
@@ -676,22 +697,36 @@ describe("CLI write commands and dry-run", () => {
 
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
     const xpSpy = vi.spyOn(AccountService.prototype, "xp").mockResolvedValue({} as never);
-    const contractsSpy = vi.spyOn(AccountService.prototype, "contracts").mockResolvedValue([] as never);
-    const missionsSpy = vi.spyOn(AccountService.prototype, "missions").mockResolvedValue([] as never);
-    const penaltiesSpy = vi.spyOn(AccountService.prototype, "penalties").mockResolvedValue([] as never);
+    const contractsSpy = vi
+      .spyOn(AccountService.prototype, "contracts")
+      .mockResolvedValue([] as never);
+    const missionsSpy = vi
+      .spyOn(AccountService.prototype, "missions")
+      .mockResolvedValue([] as never);
+    const penaltiesSpy = vi
+      .spyOn(AccountService.prototype, "penalties")
+      .mockResolvedValue([] as never);
     const favSpy = vi.spyOn(AccountService.prototype, "favourites").mockResolvedValue([] as never);
     const sessionSpy = vi.spyOn(AccountService.prototype, "session").mockResolvedValue({} as never);
     const configSpy = vi.spyOn(AccountService.prototype, "config").mockResolvedValue({} as never);
     const offersSpy = vi.spyOn(StoreService.prototype, "offers").mockResolvedValue([] as never);
     const orderSpy = vi.spyOn(StoreService.prototype, "order").mockResolvedValue({} as never);
-    const matchesForSpy = vi.spyOn(MatchService.prototype, "listFor").mockResolvedValue([] as never);
+    const matchesForSpy = vi
+      .spyOn(MatchService.prototype, "listFor")
+      .mockResolvedValue([] as never);
     const mmrForSpy = vi.spyOn(MatchService.prototype, "mmrFor").mockResolvedValue({} as never);
-    const rankHistoryForSpy = vi.spyOn(MatchService.prototype, "rankHistoryFor").mockResolvedValue([] as never);
-    const leaderboardSpy = vi.spyOn(MatchService.prototype, "leaderboard").mockResolvedValue({} as never);
+    const rankHistoryForSpy = vi
+      .spyOn(MatchService.prototype, "rankHistoryFor")
+      .mockResolvedValue([] as never);
+    const leaderboardSpy = vi
+      .spyOn(MatchService.prototype, "leaderboard")
+      .mockResolvedValue({} as never);
     const contentSpy = vi.spyOn(MatchService.prototype, "content").mockResolvedValue({} as never);
     const premierSpy = vi.spyOn(MatchService.prototype, "premier").mockResolvedValue({} as never);
     const queuesSpy = vi.spyOn(PartyService.prototype, "queues").mockResolvedValue([] as never);
-    const customGameConfigsSpy = vi.spyOn(PartyService.prototype, "customGameConfigs").mockResolvedValue({} as never);
+    const customGameConfigsSpy = vi
+      .spyOn(PartyService.prototype, "customGameConfigs")
+      .mockResolvedValue({} as never);
 
     try {
       expect(await runCli(["xp"])).toBe(0);
@@ -721,8 +756,13 @@ describe("CLI write commands and dry-run", () => {
       expect(await runCli(["order", "order-123"])).toBe(0);
       expect(orderSpy).toHaveBeenCalledWith("order-123");
 
-      expect(await runCli(["matches-for", "target-puuid", "--count", "5", "--queue", "competitive"])).toBe(0);
-      expect(matchesForSpy).toHaveBeenCalledWith("target-puuid", { count: 5, queue: "competitive" });
+      expect(
+        await runCli(["matches-for", "target-puuid", "--count", "5", "--queue", "competitive"]),
+      ).toBe(0);
+      expect(matchesForSpy).toHaveBeenCalledWith("target-puuid", {
+        count: 5,
+        queue: "competitive",
+      });
 
       expect(await runCli(["mmr-for", "target-puuid"])).toBe(0);
       expect(mmrForSpy).toHaveBeenCalledWith("target-puuid");
@@ -730,7 +770,19 @@ describe("CLI write commands and dry-run", () => {
       expect(await runCli(["rank-history-for", "target-puuid", "--count", "3"])).toBe(0);
       expect(rankHistoryForSpy).toHaveBeenCalledWith("target-puuid", { count: 3 });
 
-      expect(await runCli(["leaderboard", "--season", "season-1", "--start", "10", "--size", "25", "--query", "Player"])).toBe(0);
+      expect(
+        await runCli([
+          "leaderboard",
+          "--season",
+          "season-1",
+          "--start",
+          "10",
+          "--size",
+          "25",
+          "--query",
+          "Player",
+        ]),
+      ).toBe(0);
       expect(leaderboardSpy).toHaveBeenCalledWith({
         season: "season-1",
         start: 10,
@@ -762,23 +814,47 @@ describe("CLI write commands and dry-run", () => {
     process.stderr.write = (() => true) as typeof process.stderr.write;
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
 
-    const valActContract = vi.spyOn(AccountService.prototype, "validateActivateContract").mockResolvedValue({} as never);
-    const actContract = vi.spyOn(AccountService.prototype, "activateContract").mockResolvedValue([] as never);
+    const valActContract = vi
+      .spyOn(AccountService.prototype, "validateActivateContract")
+      .mockResolvedValue({} as never);
+    const actContract = vi
+      .spyOn(AccountService.prototype, "activateContract")
+      .mockResolvedValue([] as never);
 
-    const valAddFav = vi.spyOn(AccountService.prototype, "validateAddFavourite").mockResolvedValue({} as never);
-    const addFav = vi.spyOn(AccountService.prototype, "addFavourite").mockResolvedValue([] as never);
+    const valAddFav = vi
+      .spyOn(AccountService.prototype, "validateAddFavourite")
+      .mockResolvedValue({} as never);
+    const addFav = vi
+      .spyOn(AccountService.prototype, "addFavourite")
+      .mockResolvedValue([] as never);
 
-    const valRemFav = vi.spyOn(AccountService.prototype, "validateRemoveFavourite").mockResolvedValue({} as never);
-    const remFav = vi.spyOn(AccountService.prototype, "removeFavourite").mockResolvedValue([] as never);
+    const valRemFav = vi
+      .spyOn(AccountService.prototype, "validateRemoveFavourite")
+      .mockResolvedValue({} as never);
+    const remFav = vi
+      .spyOn(AccountService.prototype, "removeFavourite")
+      .mockResolvedValue([] as never);
 
-    const valSetBadge = vi.spyOn(AccountService.prototype, "validateSetActRankBadgeHidden").mockResolvedValue({} as never);
-    const setBadge = vi.spyOn(AccountService.prototype, "setActRankBadgeHidden").mockResolvedValue({} as never);
+    const valSetBadge = vi
+      .spyOn(AccountService.prototype, "validateSetActRankBadgeHidden")
+      .mockResolvedValue({} as never);
+    const setBadge = vi
+      .spyOn(AccountService.prototype, "setActRankBadgeHidden")
+      .mockResolvedValue({} as never);
 
-    const valSetLb = vi.spyOn(AccountService.prototype, "validateSetLeaderboardAnonymized").mockResolvedValue({} as never);
-    const setLb = vi.spyOn(AccountService.prototype, "setLeaderboardAnonymized").mockResolvedValue({} as never);
+    const valSetLb = vi
+      .spyOn(AccountService.prototype, "validateSetLeaderboardAnonymized")
+      .mockResolvedValue({} as never);
+    const setLb = vi
+      .spyOn(AccountService.prototype, "setLeaderboardAnonymized")
+      .mockResolvedValue({} as never);
 
-    const valRevealNm = vi.spyOn(StoreService.prototype, "validateRevealNightMarket").mockResolvedValue({} as never);
-    const revealNm = vi.spyOn(StoreService.prototype, "revealNightMarket").mockResolvedValue({} as never);
+    const valRevealNm = vi
+      .spyOn(StoreService.prototype, "validateRevealNightMarket")
+      .mockResolvedValue({} as never);
+    const revealNm = vi
+      .spyOn(StoreService.prototype, "revealNightMarket")
+      .mockResolvedValue({} as never);
 
     const valBuy = vi.spyOn(StoreService.prototype, "validateBuy").mockResolvedValue({} as never);
     const buy = vi.spyOn(StoreService.prototype, "buy").mockResolvedValue({} as never);
@@ -906,14 +982,12 @@ describe("CLI write commands and dry-run", () => {
     const dodge = vi
       .spyOn(MatchService.prototype, "dodge")
       .mockResolvedValue({ dodged: true, matchId: "m1" });
-    const valLeaveMatch = vi
-      .spyOn(MatchService.prototype, "validateLeaveMatch")
-      .mockResolvedValue({
-        method: "POST",
-        path: "/core-game/v1/players/me/disassociate/m1",
-        matchId: "m1",
-        puuid: "me",
-      });
+    const valLeaveMatch = vi.spyOn(MatchService.prototype, "validateLeaveMatch").mockResolvedValue({
+      method: "POST",
+      path: "/core-game/v1/players/me/disassociate/m1",
+      matchId: "m1",
+      puuid: "me",
+    });
     const leaveMatch = vi
       .spyOn(MatchService.prototype, "leaveMatch")
       .mockResolvedValue({ left: true, matchId: "m1" });
@@ -951,7 +1025,9 @@ describe("CLI write commands and dry-run", () => {
     const valCustom = vi
       .spyOn(PartyService.prototype, "validateMakeCustomGame")
       .mockResolvedValue({ partyId: "p1" });
-    const custom = vi.spyOn(PartyService.prototype, "makeCustomGame").mockResolvedValue({} as never);
+    const custom = vi
+      .spyOn(PartyService.prototype, "makeCustomGame")
+      .mockResolvedValue({} as never);
 
     const valCustomSetts = vi
       .spyOn(PartyService.prototype, "validateSetCustomGameSettings")
@@ -1012,9 +1088,7 @@ describe("CLI write commands and dry-run", () => {
     const saveSettings = vi
       .spyOn(AccountService.prototype, "saveSettings")
       .mockResolvedValue({} as never);
-    const participantsSpy = vi
-      .spyOn(SocialService.prototype, "participants")
-      .mockResolvedValue([]);
+    const participantsSpy = vi.spyOn(SocialService.prototype, "participants").mockResolvedValue([]);
 
     const sampleJson = path.join(import.meta.dirname, "fixtures", "catalogue.json");
 
@@ -1111,14 +1185,7 @@ describe("CLI write commands and dry-run", () => {
       expect(customSetts).not.toHaveBeenCalled();
 
       expect(
-        await runCli([
-          "custom-game-settings",
-          "--map",
-          "Ascent",
-          "--mode",
-          "Standard",
-          "--yes",
-        ]),
+        await runCli(["custom-game-settings", "--map", "Ascent", "--mode", "Standard", "--yes"]),
       ).toBe(0);
       expect(customSetts).toHaveBeenCalledTimes(1);
 
@@ -1190,9 +1257,8 @@ describe("CLI write commands and dry-run", () => {
       expect(participantsSpy).toHaveBeenCalledTimes(1);
 
       // local & riot raw escape hatches
-      const localGet = vi
-        .spyOn(RiotClientLocalApi.prototype, "get")
-        .mockResolvedValue({ status: "local-ok" } as never);
+      const localGet = vi.fn().mockResolvedValue({ status: "local-ok" });
+      vi.spyOn(SessionManager.prototype, "localApi").mockReturnValue({ get: localGet } as never);
       expect(await runCli(["local", "get", "/riotclient/region-locale"])).toBe(0);
       expect(localGet).toHaveBeenCalledWith("/riotclient/region-locale");
 
