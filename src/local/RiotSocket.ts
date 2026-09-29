@@ -45,11 +45,17 @@ export function parseFrame(raw: string | unknown): RiotFrame | null {
     return null;
   }
 
-  if (!Array.isArray(parsed) || parsed.length < 3 || parsed[0] !== 8 || parsed[1] !== "OnJsonApiEvent") {
+  if (
+    !Array.isArray(parsed) ||
+    parsed.length < 3 ||
+    parsed[0] !== 8 ||
+    parsed[1] !== "OnJsonApiEvent"
+  ) {
     return null;
   }
 
-  const payload = parsed[2] as { uri?: unknown; eventType?: unknown; data?: unknown } | null | undefined;
+  const payload = parsed[2] as
+    { uri?: unknown; eventType?: unknown; data?: unknown } | null | undefined;
   if (!payload || typeof payload !== "object") {
     return null;
   }
@@ -123,9 +129,7 @@ export class RiotSocket {
       this.ws = null;
       try {
         ws.close();
-      } catch {
-        // ignore close error
-      }
+      } catch {}
     }
     this.setConnected(false);
   }
@@ -147,9 +151,7 @@ export class RiotSocket {
       this.ws = null;
       try {
         oldWs.close();
-      } catch {
-        // ignore close error
-      }
+      } catch {}
     }
 
     const creds = this.credentialsResolver();
@@ -183,9 +185,7 @@ export class RiotSocket {
       if (this.ws !== ws) return;
       try {
         ws.send(JSON.stringify([5, "OnJsonApiEvent"]));
-      } catch {
-        // ignore send failure
-      }
+      } catch {}
       this.setConnected(true);
     };
 
@@ -197,9 +197,7 @@ export class RiotSocket {
       for (const listener of this.frameListeners) {
         try {
           listener(frame);
-        } catch {
-          // listener errors do not break socket loop
-        }
+        } catch {}
       }
     };
 
@@ -232,9 +230,7 @@ export class RiotSocket {
     for (const listener of this.statusListeners) {
       try {
         listener(next);
-      } catch {
-        // status listener errors ignored
-      }
+      } catch {}
     }
   }
 

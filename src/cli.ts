@@ -97,7 +97,12 @@ export async function runWatch(
   options: { only?: string; raw?: boolean } = {},
 ): Promise<number> {
   const allowed = options.only
-    ? new Set(options.only.split(",").map((s) => s.trim()).filter(Boolean))
+    ? new Set(
+        options.only
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
     : null;
   const includeRaw = Boolean(options.raw);
   const events = client.events();

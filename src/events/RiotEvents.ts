@@ -2,7 +2,13 @@ import type { Catalogue } from "../catalogue/Catalogue.js";
 import { FriendsBuilder } from "../collection/FriendsBuilder.js";
 import { MessagesBuilder } from "../collection/MessagesBuilder.js";
 import type { ChatApi } from "../local/ChatApi.js";
-import type { RawChatFriend, RawChatMessage, RawChatPresence, RawChatSession, RawFriendRequest } from "../local/chatTypes.js";
+import type {
+  RawChatFriend,
+  RawChatMessage,
+  RawChatPresence,
+  RawChatSession,
+  RawFriendRequest,
+} from "../local/chatTypes.js";
 import { decodeValorantPresence } from "../local/Presence.js";
 import type { RiotFrame, RiotSocket } from "../local/RiotSocket.js";
 import type { Friend, FriendRequest, Message, ValorantPresence } from "../model/index.js";
@@ -18,7 +24,9 @@ export type RiotEventMap = {
   message: [Message];
   party: [{ partyId: string }];
   game: [{ phase: "pregame" | "ingame"; matchId: string }];
-  "self:state": [{ state: "menus" | "pregame" | "ingame" | null; presence: ValorantPresence | null }];
+  "self:state": [
+    { state: "menus" | "pregame" | "ingame" | null; presence: ValorantPresence | null },
+  ];
   raw: [RiotFrame];
   error: [Error];
 };
@@ -258,7 +266,8 @@ export class RiotEvents extends TypedEmitter<RiotEventMap> {
     if (this.isDuplicateRelay(dedupeKey)) return;
 
     if (resource.includes("ares-parties") || resource.includes("/parties/v1/parties/")) {
-      const match = resource.match(/\/parties\/v1\/parties\/([a-zA-Z0-9-]+)/i) ??
+      const match =
+        resource.match(/\/parties\/v1\/parties\/([a-zA-Z0-9-]+)/i) ??
         resource.match(/parties\/([a-zA-Z0-9-]+)/i);
       if (match) this.emit("party", { partyId: match[1]! });
       return;
