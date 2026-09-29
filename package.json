@@ -21,6 +21,16 @@
   "engines": {
     "node": ">=20"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "valorant",
+    "riot",
+    "riot-client",
+    "valorant-api"
+  ],
+  "author": "Matias Obezzi <matiasobezzi@gmail.com>",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
@@ -28,7 +38,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
     "schema": "node scripts/gen-schemas.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "undici": "^7.5.0"
