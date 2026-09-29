@@ -665,4 +665,204 @@ describe("CLI write commands and dry-run", () => {
       vi.restoreAllMocks();
     }
   });
+
+  it("dispatches expanded remote read commands to RiotClient", async () => {
+    const originalStdout = process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+    const xpSpy = vi.spyOn(AccountService.prototype, "xp").mockResolvedValue({} as never);
+    const contractsSpy = vi.spyOn(AccountService.prototype, "contracts").mockResolvedValue([] as never);
+    const missionsSpy = vi.spyOn(AccountService.prototype, "missions").mockResolvedValue([] as never);
+    const penaltiesSpy = vi.spyOn(AccountService.prototype, "penalties").mockResolvedValue([] as never);
+    const favSpy = vi.spyOn(AccountService.prototype, "favourites").mockResolvedValue([] as never);
+    const sessionSpy = vi.spyOn(AccountService.prototype, "session").mockResolvedValue({} as never);
+    const configSpy = vi.spyOn(AccountService.prototype, "config").mockResolvedValue({} as never);
+    const offersSpy = vi.spyOn(StoreService.prototype, "offers").mockResolvedValue([] as never);
+    const orderSpy = vi.spyOn(StoreService.prototype, "order").mockResolvedValue({} as never);
+    const matchesForSpy = vi.spyOn(MatchService.prototype, "listFor").mockResolvedValue([] as never);
+    const mmrForSpy = vi.spyOn(MatchService.prototype, "mmrFor").mockResolvedValue({} as never);
+    const rankHistoryForSpy = vi.spyOn(MatchService.prototype, "rankHistoryFor").mockResolvedValue([] as never);
+    const leaderboardSpy = vi.spyOn(MatchService.prototype, "leaderboard").mockResolvedValue({} as never);
+    const contentSpy = vi.spyOn(MatchService.prototype, "content").mockResolvedValue({} as never);
+    const premierSpy = vi.spyOn(MatchService.prototype, "premier").mockResolvedValue({} as never);
+    const queuesSpy = vi.spyOn(PartyService.prototype, "queues").mockResolvedValue([] as never);
+    const customGameConfigsSpy = vi.spyOn(PartyService.prototype, "customGameConfigs").mockResolvedValue({} as never);
+
+    try {
+      expect(await runCli(["xp"])).toBe(0);
+      expect(xpSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["contracts"])).toBe(0);
+      expect(contractsSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["missions"])).toBe(0);
+      expect(missionsSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["penalties"])).toBe(0);
+      expect(penaltiesSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["favourites"])).toBe(0);
+      expect(favSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["session"])).toBe(0);
+      expect(sessionSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["config"])).toBe(0);
+      expect(configSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["offers"])).toBe(0);
+      expect(offersSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["order", "order-123"])).toBe(0);
+      expect(orderSpy).toHaveBeenCalledWith("order-123");
+
+      expect(await runCli(["matches-for", "target-puuid", "--count", "5", "--queue", "competitive"])).toBe(0);
+      expect(matchesForSpy).toHaveBeenCalledWith("target-puuid", { count: 5, queue: "competitive" });
+
+      expect(await runCli(["mmr-for", "target-puuid"])).toBe(0);
+      expect(mmrForSpy).toHaveBeenCalledWith("target-puuid");
+
+      expect(await runCli(["rank-history-for", "target-puuid", "--count", "3"])).toBe(0);
+      expect(rankHistoryForSpy).toHaveBeenCalledWith("target-puuid", { count: 3 });
+
+      expect(await runCli(["leaderboard", "--season", "season-1", "--start", "10", "--size", "25", "--query", "Player"])).toBe(0);
+      expect(leaderboardSpy).toHaveBeenCalledWith({
+        season: "season-1",
+        start: 10,
+        size: 25,
+        query: "Player",
+      });
+
+      expect(await runCli(["content"])).toBe(0);
+      expect(contentSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["premier"])).toBe(0);
+      expect(premierSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["queues"])).toBe(0);
+      expect(queuesSpy).toHaveBeenCalledTimes(1);
+
+      expect(await runCli(["custom-game-configs"])).toBe(0);
+      expect(customGameConfigsSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("dispatches expanded remote write commands (dry-run vs --yes)", async () => {
+    const originalStdout = process.stdout.write;
+    const originalStderr = process.stderr.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+    process.stderr.write = (() => true) as typeof process.stderr.write;
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    const valActContract = vi.spyOn(AccountService.prototype, "validateActivateContract").mockResolvedValue({} as never);
+    const actContract = vi.spyOn(AccountService.prototype, "activateContract").mockResolvedValue([] as never);
+
+    const valAddFav = vi.spyOn(AccountService.prototype, "validateAddFavourite").mockResolvedValue({} as never);
+    const addFav = vi.spyOn(AccountService.prototype, "addFavourite").mockResolvedValue([] as never);
+
+    const valRemFav = vi.spyOn(AccountService.prototype, "validateRemoveFavourite").mockResolvedValue({} as never);
+    const remFav = vi.spyOn(AccountService.prototype, "removeFavourite").mockResolvedValue([] as never);
+
+    const valSetBadge = vi.spyOn(AccountService.prototype, "validateSetActRankBadgeHidden").mockResolvedValue({} as never);
+    const setBadge = vi.spyOn(AccountService.prototype, "setActRankBadgeHidden").mockResolvedValue({} as never);
+
+    const valSetLb = vi.spyOn(AccountService.prototype, "validateSetLeaderboardAnonymized").mockResolvedValue({} as never);
+    const setLb = vi.spyOn(AccountService.prototype, "setLeaderboardAnonymized").mockResolvedValue({} as never);
+
+    const valRevealNm = vi.spyOn(StoreService.prototype, "validateRevealNightMarket").mockResolvedValue({} as never);
+    const revealNm = vi.spyOn(StoreService.prototype, "revealNightMarket").mockResolvedValue({} as never);
+
+    const valBuy = vi.spyOn(StoreService.prototype, "validateBuy").mockResolvedValue({} as never);
+    const buy = vi.spyOn(StoreService.prototype, "buy").mockResolvedValue({} as never);
+
+    try {
+      // Contract activate
+      expect(await runCli(["contract-activate", "c-uuid"])).toBe(0);
+      expect(valActContract).toHaveBeenCalledWith("c-uuid");
+      expect(actContract).not.toHaveBeenCalled();
+
+      expect(await runCli(["contract-activate", "c-uuid", "--yes"])).toBe(0);
+      expect(actContract).toHaveBeenCalledWith("c-uuid");
+
+      // Favourite add / remove
+      expect(await runCli(["favourite-add", "skin-uuid"])).toBe(0);
+      expect(valAddFav).toHaveBeenCalledWith("skin-uuid");
+      expect(addFav).not.toHaveBeenCalled();
+
+      expect(await runCli(["favourite-add", "skin-uuid", "--yes"])).toBe(0);
+      expect(addFav).toHaveBeenCalledWith("skin-uuid");
+
+      expect(await runCli(["favourite-remove", "skin-uuid"])).toBe(0);
+      expect(valRemFav).toHaveBeenCalledWith("skin-uuid");
+      expect(remFav).not.toHaveBeenCalled();
+
+      expect(await runCli(["favourite-remove", "skin-uuid", "--yes"])).toBe(0);
+      expect(remFav).toHaveBeenCalledWith("skin-uuid");
+
+      // Privacy
+      expect(await runCli(["privacy", "--badge", "on", "--leaderboard", "off"])).toBe(0);
+      expect(valSetBadge).toHaveBeenCalledWith(true);
+      expect(valSetLb).toHaveBeenCalledWith(false);
+      expect(setBadge).not.toHaveBeenCalled();
+      expect(setLb).not.toHaveBeenCalled();
+
+      expect(await runCli(["privacy", "--badge", "off", "--leaderboard", "on", "--yes"])).toBe(0);
+      expect(setBadge).toHaveBeenCalledWith(false);
+      expect(setLb).toHaveBeenCalledWith(true);
+
+      // Night Market reveal
+      expect(await runCli(["night-market-reveal"])).toBe(0);
+      expect(valRevealNm).toHaveBeenCalledTimes(1);
+      expect(revealNm).not.toHaveBeenCalled();
+
+      expect(await runCli(["night-market-reveal", "--yes"])).toBe(0);
+      expect(revealNm).toHaveBeenCalledTimes(1);
+
+      // Buy dry-run (no --yes)
+      expect(await runCli(["buy", "--offer", "offer-1"])).toBe(0);
+      expect(valBuy).toHaveBeenCalledWith({ offerId: "offer-1" }, { confirm: true });
+      expect(buy).not.toHaveBeenCalled();
+
+      // Buy with --yes but without --confirm -> fails with 6 (confirm-required)
+      expect(await runCli(["buy", "--offer", "offer-1", "--yes"])).toBe(6);
+      expect(buy).not.toHaveBeenCalled();
+
+      // Buy with --yes and --confirm -> succeeds
+      expect(await runCli(["buy", "--offer", "offer-1", "--yes", "--confirm"])).toBe(0);
+      expect(buy).toHaveBeenCalledWith({ offerId: "offer-1" }, { confirm: true });
+
+      // Buy bundle with --yes and --confirm
+      expect(await runCli(["buy", "--bundle", "bundle-1", "--yes", "--confirm"])).toBe(0);
+      expect(buy).toHaveBeenCalledWith({ bundleId: "bundle-1" }, { confirm: true });
+    } finally {
+      process.stdout.write = originalStdout;
+      process.stderr.write = originalStderr;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("fails with exit code 6 when missing required arguments for remote commands", async () => {
+    const originalStderr = process.stderr.write;
+    process.stderr.write = (() => true) as typeof process.stderr.write;
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    try {
+      expect(await runCli(["order"])).toBe(6);
+      expect(await runCli(["matches-for"])).toBe(6);
+      expect(await runCli(["mmr-for"])).toBe(6);
+      expect(await runCli(["rank-history-for"])).toBe(6);
+      expect(await runCli(["contract-activate"])).toBe(6);
+      expect(await runCli(["favourite-add"])).toBe(6);
+      expect(await runCli(["favourite-remove"])).toBe(6);
+      expect(await runCli(["privacy"])).toBe(6);
+      expect(await runCli(["buy"])).toBe(6);
+    } finally {
+      process.stderr.write = originalStderr;
+      vi.restoreAllMocks();
+    }
+  });
 });

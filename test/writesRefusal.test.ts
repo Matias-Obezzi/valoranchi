@@ -77,6 +77,11 @@ const client = new RiotClient({
   localApiFactory: () => localApi,
 });
 
+import { AccountValidator } from "../src/client/AccountValidator.js";
+import { StoreValidator } from "../src/client/StoreValidator.js";
+import type { Cost, OwnedItems, Store, Wallet } from "../src/model/index.js";
+import type { RiotContractsResponse, RiotFavoritesResponse } from "../riot/types.js";
+
 describe("refused writes never reach Riot", () => {
   it("does not put a loadout with a card the account does not own", async () => {
     await expect(
@@ -100,5 +105,451 @@ describe("refused writes never reach Riot", () => {
   it("does not invite with an invalid riot id", async () => {
     await expect(client.party.invite("invalid-id")).rejects.toBeInstanceOf(ValidationError);
     expect(post.mock.calls.some(([url]) => String(url).includes("/invites/"))).toBe(false);
+  });
+
+  it("refuses contract activation if contract is not for an agent (contract-not-agent)", () => {
+    const catalogue = new Catalogue(catalogueData);
+    const rawContracts: RiotContractsResponse = {
+      Version: 1,
+      Subject: "me",
+      Contracts: [],
+      ProcessedMatches: [],
+      ActiveSpecialContract: "",
+      Missions: [],
+    };
+    const emptyOwned: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+
+    expect(() =>
+      AccountValidator.validateActivateContract(
+        rawContracts,
+        emptyOwned,
+        catalogue,
+        "contract-battlepass-1",
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "contract-not-agent",
+      }),
+    );
+  });
+
+  it("refuses contract activation if the agent is already owned (agent-owned)", () => {
+    const catalogue = new Catalogue(catalogueData);
+    const rawContracts: RiotContractsResponse = {
+      Version: 1,
+      Subject: "me",
+      Contracts: [],
+      ProcessedMatches: [],
+      ActiveSpecialContract: "",
+      Missions: [],
+    };
+    const ownedWithAgent: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [
+        {
+          uuid: "add6443a-41bd-e414-f6ad-e58d267f4e95",
+          name: "Jett",
+          role: "Duelist",
+          icon: null,
+          isPlayableCharacter: true,
+        },
+      ],
+    };
+
+    expect(() =>
+      AccountValidator.validateActivateContract(
+        rawContracts,
+        ownedWithAgent,
+        catalogue,
+        "contract-jett-1",
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "agent-owned",
+      }),
+    );
+  });
+
+  it("refuses contract activation if contract is already active (contract-active)", () => {
+    const catalogue = new Catalogue(catalogueData);
+    const rawContracts: RiotContractsResponse = {
+      Version: 1,
+      Subject: "me",
+      Contracts: [],
+      ProcessedMatches: [],
+      ActiveSpecialContract: "contract-jett-1",
+      Missions: [],
+    };
+    const emptyOwned: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+
+    expect(() =>
+      AccountValidator.validateActivateContract(
+        rawContracts,
+        emptyOwned,
+        catalogue,
+        "contract-jett-1",
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "contract-active",
+      }),
+    );
+  });
+
+  it("refuses adding favourite if already favorited (already-favourite)", () => {
+    const catalogue = new Catalogue(catalogueData);
+    const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
+    const rawFavorites: RiotFavoritesResponse = {
+      Subject: "me",
+      FavoritedContent: {
+        "fav-1": { ItemID: skinUuid },
+      },
+    };
+    const ownedWithSkin: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [
+        {
+          uuid: "w-1",
+          name: "Vandal",
+          category: "Rifle",
+          defaultSkinUuid: "default",
+          killStreamIcon: "k",
+          skins: [
+            {
+              uuid: skinUuid,
+              name: "Prime Vandal",
+              tier: null,
+              displayIcon: "d",
+              levels: [],
+              chromas: [],
+            },
+          ],
+        },
+      ],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+
+    expect(() =>
+      AccountValidator.validateAddFavourite(rawFavorites, ownedWithSkin, catalogue, skinUuid),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "already-favourite",
+      }),
+    );
+  });
+
+  it("refuses removing favourite if skin is not in favourites (not-favourite)", () => {
+    const catalogue = new Catalogue(catalogueData);
+    const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
+    const rawFavorites: RiotFavoritesResponse = {
+      Subject: "me",
+      FavoritedContent: {},
+    };
+
+    expect(() =>
+      AccountValidator.validateRemoveFavourite(rawFavorites, catalogue, skinUuid),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "not-favourite",
+      }),
+    );
+  });
+
+  it("refuses buy if confirm flag is not passed (confirm-required)", () => {
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: null,
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+    const emptyOwned: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+    const mockWallet: Wallet = {
+      valorantPoints: 5000,
+      radianite: 100,
+      kingdomCredits: 10000,
+    };
+
+    expect(() =>
+      StoreValidator.validateBuy(
+        mockStore,
+        emptyOwned,
+        mockWallet,
+        { offerId: "any-offer" },
+        false,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "confirm-required",
+      }),
+    );
+  });
+
+  it("refuses buy if offer is not in store (offer-not-in-store)", () => {
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: {
+        endsAt: "later",
+        offers: [],
+      },
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+    const emptyOwned: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+    const mockWallet: Wallet = {
+      valorantPoints: 5000,
+      radianite: 100,
+      kingdomCredits: 10000,
+    };
+
+    expect(() =>
+      StoreValidator.validateBuy(
+        mockStore,
+        emptyOwned,
+        mockWallet,
+        { offerId: "missing-offer" },
+        true,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "offer-not-in-store",
+      }),
+    );
+  });
+
+  it("refuses buy if item is already owned (already-owned)", () => {
+    const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: {
+        endsAt: "later",
+        offers: [
+          {
+            offerId: "prime-offer-id",
+            cost: { currency: "Valorant Points", currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", amount: 1775 },
+            item: {
+              kind: "skin",
+              uuid: skinUuid,
+              name: "Prime Vandal",
+              weapon: "Vandal",
+              tier: null,
+              icon: "icon",
+              levelUuid: "lvl-1",
+            },
+          },
+        ],
+      },
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+    const ownedWithSkin: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [
+        {
+          uuid: "w-1",
+          name: "Vandal",
+          category: "Rifle",
+          defaultSkinUuid: "default",
+          killStreamIcon: "k",
+          skins: [
+            {
+              uuid: skinUuid,
+              name: "Prime Vandal",
+              tier: null,
+              displayIcon: "d",
+              levels: [],
+              chromas: [],
+            },
+          ],
+        },
+      ],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+    const mockWallet: Wallet = {
+      valorantPoints: 5000,
+      radianite: 100,
+      kingdomCredits: 10000,
+    };
+
+    expect(() =>
+      StoreValidator.validateBuy(
+        mockStore,
+        ownedWithSkin,
+        mockWallet,
+        { offerId: "prime-offer-id" },
+        true,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "already-owned",
+      }),
+    );
+  });
+
+  it("refuses buy if wallet has insufficient funds (insufficient-funds)", () => {
+    const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: {
+        endsAt: "later",
+        offers: [
+          {
+            offerId: "prime-offer-id",
+            cost: { currency: "Valorant Points", currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", amount: 1775 },
+            item: {
+              kind: "skin",
+              uuid: skinUuid,
+              name: "Prime Vandal",
+              weapon: "Vandal",
+              tier: null,
+              icon: "icon",
+              levelUuid: "lvl-1",
+            },
+          },
+        ],
+      },
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+    const emptyOwned: OwnedItems = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      weapons: [],
+      buddies: [],
+      sprays: [],
+      cards: [],
+      titles: [],
+      agents: [],
+    };
+    const brokeWallet: Wallet = {
+      valorantPoints: 500, // 500 < 1775
+      radianite: 0,
+      kingdomCredits: 0,
+    };
+
+    expect(() =>
+      StoreValidator.validateBuy(
+        mockStore,
+        emptyOwned,
+        brokeWallet,
+        { offerId: "prime-offer-id" },
+        true,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        reason: "insufficient-funds",
+      }),
+    );
+  });
+
+  it("refuses night market reveal if night market is not active (night-market-missing)", () => {
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: null,
+      nightMarket: null,
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+
+    expect(() => StoreValidator.validateNightMarket(mockStore)).toThrowError(
+      expect.objectContaining({
+        reason: "night-market-missing",
+      }),
+    );
+  });
+
+  it("refuses night market reveal if all offers are already revealed (night-market-revealed)", () => {
+    const mockStore: Store = {
+      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      fetchedAt: "now",
+      daily: null,
+      nightMarket: {
+        endsAt: "later",
+        offers: [
+          {
+            offerId: "nm-1",
+            cost: { currency: "Valorant Points", currencyUuid: "vp", amount: 1000 },
+            discountedCost: { currency: "Valorant Points", currencyUuid: "vp", amount: 500 },
+            discountPercent: 50,
+            seen: true,
+            item: {
+              kind: "skin",
+              uuid: "skin-1",
+              name: "Skin 1",
+              weapon: "Vandal",
+              tier: null,
+              icon: "icon",
+              levelUuid: "lvl-1",
+            },
+          },
+        ],
+      },
+      bundles: null,
+      accessories: null,
+      radianite: [],
+    };
+
+    expect(() => StoreValidator.validateNightMarket(mockStore)).toThrowError(
+      expect.objectContaining({
+        reason: "night-market-revealed",
+      }),
+    );
   });
 });
