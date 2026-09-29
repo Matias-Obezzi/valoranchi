@@ -90,7 +90,7 @@ describe("PartyService", () => {
   });
 
   it("reads party and builds party model", async () => {
-    const party = await service.party();
+    const party = await service.current();
     expect(party).not.toBeNull();
     expect(party?.id).toBe("party-1");
     expect(party?.accessibility).toBe("closed");

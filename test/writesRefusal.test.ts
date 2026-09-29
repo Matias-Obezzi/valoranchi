@@ -80,25 +80,25 @@ const client = new RiotClient({
 describe("refused writes never reach Riot", () => {
   it("does not put a loadout with a card the account does not own", async () => {
     await expect(
-      client.equip({ card: "00000000-0000-0000-0000-000000000000" }),
+      client.account.equip({ card: "00000000-0000-0000-0000-000000000000" }),
     ).rejects.toBeInstanceOf(ValidationError);
     expect(put.mock.calls.some(([url]) => String(url).includes("/personalization/"))).toBe(false);
   });
 
   it("does not post a message to someone who is not a friend", async () => {
     await expect(
-      client.sendMessage({ puuid: "00000000-0000-0000-0000-000000000000" }, "hi"),
+      client.social.sendMessage({ puuid: "00000000-0000-0000-0000-000000000000" }, "hi"),
     ).rejects.toBeInstanceOf(ValidationError);
     expect(localPost).not.toHaveBeenCalled();
   });
 
   it("does not start matchmaking when party member is not ready", async () => {
-    await expect(client.startMatchmaking()).rejects.toBeInstanceOf(ValidationError);
+    await expect(client.party.startMatchmaking()).rejects.toBeInstanceOf(ValidationError);
     expect(post.mock.calls.some(([url]) => String(url).includes("/matchmaking/join"))).toBe(false);
   });
 
   it("does not invite with an invalid riot id", async () => {
-    await expect(client.invite("invalid-id")).rejects.toBeInstanceOf(ValidationError);
+    await expect(client.party.invite("invalid-id")).rejects.toBeInstanceOf(ValidationError);
     expect(post.mock.calls.some(([url]) => String(url).includes("/invites/"))).toBe(false);
   });
 });

@@ -18,11 +18,27 @@ describe("RiotClient facade", () => {
     fs.readFileSync(path.join(__dirname, "fixtures", "catalogue.json"), "utf-8"),
   ) as ValorantApiCatalogueData;
 
+  it("exposes exactly the five namespaces, events and close as public members", () => {
+    expect(Object.getOwnPropertyNames(RiotClient.prototype)).toEqual([
+      "constructor",
+      "events",
+      "close",
+    ]);
+    const client = new RiotClient({ lockfilePath: "non-existent" });
+    expect(client.account).toBeDefined();
+    expect(client.social).toBeDefined();
+    expect(client.store).toBeDefined();
+    expect(client.matches).toBeDefined();
+    expect(client.party).toBeDefined();
+    expect(typeof client.events).toBe("function");
+    expect(typeof client.close).toBe("function");
+  });
+
   it("throws RiotClientNotRunningError when lockfile is absent", async () => {
     const client = new RiotClient({
       lockfilePath: "non-existent-path/lockfile",
     });
-    await expect(client.whoami()).rejects.toThrow(RiotClientNotRunningError);
+    await expect(client.account.whoami()).rejects.toThrow(RiotClientNotRunningError);
   });
 
   it("caches session and deduplicates concurrent session creation", async () => {
@@ -88,7 +104,10 @@ describe("RiotClient facade", () => {
       sessionTtlMs: 5000,
     });
 
-    const [wallet1, wallet2] = await Promise.all([client.wallet(), client.wallet()]);
+    const [wallet1, wallet2] = await Promise.all([
+      client.account.wallet(),
+      client.account.wallet(),
+    ]);
 
     expect(wallet1).toEqual({
       valorantPoints: 1500,
@@ -98,7 +117,7 @@ describe("RiotClient facade", () => {
     expect(wallet2).toEqual(wallet1);
     expect(createCalls).toBe(1);
 
-    const whoami = await client.whoami();
+    const whoami = await client.account.whoami();
     expect(whoami).toEqual({
       puuid: "puuid-1",
       gameName: "Jett",
@@ -163,7 +182,7 @@ describe("RiotClient facade", () => {
       localApiFactory: () => mockLocalApi,
     });
 
-    const loadout = await client.loadout();
+    const loadout = await client.account.loadout();
     expect(loadout.player.gameName).toBe("Jett");
     expect(loadoutCalls).toBe(1);
 
@@ -189,7 +208,7 @@ describe("RiotClient facade", () => {
       localApiFactory: () => mockLocalApi,
     });
 
-    await client.friends();
+    await client.social.friends();
     await client.close();
     await client.close();
 
@@ -251,11 +270,11 @@ describe("RiotClient facade", () => {
       localApiFactory: () => mockLocalApi,
     });
 
-    const friends = await client.friends();
-    const requests = await client.friendRequests();
-    const blocked = await client.blocked();
-    const conversations = await client.conversations();
-    const messages = await client.messages("f1@la1.pvp.net");
+    const friends = await client.social.friends();
+    const requests = await client.social.friendRequests();
+    const blocked = await client.social.blocked();
+    const conversations = await client.social.conversations();
+    const messages = await client.social.messages("f1@la1.pvp.net");
 
     expect(friends[0]?.gameName).toBe("Friend1");
     expect(requests[0]?.direction).toBe("incoming");
@@ -307,7 +326,7 @@ describe("RiotClient facade", () => {
       localApiFactory: () => mockLocalApi,
     });
 
-    const store = await client.store();
+    const store = await client.store.current();
     expect(store.player.gameName).toBe("Buyer");
     expect(store.daily?.offers).toHaveLength(1);
     expect(store.nightMarket?.offers).toHaveLength(1);
@@ -407,13 +426,13 @@ describe("RiotClient facade", () => {
     it("fetches match summaries and single match details", async () => {
       const client = setupClient();
       try {
-        const summaries = await client.matches({ count: 1 });
+        const summaries = await client.matches.list({ count: 1 });
         expect(summaries).toHaveLength(1);
         expect(summaries[0]?.id).toBe("match-std-1");
         expect(summaries[0]?.map.name).toBe("Ascent");
         expect(summaries[0]?.queue).toBe("competitive");
 
-        const match = await client.match("match-std-1");
+        const match = await client.matches.get("match-std-1");
         expect(match.id).toBe("match-std-1");
         expect(match.map.name).toBe("Ascent");
         expect(match.self?.team).toBe("Blue");
@@ -426,13 +445,13 @@ describe("RiotClient facade", () => {
     it("fetches MMR and rank history", async () => {
       const client = setupClient();
       try {
-        const mmr = await client.mmr();
+        const mmr = await client.matches.mmr();
         expect(mmr.current?.tier).toBe(3);
         expect(mmr.current?.name).toBe("Iron 3");
         expect(mmr.current?.rating).toBe(75);
         expect(mmr.act?.wins).toBe(15);
 
-        const history = await client.rankHistory({ count: 5 });
+        const history = await client.matches.rankHistory({ count: 5 });
         expect(history).toHaveLength(1);
         expect(history[0]?.after.name).toBe("Iron 3");
         expect(history[0]?.earned).toBe(20);
@@ -474,7 +493,7 @@ describe("RiotClient facade", () => {
       });
 
       try {
-        const live = await client.liveMatch({ ranks: true });
+        const live = await client.matches.live({ ranks: true });
         expect(live.phase).toBe("pregame");
         if (live.phase === "pregame") {
           expect(live.matchId).toBe("pre-1");
@@ -518,7 +537,7 @@ describe("RiotClient facade", () => {
       });
 
       try {
-        const live = await client.liveMatch();
+        const live = await client.matches.live();
         expect(live.phase).toBe("ingame");
         if (live.phase === "ingame") {
           expect(live.matchId).toBe("core-1");
@@ -544,7 +563,7 @@ describe("RiotClient facade", () => {
           }),
         });
 
-        const range = await rangeClient.liveMatch();
+        const range = await rangeClient.matches.live();
         expect(range.phase).toBe("range");
         if (range.phase === "range") {
           expect(range.matchId).toBe("range-1");
@@ -554,7 +573,7 @@ describe("RiotClient facade", () => {
         const noneClient = setupClient({
           getOrNull: vi.fn().mockResolvedValue(null),
         });
-        const none = await noneClient.liveMatch();
+        const none = await noneClient.matches.live();
         expect(none.phase).toBe("none");
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -593,7 +612,7 @@ describe("RiotClient facade", () => {
       });
 
       try {
-        const party = await client.party();
+        const party = await client.party.current();
         expect(party).not.toBeNull();
         expect(party?.id).toBe("party-1");
         expect(party?.queue).toBe("competitive");
@@ -605,7 +624,7 @@ describe("RiotClient facade", () => {
         const noPartyClient = setupClient({
           getOrNull: vi.fn().mockResolvedValue(null),
         });
-        const noParty = await noPartyClient.party();
+        const noParty = await noPartyClient.party.current();
         expect(noParty).toBeNull();
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -669,13 +688,13 @@ describe("RiotClient facade", () => {
 
       try {
         // 1. sendMessage validation failure: not a friend -> no post
-        await expect(client.sendMessage({ puuid: "unknown" }, "hi")).rejects.toThrow(
+        await expect(client.social.sendMessage({ puuid: "unknown" }, "hi")).rejects.toThrow(
           ValidationError,
         );
         expect(postSpy).not.toHaveBeenCalled();
 
         // 2. sendMessage success: sends post and returns message
-        const msg = await client.sendMessage({ puuid: "f1" }, "hi friend");
+        const msg = await client.social.sendMessage({ puuid: "f1" }, "hi friend");
         expect(msg.body).toBe("hi friend");
         expect(postSpy).toHaveBeenCalledWith("/chat/v6/messages", {
           cid: "f1@la1.pvp.net",
@@ -685,11 +704,11 @@ describe("RiotClient facade", () => {
         postSpy.mockClear();
 
         // 3. sendFriendRequest failure: already friends -> no post
-        await expect(client.sendFriendRequest("Friend1#001")).rejects.toThrow(ValidationError);
+        await expect(client.social.sendFriendRequest("Friend1#001")).rejects.toThrow(ValidationError);
         expect(postSpy).not.toHaveBeenCalled();
 
         // 4. sendFriendRequest success: sends post and returns requests
-        await client.sendFriendRequest("NewGuy#999");
+        await client.social.sendFriendRequest("NewGuy#999");
         expect(postSpy).toHaveBeenCalledWith("/chat/v4/friendrequests", {
           game_name: "NewGuy",
           game_tag: "999",
@@ -697,11 +716,11 @@ describe("RiotClient facade", () => {
         postSpy.mockClear();
 
         // 5. acceptFriendRequest failure: missing request -> no post
-        await expect(client.acceptFriendRequest("missing-puuid")).rejects.toThrow(ValidationError);
+        await expect(client.social.acceptFriendRequest("missing-puuid")).rejects.toThrow(ValidationError);
         expect(postSpy).not.toHaveBeenCalled();
 
         // 6. acceptFriendRequest success: sends request with player's name & tag
-        await client.acceptFriendRequest("r1");
+        await client.social.acceptFriendRequest("r1");
         expect(postSpy).toHaveBeenCalledWith("/chat/v4/friendrequests", {
           game_name: "Req",
           game_tag: "002",
@@ -709,29 +728,29 @@ describe("RiotClient facade", () => {
         postSpy.mockClear();
 
         // 7. removeFriend failure: not a friend -> no delete
-        await expect(client.removeFriend("not-friend")).rejects.toThrow(ValidationError);
+        await expect(client.social.removeFriend("not-friend")).rejects.toThrow(ValidationError);
         expect(deleteSpy).not.toHaveBeenCalled();
 
         // 8. removeFriend success: sends delete
-        await client.removeFriend("f1");
+        await client.social.removeFriend("f1");
         expect(deleteSpy).toHaveBeenCalledWith("/chat/v4/friends", { puuid: "f1" });
         deleteSpy.mockClear();
 
         // 9. blockPlayer failure: unknown player -> no post
-        await expect(client.blockPlayer("UnknownGuy#000")).rejects.toThrow(ValidationError);
+        await expect(client.social.blockPlayer("UnknownGuy#000")).rejects.toThrow(ValidationError);
         expect(postSpy).not.toHaveBeenCalled();
 
         // 10. blockPlayer success: resolves name#tag through friends or requests
-        await client.blockPlayer("Req#002");
+        await client.social.blockPlayer("Req#002");
         expect(postSpy).toHaveBeenCalledWith("/chat/v4/blocked", { puuid: "r1" });
         postSpy.mockClear();
 
         // 11. unblockPlayer failure: not blocked -> no delete
-        await expect(client.unblockPlayer("not-blocked")).rejects.toThrow(ValidationError);
+        await expect(client.social.unblockPlayer("not-blocked")).rejects.toThrow(ValidationError);
         expect(deleteSpy).not.toHaveBeenCalled();
 
         // 12. unblockPlayer success: sends delete
-        await client.unblockPlayer("b1");
+        await client.social.unblockPlayer("b1");
         expect(deleteSpy).toHaveBeenCalledWith("/chat/v4/blocked", { puuid: "b1" });
       } finally {
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -818,7 +837,7 @@ describe("RiotClient facade", () => {
       try {
         // 1. Validation failure: unowned skin -> no PUT sent to loadout
         await expect(
-          client.equip({
+          client.account.equip({
             guns: [{ weapon: "Vandal", skin: "14f05da8-4ff6-4b8a-b9c1-52a1215b2447" }],
           }),
         ).rejects.toThrow(ValidationError);
@@ -829,7 +848,7 @@ describe("RiotClient facade", () => {
 
         // 2. Validation failure: duplicate weapon in equipCollection -> no PUT
         await expect(
-          client.equipCollection([
+          client.account.equipCollection([
             "4324a482-47da-4521-b3b0-4dbfcfefd779",
             "8908f237-47b2-031a-e905-1a89c93cc8f5",
           ]),
@@ -840,7 +859,7 @@ describe("RiotClient facade", () => {
         ).toHaveLength(0);
 
         // 3. Validation success: equip owned skin
-        const updated = await client.equip({
+        const updated = await client.account.equip({
           guns: [{ weapon: "Vandal", skin: "8908f237-47b2-031a-e905-1a89c93cc8f5" }],
           incognito: true,
         });

@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { RiotClient } from "../src/RiotClient.js";
+import { AccountService } from "../src/client/AccountService.js";
+import { MatchService } from "../src/client/MatchService.js";
+import { PartyService } from "../src/client/PartyService.js";
+import { SocialService } from "../src/client/SocialService.js";
+import { StoreService } from "../src/client/StoreService.js";
 import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
 import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
 import { TypedEmitter } from "../src/events/TypedEmitter.js";
@@ -84,7 +89,7 @@ describe("CLI entrypoint and flags", () => {
     try {
       const code = await runCli(["--version"]);
       expect(code).toBe(0);
-      expect(output.trim()).toBe("0.1.0");
+      expect(output.trim()).toBe("0.2.0");
     } finally {
       process.stdout.write = originalWrite;
     }
@@ -112,12 +117,12 @@ describe("CLI entrypoint and flags", () => {
     process.stdout.write = (() => true) as typeof process.stdout.write;
 
     const closeSpy = vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
-    const friendsSpy = vi.spyOn(RiotClient.prototype, "friends").mockResolvedValue([]);
-    const requestsSpy = vi.spyOn(RiotClient.prototype, "friendRequests").mockResolvedValue([]);
-    const blockedSpy = vi.spyOn(RiotClient.prototype, "blocked").mockResolvedValue([]);
-    const convSpy = vi.spyOn(RiotClient.prototype, "conversations").mockResolvedValue([]);
-    const msgSpy = vi.spyOn(RiotClient.prototype, "messages").mockResolvedValue([]);
-    const storeSpy = vi.spyOn(RiotClient.prototype, "store").mockResolvedValue({
+    const friendsSpy = vi.spyOn(SocialService.prototype, "friends").mockResolvedValue([]);
+    const requestsSpy = vi.spyOn(SocialService.prototype, "friendRequests").mockResolvedValue([]);
+    const blockedSpy = vi.spyOn(SocialService.prototype, "blocked").mockResolvedValue([]);
+    const convSpy = vi.spyOn(SocialService.prototype, "conversations").mockResolvedValue([]);
+    const msgSpy = vi.spyOn(SocialService.prototype, "messages").mockResolvedValue([]);
+    const storeSpy = vi.spyOn(StoreService.prototype, "current").mockResolvedValue({
       player: { puuid: "p", gameName: "P", tagLine: "T", region: "r", shard: "s", accountLevel: 1 },
       fetchedAt: "now",
       daily: null,
@@ -126,16 +131,16 @@ describe("CLI entrypoint and flags", () => {
       accessories: null,
       radianite: [],
     });
-    const matchesSpy = vi.spyOn(RiotClient.prototype, "matches").mockResolvedValue([]);
-    const matchSpy = vi.spyOn(RiotClient.prototype, "match").mockResolvedValue({} as never);
-    const mmrSpy = vi.spyOn(RiotClient.prototype, "mmr").mockResolvedValue({} as never);
+    const matchesSpy = vi.spyOn(MatchService.prototype, "list").mockResolvedValue([]);
+    const matchSpy = vi.spyOn(MatchService.prototype, "get").mockResolvedValue({} as never);
+    const mmrSpy = vi.spyOn(MatchService.prototype, "mmr").mockResolvedValue({} as never);
     const rankHistorySpy = vi
-      .spyOn(RiotClient.prototype, "rankHistory")
+      .spyOn(MatchService.prototype, "rankHistory")
       .mockResolvedValue([] as never);
     const liveSpy = vi
-      .spyOn(RiotClient.prototype, "liveMatch")
+      .spyOn(MatchService.prototype, "live")
       .mockResolvedValue({ phase: "none" });
-    const partySpy = vi.spyOn(RiotClient.prototype, "party").mockResolvedValue(null);
+    const partySpy = vi.spyOn(PartyService.prototype, "current").mockResolvedValue(null);
 
     try {
       expect(await runCli(["friends"])).toBe(0);
@@ -280,9 +285,9 @@ describe("CLI write commands and dry-run", () => {
 
     const fakePutBody = { Subject: "p1", Version: 1, Guns: [], ActiveExpressions: [] };
     const validateSpy = vi
-      .spyOn(RiotClient.prototype, "validateEquip")
+      .spyOn(AccountService.prototype, "validateEquip")
       .mockResolvedValue(fakePutBody as never);
-    const equipSpy = vi.spyOn(RiotClient.prototype, "equip").mockResolvedValue({} as never);
+    const equipSpy = vi.spyOn(AccountService.prototype, "equip").mockResolvedValue({} as never);
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
 
     try {
@@ -310,9 +315,9 @@ describe("CLI write commands and dry-run", () => {
 
     const fakeLoadout = { guns: [], incognito: true };
     const equipSpy = vi
-      .spyOn(RiotClient.prototype, "equip")
+      .spyOn(AccountService.prototype, "equip")
       .mockResolvedValue(fakeLoadout as never);
-    const validateSpy = vi.spyOn(RiotClient.prototype, "validateEquip");
+    const validateSpy = vi.spyOn(AccountService.prototype, "validateEquip");
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
 
     try {
@@ -335,7 +340,7 @@ describe("CLI write commands and dry-run", () => {
       return true;
     }) as typeof process.stderr.write;
 
-    vi.spyOn(RiotClient.prototype, "validateEquip").mockRejectedValue(
+    vi.spyOn(AccountService.prototype, "validateEquip").mockRejectedValue(
       new ValidationError("card-not-owned", "Card not owned", { card: "bad-card" }),
     );
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
@@ -364,62 +369,62 @@ describe("CLI write commands and dry-run", () => {
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
 
     const valSendSpy = vi
-      .spyOn(RiotClient.prototype, "validateSendMessage")
+      .spyOn(SocialService.prototype, "validateSendMessage")
       .mockResolvedValue({ cid: "c1", message: "hi", type: "chat" });
-    const sendSpy = vi.spyOn(RiotClient.prototype, "sendMessage").mockResolvedValue({} as never);
+    const sendSpy = vi.spyOn(SocialService.prototype, "sendMessage").mockResolvedValue({} as never);
 
     const valReqSpy = vi
-      .spyOn(RiotClient.prototype, "validateSendFriendRequest")
+      .spyOn(SocialService.prototype, "validateSendFriendRequest")
       .mockResolvedValue({ game_name: "A", game_tag: "1" });
     const reqSpy = vi
-      .spyOn(RiotClient.prototype, "sendFriendRequest")
+      .spyOn(SocialService.prototype, "sendFriendRequest")
       .mockResolvedValue([] as never);
 
     const valAcceptSpy = vi
-      .spyOn(RiotClient.prototype, "validateAcceptFriendRequest")
+      .spyOn(SocialService.prototype, "validateAcceptFriendRequest")
       .mockResolvedValue({ game_name: "B", game_tag: "2" });
     const acceptSpy = vi
-      .spyOn(RiotClient.prototype, "acceptFriendRequest")
+      .spyOn(SocialService.prototype, "acceptFriendRequest")
       .mockResolvedValue([] as never);
 
     const valDeclineSpy = vi
-      .spyOn(RiotClient.prototype, "validateDeclineFriendRequest")
+      .spyOn(SocialService.prototype, "validateDeclineFriendRequest")
       .mockResolvedValue({ puuid: "p1" });
     const declineSpy = vi
-      .spyOn(RiotClient.prototype, "declineFriendRequest")
+      .spyOn(SocialService.prototype, "declineFriendRequest")
       .mockResolvedValue([] as never);
 
     const valCancelSpy = vi
-      .spyOn(RiotClient.prototype, "validateCancelFriendRequest")
+      .spyOn(SocialService.prototype, "validateCancelFriendRequest")
       .mockResolvedValue({ puuid: "p2" });
     const cancelSpy = vi
-      .spyOn(RiotClient.prototype, "cancelFriendRequest")
+      .spyOn(SocialService.prototype, "cancelFriendRequest")
       .mockResolvedValue([] as never);
 
     const valRemoveSpy = vi
-      .spyOn(RiotClient.prototype, "validateRemoveFriend")
+      .spyOn(SocialService.prototype, "validateRemoveFriend")
       .mockResolvedValue({ puuid: "p3" });
     const removeSpy = vi
-      .spyOn(RiotClient.prototype, "removeFriend")
+      .spyOn(SocialService.prototype, "removeFriend")
       .mockResolvedValue([] as never);
 
     const valBlockSpy = vi
-      .spyOn(RiotClient.prototype, "validateBlockPlayer")
+      .spyOn(SocialService.prototype, "validateBlockPlayer")
       .mockResolvedValue({ puuid: "p4" });
-    const blockSpy = vi.spyOn(RiotClient.prototype, "blockPlayer").mockResolvedValue([] as never);
+    const blockSpy = vi.spyOn(SocialService.prototype, "blockPlayer").mockResolvedValue([] as never);
 
     const valUnblockSpy = vi
-      .spyOn(RiotClient.prototype, "validateUnblockPlayer")
+      .spyOn(SocialService.prototype, "validateUnblockPlayer")
       .mockResolvedValue({ puuid: "p5" });
     const unblockSpy = vi
-      .spyOn(RiotClient.prototype, "unblockPlayer")
+      .spyOn(SocialService.prototype, "unblockPlayer")
       .mockResolvedValue([] as never);
 
     const valEquipColSpy = vi
-      .spyOn(RiotClient.prototype, "validateEquipCollection")
+      .spyOn(AccountService.prototype, "validateEquipCollection")
       .mockResolvedValue({} as never);
     const equipColSpy = vi
-      .spyOn(RiotClient.prototype, "equipCollection")
+      .spyOn(AccountService.prototype, "equipCollection")
       .mockResolvedValue({} as never);
 
     try {
@@ -486,64 +491,64 @@ describe("CLI write commands and dry-run", () => {
     vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
 
     const valInviteSpy = vi
-      .spyOn(RiotClient.prototype, "validateInvite")
+      .spyOn(PartyService.prototype, "validateInvite")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/invites/name/Bob/tag/1" });
-    const inviteSpy = vi.spyOn(RiotClient.prototype, "invite").mockResolvedValue({} as never);
+    const inviteSpy = vi.spyOn(PartyService.prototype, "invite").mockResolvedValue({} as never);
 
     const valKickSpy = vi
-      .spyOn(RiotClient.prototype, "validateKick")
+      .spyOn(PartyService.prototype, "validateKick")
       .mockResolvedValue({ method: "DELETE", path: "/parties/v1/parties/p1/members/target" });
-    const kickSpy = vi.spyOn(RiotClient.prototype, "kick").mockResolvedValue({} as never);
+    const kickSpy = vi.spyOn(PartyService.prototype, "kick").mockResolvedValue({} as never);
 
     const valPromoteSpy = vi
-      .spyOn(RiotClient.prototype, "validatePromote")
+      .spyOn(PartyService.prototype, "validatePromote")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/members/target/owner" });
-    const promoteSpy = vi.spyOn(RiotClient.prototype, "promote").mockResolvedValue({} as never);
+    const promoteSpy = vi.spyOn(PartyService.prototype, "promote").mockResolvedValue({} as never);
 
     const valCreateCodeSpy = vi
-      .spyOn(RiotClient.prototype, "validateCreateInviteCode")
+      .spyOn(PartyService.prototype, "validateCreateInviteCode")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/invitecode" });
-    const createCodeSpy = vi.spyOn(RiotClient.prototype, "createInviteCode").mockResolvedValue({} as never);
+    const createCodeSpy = vi.spyOn(PartyService.prototype, "createInviteCode").mockResolvedValue({} as never);
 
     const valRevokeCodeSpy = vi
-      .spyOn(RiotClient.prototype, "validateRevokeInviteCode")
+      .spyOn(PartyService.prototype, "validateRevokeInviteCode")
       .mockResolvedValue({ method: "DELETE", path: "/parties/v1/parties/p1/invitecode" });
-    const revokeCodeSpy = vi.spyOn(RiotClient.prototype, "revokeInviteCode").mockResolvedValue({} as never);
+    const revokeCodeSpy = vi.spyOn(PartyService.prototype, "revokeInviteCode").mockResolvedValue({} as never);
 
     const valJoinSpy = vi
-      .spyOn(RiotClient.prototype, "validateJoinByCode")
+      .spyOn(PartyService.prototype, "validateJoinByCode")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/players/joinbycode/CODE1" });
-    const joinSpy = vi.spyOn(RiotClient.prototype, "joinByCode").mockResolvedValue({} as never);
+    const joinSpy = vi.spyOn(PartyService.prototype, "joinByCode").mockResolvedValue({} as never);
 
     const valReadySpy = vi
-      .spyOn(RiotClient.prototype, "validateSetReady")
+      .spyOn(PartyService.prototype, "validateSetReady")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/members/self/setReady", body: { ready: true } });
-    const readySpy = vi.spyOn(RiotClient.prototype, "setReady").mockResolvedValue({} as never);
+    const readySpy = vi.spyOn(PartyService.prototype, "setReady").mockResolvedValue({} as never);
 
     const valQueueSpy = vi
-      .spyOn(RiotClient.prototype, "validateSetQueue")
+      .spyOn(PartyService.prototype, "validateSetQueue")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/queue", body: { queueID: "competitive" } });
-    const queueSpy = vi.spyOn(RiotClient.prototype, "setQueue").mockResolvedValue({} as never);
+    const queueSpy = vi.spyOn(PartyService.prototype, "setQueue").mockResolvedValue({} as never);
 
     const valAccessSpy = vi
-      .spyOn(RiotClient.prototype, "validateSetAccessibility")
+      .spyOn(PartyService.prototype, "validateSetAccessibility")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/accessibility", body: { accessibility: "OPEN" } });
-    const accessSpy = vi.spyOn(RiotClient.prototype, "setAccessibility").mockResolvedValue({} as never);
+    const accessSpy = vi.spyOn(PartyService.prototype, "setAccessibility").mockResolvedValue({} as never);
 
     const valStartSpy = vi
-      .spyOn(RiotClient.prototype, "validateStartMatchmaking")
+      .spyOn(PartyService.prototype, "validateStartMatchmaking")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/join" });
-    const startSpy = vi.spyOn(RiotClient.prototype, "startMatchmaking").mockResolvedValue({} as never);
+    const startSpy = vi.spyOn(PartyService.prototype, "startMatchmaking").mockResolvedValue({} as never);
 
     const valStopSpy = vi
-      .spyOn(RiotClient.prototype, "validateStopMatchmaking")
+      .spyOn(PartyService.prototype, "validateStopMatchmaking")
       .mockResolvedValue({ method: "POST", path: "/parties/v1/parties/p1/matchmaking/leave" });
-    const stopSpy = vi.spyOn(RiotClient.prototype, "stopMatchmaking").mockResolvedValue({} as never);
+    const stopSpy = vi.spyOn(PartyService.prototype, "stopMatchmaking").mockResolvedValue({} as never);
 
     const valLeaveSpy = vi
-      .spyOn(RiotClient.prototype, "validateLeave")
+      .spyOn(PartyService.prototype, "validateLeave")
       .mockResolvedValue({ method: "DELETE", path: "/parties/v1/players/self" });
-    const leaveSpy = vi.spyOn(RiotClient.prototype, "leave").mockResolvedValue({} as never);
+    const leaveSpy = vi.spyOn(PartyService.prototype, "leave").mockResolvedValue({} as never);
 
     try {
       expect(await runCli(["party-invite", "Bob#1"])).toBe(0);
