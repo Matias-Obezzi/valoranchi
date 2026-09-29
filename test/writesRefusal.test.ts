@@ -30,6 +30,7 @@ const localApi = {
 } as unknown as RiotClientLocalApi;
 
 const put = vi.fn().mockResolvedValue([]);
+const post = vi.fn().mockResolvedValue({});
 const gateway = {
   get: vi.fn().mockImplementation(async (url: string) => {
     if (url.includes("/personalization/")) {
@@ -44,10 +45,25 @@ const gateway = {
     }
     if (url.includes("/entitlements/")) return { EntitlementsByTypes: [] };
     if (url.includes("/account-xp/")) return { Progress: { Level: 10, XP: 0 } };
+    if (url.includes("/parties/v1/players/")) return { Subject: "me", CurrentPartyID: "party-1" };
+    if (url.includes("/parties/v1/parties/")) {
+      return {
+        ID: "party-1",
+        State: "DEFAULT",
+        Accessibility: "CLOSED",
+        EligibleQueues: ["competitive"],
+        Members: [{ Subject: "me", IsOwner: true, IsReady: false }],
+      };
+    }
     return {};
   }),
   put,
-  post: vi.fn(),
+  post,
+  delete: vi.fn(),
+  getOrNull: vi.fn().mockImplementation(async (url: string) => {
+    if (url.includes("/parties/v1/players/")) return { Subject: "me", CurrentPartyID: "party-1" };
+    return null;
+  }),
 } as unknown as HttpGateway;
 
 const client = new RiotClient({
@@ -74,5 +90,15 @@ describe("refused writes never reach Riot", () => {
       client.sendMessage({ puuid: "00000000-0000-0000-0000-000000000000" }, "hi"),
     ).rejects.toBeInstanceOf(ValidationError);
     expect(localPost).not.toHaveBeenCalled();
+  });
+
+  it("does not start matchmaking when party member is not ready", async () => {
+    await expect(client.startMatchmaking()).rejects.toBeInstanceOf(ValidationError);
+    expect(post.mock.calls.some(([url]) => String(url).includes("/matchmaking/join"))).toBe(false);
+  });
+
+  it("does not invite with an invalid riot id", async () => {
+    await expect(client.invite("invalid-id")).rejects.toBeInstanceOf(ValidationError);
+    expect(post.mock.calls.some(([url]) => String(url).includes("/invites/"))).toBe(false);
   });
 });
