@@ -164,9 +164,19 @@ Options:
   --version          Show version number
 `;
 
-const packageJson = JSON.parse(
-  readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
-) as { version: string };
+function getPackageVersion(): string {
+  try {
+    return (
+      JSON.parse(
+        readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+      ) as { version: string }
+    ).version;
+  } catch {
+    return "0.3.0";
+  }
+}
+
+const PACKAGE_VERSION = getPackageVersion();
 
 const ERROR_EXIT_CODES: Record<string, number> = {
   RIOT_CLIENT_NOT_RUNNING: 2,
@@ -1224,7 +1234,7 @@ export async function runCli(args: string[]): Promise<number> {
   });
 
   if (parsed.values.version) {
-    process.stdout.write(`${packageJson.version}\n`);
+    process.stdout.write(`${PACKAGE_VERSION}\n`);
     return 0;
   }
 

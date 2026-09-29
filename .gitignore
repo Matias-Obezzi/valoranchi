@@ -3,3 +3,4 @@ dist
 docs/reference
 docs/.vitepress/dist
 docs/.vitepress/cache
+release

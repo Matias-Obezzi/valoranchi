@@ -47,6 +47,7 @@
     "docs:preview": "vitepress preview docs",
     "examples:check": "tsc -p examples/tsconfig.json --noEmit && node --check examples/node/read.mjs && node --check examples/node/read.cjs && node --check examples/node/write.mjs && node --check examples/node/events.mjs",
     "format": "prettier --write .",
+    "exe": "node scripts/build-exe.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -54,7 +55,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.14",
+    "esbuild": "^0.28.2",
     "eslint": "^9.23.0",
+    "postject": "^1.0.0-alpha.6",
     "prettier": "^3.6.2",
     "ts-json-schema-generator": "^2.3.0",
     "typedoc": "^0.28.20",
