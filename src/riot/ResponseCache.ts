@@ -28,8 +28,12 @@ export class FileResponseCache {
     this.now = now;
   }
 
-  async through<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-    const fresh = this.read<T>(key);
+  async through<T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    options?: { ttlMs?: number },
+  ): Promise<T> {
+    const fresh = this.read<T>(key, options?.ttlMs);
     if (fresh !== undefined) {
       return fresh;
     }
@@ -38,10 +42,10 @@ export class FileResponseCache {
     return value;
   }
 
-  private read<T>(key: string): T | undefined {
+  private read<T>(key: string, ttlMs: number = this.ttlMs): T | undefined {
     try {
       const entry = JSON.parse(fs.readFileSync(this.fileFor(key), "utf-8")) as Entry<T>;
-      return this.now() - entry.at < this.ttlMs ? entry.value : undefined;
+      return this.now() - entry.at < ttlMs ? entry.value : undefined;
     } catch {
       return undefined;
     }

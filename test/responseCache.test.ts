@@ -48,4 +48,19 @@ describe("FileResponseCache", () => {
     expect(stored[0]).not.toContain("access");
     expect(stored[0]).not.toContain("ent");
   });
+
+  it("honours an optional ttlMs override on through", async () => {
+    let clock = 1_000;
+    const cache = new FileResponseCache(100, dir, () => clock);
+    const fetcher = vi.fn().mockResolvedValue({ val: 42 });
+
+    await cache.through("custom-ttl", fetcher, { ttlMs: 10_000 });
+    clock += 500;
+    await cache.through("custom-ttl", fetcher, { ttlMs: 10_000 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    clock += 15_000;
+    await cache.through("custom-ttl", fetcher, { ttlMs: 10_000 });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
 });

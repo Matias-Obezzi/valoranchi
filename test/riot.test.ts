@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Session } from "../src/riot/Session.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
 import { RiotApi } from "../src/riot/RiotApi.js";
+import type { FileResponseCache } from "../src/riot/ResponseCache.js";
 import { ForbiddenHostError, RiotApiError } from "../src/errors.js";
 
 describe("Session", () => {
@@ -137,6 +138,38 @@ describe("HttpGateway", () => {
     expect((error as RiotApiError).status).toBe(404);
     expect((error as RiotApiError).url).toBe("https://pd.na.a.pvp.net/store/v1/wallet/123");
   });
+
+  it("returns payload on 200 for getOrNull", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+      }),
+    );
+    const gateway = new HttpGateway(mockFetch);
+    const res = await gateway.getOrNull<{ ok: boolean }>("https://pd.na.a.pvp.net/test");
+    expect(res).toEqual({ ok: true });
+  });
+
+  it("returns null on 404 for getOrNull", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("not found", {
+        status: 404,
+      }),
+    );
+    const gateway = new HttpGateway(mockFetch);
+    const res = await gateway.getOrNull("https://pd.na.a.pvp.net/missing");
+    expect(res).toBeNull();
+  });
+
+  it("rethrows non-404 errors for getOrNull", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("internal error", {
+        status: 500,
+      }),
+    );
+    const gateway = new HttpGateway(mockFetch);
+    await expect(gateway.getOrNull("https://pd.na.a.pvp.net/error")).rejects.toThrow(RiotApiError);
+  });
 });
 
 describe("RiotApi", () => {
@@ -210,6 +243,106 @@ describe("RiotApi", () => {
       }),
     );
     expect(names[0].GameName).toBe("Jett");
+  });
+
+  it("calls matchHistory with pagination and optional queue", async () => {
+    const mockGet = vi.fn().mockResolvedValue({ History: [] });
+    const fakeGateway = { get: mockGet } as unknown as HttpGateway;
+    const api = new RiotApi(fakeGateway, session);
+
+    await api.matchHistory(0, 20, "competitive");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/match-history/v1/history/puuid-1234?startIndex=0&endIndex=20&queue=competitive",
+      expect.any(Object),
+    );
+  });
+
+  it("calls matchDetails and caches with long TTL", async () => {
+    const mockGet = vi.fn().mockResolvedValue({ matchInfo: { matchId: "m1" } });
+    const fakeGateway = { get: mockGet } as unknown as HttpGateway;
+    const mockCache = {
+      through: vi.fn().mockImplementation((_k, fetcher) => fetcher()),
+    } as unknown as FileResponseCache;
+
+    const api = new RiotApi(fakeGateway, session, mockCache);
+    await api.matchDetails("m1");
+
+    expect(mockCache.through).toHaveBeenCalledWith(
+      "matchDetails m1",
+      expect.any(Function),
+      { ttlMs: 30 * 24 * 60 * 60 * 1000 },
+    );
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/match-details/v1/matches/m1",
+      expect.any(Object),
+    );
+  });
+
+  it("calls mmr and competitiveUpdates endpoints", async () => {
+    const mockGet = vi.fn().mockResolvedValue({});
+    const fakeGateway = { get: mockGet } as unknown as HttpGateway;
+    const api = new RiotApi(fakeGateway, session);
+
+    await api.mmr("other-puuid");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/mmr/v1/players/other-puuid",
+      expect.any(Object),
+    );
+
+    await api.competitiveUpdates(0, 10, "competitive");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://pd.na.a.pvp.net/mmr/v1/players/puuid-1234/competitiveupdates?startIndex=0&endIndex=10&queue=competitive",
+      expect.any(Object),
+    );
+  });
+
+  it("calls pregame, coreGame, and party endpoints on glz", async () => {
+    const mockGet = vi.fn().mockResolvedValue({});
+    const mockGetOrNull = vi.fn().mockResolvedValue(null);
+    const fakeGateway = { get: mockGet, getOrNull: mockGetOrNull } as unknown as HttpGateway;
+    const api = new RiotApi(fakeGateway, session);
+
+    await api.pregamePlayer();
+    expect(mockGetOrNull).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/pregame/v1/players/puuid-1234",
+      expect.any(Object),
+    );
+
+    await api.pregameMatch("pre-1");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/pregame/v1/matches/pre-1",
+      expect.any(Object),
+    );
+
+    await api.coreGamePlayer();
+    expect(mockGetOrNull).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/core-game/v1/players/puuid-1234",
+      expect.any(Object),
+    );
+
+    await api.coreGameMatch("core-1");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/core-game/v1/matches/core-1",
+      expect.any(Object),
+    );
+
+    await api.coreGameLoadouts("core-1");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/core-game/v1/matches/core-1/loadouts",
+      expect.any(Object),
+    );
+
+    await api.partyPlayer();
+    expect(mockGetOrNull).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/players/puuid-1234",
+      expect.any(Object),
+    );
+
+    await api.party("party-1");
+    expect(mockGet).toHaveBeenCalledWith(
+      "https://glz-latam-1.na.a.pvp.net/parties/v1/parties/party-1",
+      expect.any(Object),
+    );
   });
 
   it("maps a fetch timeout to RiotApiError 408", async () => {

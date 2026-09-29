@@ -15,6 +15,17 @@ export class HttpGateway {
     return this.request<T>(url, { method: "GET" }, headers);
   }
 
+  async getOrNull<T>(url: string, headers?: Record<string, string>): Promise<T | null> {
+    try {
+      return await this.get<T>(url, headers);
+    } catch (error) {
+      if (error instanceof RiotApiError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
   async post<T>(url: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
     return this.sendWithBody<T>("POST", url, body, headers);
   }
