@@ -16,10 +16,7 @@ export type {
   SocialApi,
   StoreApi,
 } from "./client/api.js";
-export {
-  PartyValidator,
-  type PartyAction,
-} from "./client/PartyValidator.js";
+export { PartyValidator, type PartyAction } from "./client/PartyValidator.js";
 export { RiotEvents, toFriendRequest, type RiotEventMap } from "./events/RiotEvents.js";
 export { TypedEmitter } from "./events/TypedEmitter.js";
 export {

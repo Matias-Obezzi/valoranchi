@@ -9,18 +9,18 @@ The `@valoranchi/riot-client` ecosystem offers two integration paths depending o
 
 ## Language Support Matrix
 
-| Language | Integration Method | Type Definitions | Real-Time Events | Guide |
-| :--- | :--- | :--- | :--- | :--- |
-| **JavaScript** | Native package import (`esm` / `cjs`) or CLI | TypeScript definitions / JSDoc | `client.events()` or `riotclient watch` | [JavaScript Guide](/languages/javascript) |
-| **TypeScript** | Native package import | Native exported TypeScript types | `client.events()` typed emitter | [TypeScript Guide](/languages/typescript) |
-| **C#** | CLI child process (`Process.Start`) | `quicktype` (`System.Text.Json` classes) | `riotclient watch` (`ReadLineAsync`) | [C# Guide](/languages/csharp) |
-| **Java** | CLI child process (`ProcessBuilder`) | `quicktype` (Jackson POJOs) | `riotclient watch` (`BufferedReader`) | [Java Guide](/languages/java) |
-| **Python** | CLI child process (`subprocess.run`) | `quicktype` (`dataclasses`) | `riotclient watch` (`subprocess.Popen`) | [Python Guide](/languages/python) |
-| **Go** | CLI child process (`os/exec`) | `quicktype` (`struct` definitions) | `riotclient watch` (`bufio.Scanner`) | [Go Guide](/languages/go) |
-| **Rust** | CLI child process (`std::process::Command`) | `quicktype` (`serde` structs) | `riotclient watch` (`BufReader::lines`) | [Rust Guide](/languages/rust) |
-| **PHP** | CLI child process (`proc_open`) | `quicktype` / Associative arrays | `riotclient watch` (`fgets`) | [PHP Guide](/languages/php) |
-| **Ruby** | CLI child process (`Open3`) | `quicktype` / `JSON.parse` hashes | `riotclient watch` (`each_line`) | [Ruby Guide](/languages/ruby) |
-| **Shell** | Direct command line | Schema inspection via `jq` | `riotclient watch` pipe | [Shell Guide](/languages/shell) |
+| Language       | Integration Method                           | Type Definitions                         | Real-Time Events                        | Guide                                     |
+| :------------- | :------------------------------------------- | :--------------------------------------- | :-------------------------------------- | :---------------------------------------- |
+| **JavaScript** | Native package import (`esm` / `cjs`) or CLI | TypeScript definitions / JSDoc           | `client.events()` or `riotclient watch` | [JavaScript Guide](/languages/javascript) |
+| **TypeScript** | Native package import                        | Native exported TypeScript types         | `client.events()` typed emitter         | [TypeScript Guide](/languages/typescript) |
+| **C#**         | CLI child process (`Process.Start`)          | `quicktype` (`System.Text.Json` classes) | `riotclient watch` (`ReadLineAsync`)    | [C# Guide](/languages/csharp)             |
+| **Java**       | CLI child process (`ProcessBuilder`)         | `quicktype` (Jackson POJOs)              | `riotclient watch` (`BufferedReader`)   | [Java Guide](/languages/java)             |
+| **Python**     | CLI child process (`subprocess.run`)         | `quicktype` (`dataclasses`)              | `riotclient watch` (`subprocess.Popen`) | [Python Guide](/languages/python)         |
+| **Go**         | CLI child process (`os/exec`)                | `quicktype` (`struct` definitions)       | `riotclient watch` (`bufio.Scanner`)    | [Go Guide](/languages/go)                 |
+| **Rust**       | CLI child process (`std::process::Command`)  | `quicktype` (`serde` structs)            | `riotclient watch` (`BufReader::lines`) | [Rust Guide](/languages/rust)             |
+| **PHP**        | CLI child process (`proc_open`)              | `quicktype` / Associative arrays         | `riotclient watch` (`fgets`)            | [PHP Guide](/languages/php)               |
+| **Ruby**       | CLI child process (`Open3`)                  | `quicktype` / `JSON.parse` hashes        | `riotclient watch` (`each_line`)        | [Ruby Guide](/languages/ruby)             |
+| **Shell**      | Direct command line                          | Schema inspection via `jq`               | `riotclient watch` pipe                 | [Shell Guide](/languages/shell)           |
 
 ---
 
@@ -51,7 +51,14 @@ riotclient whoami
 ```
 
 ```json
-{"puuid":"4a7b9c1d-1234-5678-9abc-def012345678","gameName":"Player","tagLine":"NA1","region":"na","shard":"na","accountLevel":128}
+{
+  "puuid": "4a7b9c1d-1234-5678-9abc-def012345678",
+  "gameName": "Player",
+  "tagLine": "NA1",
+  "region": "na",
+  "shard": "na",
+  "accountLevel": 128
+}
 ```
 
 ### 3. Standard Error Contract (Failure)
@@ -73,15 +80,15 @@ When an operation fails, human error text and machine-readable error details are
 
 ### 4. Exit Codes
 
-| Exit Code | Identifier | Description |
-| :---: | :--- | :--- |
-| `0` | `SUCCESS` | Command completed successfully; JSON output written to `stdout`. |
-| `1` | `UNKNOWN_ERROR` | Unknown command or unexpected runtime error. |
-| `2` | `RIOT_CLIENT_NOT_RUNNING` | Riot Client process is not running or the lockfile cannot be located. |
-| `3` | `RIOT_CLIENT_NOT_READY` | Riot Client is starting up and its local loopback API is not responding yet. |
-| `4` | `REGION_UNKNOWN` | Active region/shard could not be determined from active sessions or logs. |
-| `5` | `RIOT_API_ERROR` | Remote Riot PVP service returned an HTTP error (4xx / 5xx). |
-| `6` | `VALIDATION` | Local pre-flight validation failed (e.g. item not owned, invalid arguments). |
+| Exit Code | Identifier                | Description                                                                  |
+| :-------: | :------------------------ | :--------------------------------------------------------------------------- |
+|    `0`    | `SUCCESS`                 | Command completed successfully; JSON output written to `stdout`.             |
+|    `1`    | `UNKNOWN_ERROR`           | Unknown command or unexpected runtime error.                                 |
+|    `2`    | `RIOT_CLIENT_NOT_RUNNING` | Riot Client process is not running or the lockfile cannot be located.        |
+|    `3`    | `RIOT_CLIENT_NOT_READY`   | Riot Client is starting up and its local loopback API is not responding yet. |
+|    `4`    | `REGION_UNKNOWN`          | Active region/shard could not be determined from active sessions or logs.    |
+|    `5`    | `RIOT_API_ERROR`          | Remote Riot PVP service returned an HTTP error (4xx / 5xx).                  |
+|    `6`    | `VALIDATION`              | Local pre-flight validation failed (e.g. item not owned, invalid arguments). |
 
 ### 5. Writes Safety: Dry Runs by Default
 

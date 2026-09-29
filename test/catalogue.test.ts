@@ -161,7 +161,6 @@ const sampleData = {
   ],
 };
 
-
 describe("Catalogue", () => {
   it("indexes entities and resolves lookups in O(1)", () => {
     const catalogue = new Catalogue(sampleData);
@@ -244,4 +243,3 @@ describe("ValorantApi", () => {
     expect(mockGet).toHaveBeenCalledTimes(15);
   });
 });
-

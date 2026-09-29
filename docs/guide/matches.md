@@ -81,7 +81,7 @@ riotclient match c9284241-1234-5678-9abc-def012345678
 ### mmr
 
 Fetches competitive MMR details, including current rank tier, ranking rating (RR), peak rank, and last match rating delta.
-Provides act win summaries and indicates whether your name is hidden on leaderboards.
+Provides act win summaries and indicates whether your name is hidden on leaderboards. `fit` judges the rank against the rating won per victory over the last twenty competitive games: an average of 13 to 25 is a rank that fits, 12 or less means the account sits above where it belongs, 26 to 30 means one rank below, more than 30 two ranks below; `expected` names that rank and `verdict` is `null` until three wins are on record.
 
 ```ts
 const mmr = await client.matches.mmr();

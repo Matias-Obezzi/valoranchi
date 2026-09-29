@@ -120,7 +120,9 @@ export class ChatApi {
   }
 
   async participants(cid?: string): Promise<RawParticipant[]> {
-    const path = cid ? `/chat/v5/participants?cid=${encodeURIComponent(cid)}` : "/chat/v5/participants";
+    const path = cid
+      ? `/chat/v5/participants?cid=${encodeURIComponent(cid)}`
+      : "/chat/v5/participants";
     const res = await this.localApi.get<RawParticipantsResponse>(path);
     return res?.participants ?? [];
   }

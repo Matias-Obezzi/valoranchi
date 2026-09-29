@@ -95,7 +95,6 @@ export interface RiotAccountXpResponse {
   NextTimeFirstWinAvailable?: string;
 }
 
-
 export interface RiotWalletResponse {
   Balances: Record<string, number>;
 }
@@ -731,4 +730,3 @@ export interface RiotCustomGameConfigsResponse {
   Queues: string[];
   GamePodPingServiceInfo: unknown;
 }
-

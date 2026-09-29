@@ -12,9 +12,7 @@ export class AccountValidator {
   ): { contractId: string } {
     const def =
       catalogue.getContract(contractInput) ??
-      catalogue.contracts.find(
-        (c) => c.displayName.toLowerCase() === contractInput.toLowerCase(),
-      );
+      catalogue.contracts.find((c) => c.displayName.toLowerCase() === contractInput.toLowerCase());
     if (!def) {
       throw new ValidationError("unknown-contract", `Unknown contract: ${contractInput}`);
     }
@@ -44,16 +42,16 @@ export class AccountValidator {
   ): { ItemID: string } {
     const skin =
       catalogue.getSkin(skinInput) ??
-      catalogue.weapons.flatMap((w) => w.skins).find(
-        (s) => s.displayName.toLowerCase() === skinInput.toLowerCase(),
-      );
+      catalogue.weapons
+        .flatMap((w) => w.skins)
+        .find((s) => s.displayName.toLowerCase() === skinInput.toLowerCase());
     if (!skin) {
       throw new ValidationError("unknown-item", `Unknown skin: ${skinInput}`);
     }
 
-    const isOwned = ownedItems.weapons.flatMap((w) => w.skins).some(
-      (s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase(),
-    );
+    const isOwned = ownedItems.weapons
+      .flatMap((w) => w.skins)
+      .some((s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase());
     if (!isOwned) {
       throw new ValidationError("not-owned", "Skin is not owned");
     }
@@ -75,9 +73,9 @@ export class AccountValidator {
   ): { itemIdWithoutDashes: string } {
     const skin =
       catalogue.getSkin(skinInput) ??
-      catalogue.weapons.flatMap((w) => w.skins).find(
-        (s) => s.displayName.toLowerCase() === skinInput.toLowerCase(),
-      );
+      catalogue.weapons
+        .flatMap((w) => w.skins)
+        .find((s) => s.displayName.toLowerCase() === skinInput.toLowerCase());
     const skinUuid = skin ? skin.uuid : skinInput;
 
     const isFav = Object.values(rawFavorites.FavoritedContent ?? {}).some(

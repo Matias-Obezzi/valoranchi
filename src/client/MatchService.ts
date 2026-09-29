@@ -97,8 +97,12 @@ export class MatchService implements MatchesApi {
   async mmrFor(puuid: string): Promise<Mmr> {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
-    const [rawMmr, catalogue] = await Promise.all([api.mmr(puuid), this.context.catalogue()]);
-    return new MmrBuilder(catalogue).buildMmr(rawMmr);
+    const [rawMmr, rawUpdates, catalogue] = await Promise.all([
+      api.mmr(puuid),
+      api.competitiveUpdates(0, 20, "competitive", puuid),
+      this.context.catalogue(),
+    ]);
+    return new MmrBuilder(catalogue).buildMmr(rawMmr, rawUpdates.Matches ?? []);
   }
 
   async rankHistory(options?: { count?: number }): Promise<RankChange[]> {
@@ -240,9 +244,9 @@ export class MatchService implements MatchesApi {
     return this.live();
   }
 
-  async validateDodge(
-    options?: { confirm?: boolean },
-  ): Promise<{ method: string; path: string; matchId: string }> {
+  async validateDodge(options?: {
+    confirm?: boolean;
+  }): Promise<{ method: string; path: string; matchId: string }> {
     const session = await this.context.sessions.session();
     const pregame = await this.context.api(session).pregamePlayer();
     return MatchValidator.validateDodge(pregame, options);
@@ -255,9 +259,9 @@ export class MatchService implements MatchesApi {
     return { dodged: true, matchId: validated.matchId };
   }
 
-  async validateLeaveMatch(
-    options?: { confirm?: boolean },
-  ): Promise<{ method: string; path: string; matchId: string; puuid: string }> {
+  async validateLeaveMatch(options?: {
+    confirm?: boolean;
+  }): Promise<{ method: string; path: string; matchId: string; puuid: string }> {
     const session = await this.context.sessions.session();
     const core = await this.context.api(session).coreGamePlayer();
     return MatchValidator.validateLeaveMatch(core, session.puuid, options);

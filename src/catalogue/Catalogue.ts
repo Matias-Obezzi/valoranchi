@@ -71,7 +71,6 @@ export class Catalogue {
     this.indexContractsAndMissions(this.contracts, this.missions);
   }
 
-
   private indexWeapons(weapons: ValorantApiWeapon[]): void {
     for (const weapon of weapons) {
       this.weaponsByUuid.set(weapon.uuid.toLowerCase(), weapon);
@@ -263,4 +262,3 @@ export class Catalogue {
     return this.missionsByUuid.get(uuid.toLowerCase());
   }
 }
-

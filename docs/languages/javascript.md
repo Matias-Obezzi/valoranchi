@@ -46,7 +46,11 @@ const { stdout: whoamiOut } = await execFileAsync("riotclient", ["whoami"]);
 const player = JSON.parse(whoamiOut);
 console.log(`Player: ${player.gameName}#${player.tagLine} (${player.region})`);
 
-const { stdout: collectionOut } = await execFileAsync("riotclient", ["owned-items", "--language", "en-US"]);
+const { stdout: collectionOut } = await execFileAsync("riotclient", [
+  "owned-items",
+  "--language",
+  "en-US",
+]);
 const collection = JSON.parse(collectionOut);
 for (const weapon of collection.weapons) {
   const firstSkin = weapon.skins[0];

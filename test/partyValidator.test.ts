@@ -85,9 +85,9 @@ describe("PartyValidator", () => {
       PartyValidator.validate(party, caller, { type: "start-matchmaking" }),
     ).toThrowError(expect.objectContaining({ reason: "not-owner" }));
 
-    expect(() =>
-      PartyValidator.validate(party, caller, { type: "stop-matchmaking" }),
-    ).toThrowError(expect.objectContaining({ reason: "not-owner" }));
+    expect(() => PartyValidator.validate(party, caller, { type: "stop-matchmaking" })).toThrowError(
+      expect.objectContaining({ reason: "not-owner" }),
+    );
   });
 
   it("throws self-target when owner targets themselves for kick or promote", () => {

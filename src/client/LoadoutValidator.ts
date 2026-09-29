@@ -261,17 +261,14 @@ export class LoadoutValidator {
 
         skinUuid = skin.uuid.toLowerCase();
         levelUuid = this.resolveLevel(change.level, skin, isDefaultSkin, ownedSkin, catalogue);
-        chromaUuid = this.resolveChroma(
-          change.chroma,
-          skin,
-          isDefaultSkin,
-          ownedSkin,
-          catalogue,
-        );
+        chromaUuid = this.resolveChroma(change.chroma, skin, isDefaultSkin, ownedSkin, catalogue);
       } else {
         const existingGun = nextGuns.find((g) => g.ID.toLowerCase() === weapon!.uuid.toLowerCase());
         if (!existingGun) {
-          throw new ValidationError("unknown-item", `No skin found for weapon: ${weapon.displayName}`);
+          throw new ValidationError(
+            "unknown-item",
+            `No skin found for weapon: ${weapon.displayName}`,
+          );
         }
         skinUuid = existingGun.SkinID;
         levelUuid = existingGun.SkinLevelID;
@@ -394,9 +391,7 @@ export class LoadoutValidator {
     const ownedLevelSet = new Set(
       ownedSkin?.levels.filter((l) => l.owned).map((l) => l.uuid.toLowerCase()) ?? [],
     );
-    const highest = [...skin.levels]
-      .reverse()
-      .find((l) => ownedLevelSet.has(l.uuid.toLowerCase()));
+    const highest = [...skin.levels].reverse().find((l) => ownedLevelSet.has(l.uuid.toLowerCase()));
     return highest?.uuid.toLowerCase() ?? skin.levels[0]!.uuid.toLowerCase();
   }
 

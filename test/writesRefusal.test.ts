@@ -36,7 +36,14 @@ function createOwnedItems(overrides?: Partial<OwnedItems>): OwnedItems {
   return {
     language: "en-US",
     generatedAt: "2026-09-29T12:00:00.000Z",
-    player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+    player: {
+      puuid: "me",
+      gameName: "P",
+      tagLine: "T",
+      region: "na",
+      shard: "na",
+      accountLevel: 1,
+    },
     weapons: [],
     buddies: [],
     sprays: [],
@@ -281,7 +288,14 @@ describe("refused writes never reach Riot", () => {
 
   it("refuses buy if confirm flag is not passed (confirm-required)", () => {
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: null,
       nightMarket: null,
@@ -313,7 +327,14 @@ describe("refused writes never reach Riot", () => {
 
   it("refuses buy if offer is not in store (offer-not-in-store)", () => {
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: {
         endsAt: "later",
@@ -349,14 +370,25 @@ describe("refused writes never reach Riot", () => {
   it("refuses buy if item is already owned (already-owned)", () => {
     const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: {
         endsAt: "later",
         offers: [
           {
             offerId: "prime-offer-id",
-            cost: { currency: "Valorant Points", currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", amount: 1775 },
+            cost: {
+              currency: "Valorant Points",
+              currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+              amount: 1775,
+            },
             item: {
               kind: "skin",
               uuid: skinUuid,
@@ -419,14 +451,25 @@ describe("refused writes never reach Riot", () => {
   it("refuses buy if wallet has insufficient funds (insufficient-funds)", () => {
     const skinUuid = "8908f237-47b2-031a-e905-1a89c93cc8f5";
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: {
         endsAt: "later",
         offers: [
           {
             offerId: "prime-offer-id",
-            cost: { currency: "Valorant Points", currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741", amount: 1775 },
+            cost: {
+              currency: "Valorant Points",
+              currencyUuid: "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741",
+              amount: 1775,
+            },
             item: {
               kind: "skin",
               uuid: skinUuid,
@@ -468,7 +511,14 @@ describe("refused writes never reach Riot", () => {
 
   it("refuses night market reveal if night market is not active (night-market-missing)", () => {
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: null,
       nightMarket: null,
@@ -486,7 +536,14 @@ describe("refused writes never reach Riot", () => {
 
   it("refuses night market reveal if all offers are already revealed (night-market-revealed)", () => {
     const mockStore: Store = {
-      player: { puuid: "me", gameName: "P", tagLine: "T", region: "na", shard: "na", accountLevel: 1 },
+      player: {
+        puuid: "me",
+        gameName: "P",
+        tagLine: "T",
+        region: "na",
+        shard: "na",
+        accountLevel: 1,
+      },
       fetchedAt: "now",
       daily: null,
       nightMarket: {
@@ -574,20 +631,32 @@ describe("live actions and party refusal validators for all 15 reasons", () => {
       MatchValidator.validateSelectOrLock(null, catalogue, entitlements, "Jett", "me"),
     ).toThrowError(expect.objectContaining({ reason: "not-in-pregame" }));
 
-    expect(() =>
-      MatchValidator.validateDodge(null, { confirm: true }),
-    ).toThrowError(expect.objectContaining({ reason: "not-in-pregame" }));
+    expect(() => MatchValidator.validateDodge(null, { confirm: true })).toThrowError(
+      expect.objectContaining({ reason: "not-in-pregame" }),
+    );
   });
 
   it("refuses unknown or non-playable agent (unknown-agent)", () => {
     expect(() =>
-      MatchValidator.validateSelectOrLock(pregameMatch, catalogue, entitlements, "NonExistentAgent", "me"),
+      MatchValidator.validateSelectOrLock(
+        pregameMatch,
+        catalogue,
+        entitlements,
+        "NonExistentAgent",
+        "me",
+      ),
     ).toThrowError(expect.objectContaining({ reason: "unknown-agent" }));
   });
 
   it("refuses agent not owned by player (agent-not-owned)", () => {
     expect(() =>
-      MatchValidator.validateSelectOrLock(pregameMatch, catalogue, { EntitlementsByTypes: [] }, "Phoenix", "me"),
+      MatchValidator.validateSelectOrLock(
+        pregameMatch,
+        catalogue,
+        { EntitlementsByTypes: [] },
+        "Phoenix",
+        "me",
+      ),
     ).toThrowError(expect.objectContaining({ reason: "agent-not-owned" }));
   });
 
@@ -660,16 +729,16 @@ describe("live actions and party refusal validators for all 15 reasons", () => {
   });
 
   it("refuses leave match when not in a match (not-in-match)", () => {
-    expect(() =>
-      MatchValidator.validateLeaveMatch(null, "me", { confirm: true }),
-    ).toThrowError(expect.objectContaining({ reason: "not-in-match" }));
+    expect(() => MatchValidator.validateLeaveMatch(null, "me", { confirm: true })).toThrowError(
+      expect.objectContaining({ reason: "not-in-match" }),
+    );
   });
 
   it("refuses join or decline when invite does not exist (invite-missing)", () => {
     const emptyPartyPlayer = { Subject: "me", Invites: [] } as unknown as RiotPartyPlayerResponse;
-    expect(() =>
-      PartyValidator.validateJoin(emptyPartyPlayer, "p-missing"),
-    ).toThrowError(expect.objectContaining({ reason: "invite-missing" }));
+    expect(() => PartyValidator.validateJoin(emptyPartyPlayer, "p-missing")).toThrowError(
+      expect.objectContaining({ reason: "invite-missing" }),
+    );
 
     expect(() =>
       PartyValidator.validateDeclineInvite(emptyPartyPlayer, "inv-missing"),
@@ -695,9 +764,9 @@ describe("live actions and party refusal validators for all 15 reasons", () => {
       Members: [{ Subject: "me", IsOwner: true }],
     } as unknown as RiotPartyResponse;
 
-    expect(() =>
-      PartyValidator.validateCustomGame(normalParty, "me"),
-    ).toThrowError(expect.objectContaining({ reason: "not-custom-game" }));
+    expect(() => PartyValidator.validateCustomGame(normalParty, "me")).toThrowError(
+      expect.objectContaining({ reason: "not-custom-game" }),
+    );
   });
 
   it("refuses custom game settings when map is not enabled (map-not-enabled)", () => {
@@ -755,9 +824,9 @@ describe("live actions and party refusal validators for all 15 reasons", () => {
       },
     } as unknown as RiotPartyResponse;
 
-    expect(() =>
-      PartyValidator.validateStartCustomGame(partyNoTeams, "me"),
-    ).toThrowError(expect.objectContaining({ reason: "no-team-players" }));
+    expect(() => PartyValidator.validateStartCustomGame(partyNoTeams, "me")).toThrowError(
+      expect.objectContaining({ reason: "no-team-players" }),
+    );
   });
 
   it("refuses save settings when game is not running (game-not-running)", async () => {
@@ -802,4 +871,3 @@ describe("Refused live actions never send requests to Riot", () => {
     expect(post).not.toHaveBeenCalled();
   });
 });
-

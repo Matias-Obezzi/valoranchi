@@ -124,7 +124,10 @@ describe("CollectionBuilder", () => {
       Guns: [],
       ActiveExpressions: [
         { TypeID: "03a572de-4234-31ed-d344-ababa488f981", AssetID: "flex-uuid-1" },
-        { TypeID: "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475", AssetID: "049386d3-4903-4f93-85b9-daaf91a27e7a" },
+        {
+          TypeID: "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+          AssetID: "049386d3-4903-4f93-85b9-daaf91a27e7a",
+        },
       ],
       Identity: {
         PlayerCardID: "card-uuid",

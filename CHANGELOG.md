@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `mmr().fit` says whether the account sits at its right rank, judged by the rating won per victory over the last twenty competitive games: `above`, `fit` or `below`, with the expected rank and the average gain and loss.
+
 ## [0.3.0] - 2026-09-29
 
 ### Added

@@ -25,7 +25,6 @@ import type { AccountApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
 import { LoadoutValidator, type LoadoutChange, type LoadoutGunChange } from "./LoadoutValidator.js";
 
-
 export class AccountService implements AccountApi {
   constructor(private readonly context: ClientContext) {}
 
@@ -132,7 +131,10 @@ export class AccountService implements AccountApi {
         w.skins.some((s) => s.uuid.toLowerCase() === skin.uuid.toLowerCase()),
       );
       if (!weapon) {
-        throw new ValidationError("unknown-weapon", `No weapon found for skin: ${skin.displayName}`);
+        throw new ValidationError(
+          "unknown-weapon",
+          `No weapon found for skin: ${skin.displayName}`,
+        );
       }
 
       const weaponKey = weapon.uuid.toLowerCase();
@@ -158,13 +160,13 @@ export class AccountService implements AccountApi {
     if (!change) return false;
     return Boolean(
       change.guns?.length ||
-        change.sprays?.length ||
-        change.flex !== undefined ||
-        change.card ||
-        change.title ||
-        change.levelBorder ||
-        change.incognito !== undefined ||
-        change.hideAccountLevel !== undefined,
+      change.sprays?.length ||
+      change.flex !== undefined ||
+      change.card ||
+      change.title ||
+      change.levelBorder ||
+      change.incognito !== undefined ||
+      change.hideAccountLevel !== undefined,
     );
   }
 
@@ -305,10 +307,9 @@ export class AccountService implements AccountApi {
   async setLeaderboardAnonymized(anonymized: boolean): Promise<boolean> {
     const validated = await this.validateSetLeaderboardAnonymized(anonymized);
     const session = await this.context.sessions.session();
-    await this.context.api(session).setLeaderboardAnonymized(
-      validated.seasonId,
-      validated.Anonymize,
-    );
+    await this.context
+      .api(session)
+      .setLeaderboardAnonymized(validated.seasonId, validated.Anonymize);
     return anonymized;
   }
 
@@ -328,7 +329,10 @@ export class AccountService implements AccountApi {
     const localApi = this.context.sessions.localApi();
     const gameAuth = await localApi.gameAuthorization();
     if (!gameAuth) {
-      throw new ValidationError("game-not-running", "Valorant must be running to access player settings");
+      throw new ValidationError(
+        "game-not-running",
+        "Valorant must be running to access player settings",
+      );
     }
     const res = await localApi.get<{ type?: string; data?: Record<string, unknown> }>(
       "/player-preferences/v1/data-json/Ares.PlayerSettings",
@@ -347,10 +351,16 @@ export class AccountService implements AccountApi {
     const localApi = this.context.sessions.localApi();
     const gameAuth = await localApi.gameAuthorization();
     if (!gameAuth) {
-      throw new ValidationError("game-not-running", "Valorant must be running to save player settings");
+      throw new ValidationError(
+        "game-not-running",
+        "Valorant must be running to save player settings",
+      );
     }
     const payload =
-      typeof data === "object" && data !== null && "raw" in data && typeof (data as { raw: unknown }).raw === "object"
+      typeof data === "object" &&
+      data !== null &&
+      "raw" in data &&
+      typeof (data as { raw: unknown }).raw === "object"
         ? ((data as { raw: Record<string, unknown> }).raw ?? {})
         : (data as Record<string, unknown>);
     return { type: "Ares.PlayerSettings", data: payload };
@@ -369,7 +379,9 @@ export class AccountService implements AccountApi {
   async client(): Promise<ClientInfo> {
     const localApi = this.context.sessions.localApi();
     const [regionLocale, activeAlias, externalSessions] = await Promise.all([
-      localApi.get<{ locale?: string; region?: string }>("/riotclient/region-locale").catch(() => null),
+      localApi
+        .get<{ locale?: string; region?: string }>("/riotclient/region-locale")
+        .catch(() => null),
       localApi
         .get<{ active?: boolean; game_name?: string; tag_line?: string }>(
           "/player-account/aliases/v1/active",
@@ -422,4 +434,3 @@ export class AccountService implements AccountApi {
     };
   }
 }
-

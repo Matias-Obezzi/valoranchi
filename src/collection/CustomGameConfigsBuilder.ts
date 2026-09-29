@@ -56,12 +56,10 @@ export class CustomGameConfigsBuilder {
     if (!info || typeof info !== "object") {
       return [];
     }
-    return Object.entries(info as Record<string, { ServerTextName?: string }>).map(
-      ([id, pod]) => ({
-        id,
-        name: pod?.ServerTextName ?? id,
-        ping: typeof pingMap?.[id] === "number" ? pingMap[id] : null,
-      }),
-    );
+    return Object.entries(info as Record<string, { ServerTextName?: string }>).map(([id, pod]) => ({
+      id,
+      name: pod?.ServerTextName ?? id,
+      ping: typeof pingMap?.[id] === "number" ? pingMap[id] : null,
+    }));
   }
 }

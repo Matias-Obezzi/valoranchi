@@ -24,7 +24,10 @@ export class StoreValidator {
     }
     const hasUnseen = store.nightMarket.offers.some((o) => !o.seen);
     if (!hasUnseen) {
-      throw new ValidationError("night-market-revealed", "Night market offers are already revealed");
+      throw new ValidationError(
+        "night-market-revealed",
+        "Night market offers are already revealed",
+      );
     }
   }
 
@@ -70,7 +73,6 @@ export class StoreValidator {
       "discountedCost" in match ? (match as { discountedCost: Cost }).discountedCost : match.cost;
     this.checkFunds(cost, wallet);
 
-
     const itemTypeId =
       match.item.kind === "skin"
         ? ENTITLEMENT_ITEM_TYPES.skinLevel
@@ -97,7 +99,9 @@ export class StoreValidator {
     wallet: Wallet,
     bundleId: string,
   ): BuyValidationResult {
-    const bundle = store.bundles?.items.find((b) => b.uuid.toLowerCase() === bundleId.toLowerCase());
+    const bundle = store.bundles?.items.find(
+      (b) => b.uuid.toLowerCase() === bundleId.toLowerCase(),
+    );
     if (!bundle) {
       throw new ValidationError("offer-not-in-store", `Bundle not in store: ${bundleId}`);
     }
@@ -105,7 +109,10 @@ export class StoreValidator {
     const allOwned =
       bundle.items.length > 0 && bundle.items.every((bi) => this.isItemOwned(bi.item, owned));
     if (allOwned) {
-      throw new ValidationError("already-owned", `All items in bundle are already owned: ${bundle.name}`);
+      throw new ValidationError(
+        "already-owned",
+        `All items in bundle are already owned: ${bundle.name}`,
+      );
     }
 
     const costAmount = bundle.totalDiscounted ?? bundle.totalBase ?? 0;
@@ -149,13 +156,19 @@ export class StoreValidator {
 
   static checkFunds(cost: Cost, wallet: Wallet): void {
     const cur = cost.currencyUuid.toLowerCase();
-    if (cur === CURRENCY_UUIDS.valorantPoints.toLowerCase() && wallet.valorantPoints < cost.amount) {
+    if (
+      cur === CURRENCY_UUIDS.valorantPoints.toLowerCase() &&
+      wallet.valorantPoints < cost.amount
+    ) {
       throw new ValidationError("insufficient-funds", "Insufficient Valorant Points");
     }
     if (cur === CURRENCY_UUIDS.radianite.toLowerCase() && wallet.radianite < cost.amount) {
       throw new ValidationError("insufficient-funds", "Insufficient Radianite");
     }
-    if (cur === CURRENCY_UUIDS.kingdomCredits.toLowerCase() && wallet.kingdomCredits < cost.amount) {
+    if (
+      cur === CURRENCY_UUIDS.kingdomCredits.toLowerCase() &&
+      wallet.kingdomCredits < cost.amount
+    ) {
       throw new ValidationError("insufficient-funds", "Insufficient Kingdom Credits");
     }
   }

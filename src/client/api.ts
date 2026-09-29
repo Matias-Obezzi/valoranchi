@@ -63,7 +63,9 @@ export interface AccountApi {
   setActRankBadgeHidden(hidden: boolean): Promise<boolean>;
   validateSetActRankBadgeHidden(hidden: boolean): Promise<{ HideActRankBadge: boolean }>;
   setLeaderboardAnonymized(anonymized: boolean): Promise<boolean>;
-  validateSetLeaderboardAnonymized(anonymized: boolean): Promise<{ seasonId: string; Anonymize: boolean }>;
+  validateSetLeaderboardAnonymized(
+    anonymized: boolean,
+  ): Promise<{ seasonId: string; Anonymize: boolean }>;
   session(): Promise<GameSession>;
   config(): Promise<Record<string, unknown>>;
   settings(): Promise<PlayerSettings>;
@@ -142,13 +144,13 @@ export interface MatchesApi {
     agent: string,
   ): Promise<{ method: string; path: string; matchId: string; agentUuid: string }>;
   dodge(options?: { confirm?: boolean }): Promise<{ dodged: boolean; matchId: string }>;
-  validateDodge(
-    options?: { confirm?: boolean },
-  ): Promise<{ method: string; path: string; matchId: string }>;
+  validateDodge(options?: {
+    confirm?: boolean;
+  }): Promise<{ method: string; path: string; matchId: string }>;
   leaveMatch(options?: { confirm?: boolean }): Promise<{ left: boolean; matchId: string }>;
-  validateLeaveMatch(
-    options?: { confirm?: boolean },
-  ): Promise<{ method: string; path: string; matchId: string; puuid: string }>;
+  validateLeaveMatch(options?: {
+    confirm?: boolean;
+  }): Promise<{ method: string; path: string; matchId: string; puuid: string }>;
 }
 
 export interface PartyApi {
@@ -242,4 +244,3 @@ export interface RiotRawApi {
     options?: { headers?: Record<string, string> } | Record<string, string>,
   ): Promise<T>;
 }
-

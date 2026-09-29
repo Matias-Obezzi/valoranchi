@@ -1,6 +1,10 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
 import type { Image, Loadout, LoadoutGun, OwnedCard, OwnedTitle, Player } from "../model/index.js";
-import { ENTITLEMENT_ITEM_TYPES, type RiotLoadoutGun, type RiotLoadoutResponse } from "../riot/types.js";
+import {
+  ENTITLEMENT_ITEM_TYPES,
+  type RiotLoadoutGun,
+  type RiotLoadoutResponse,
+} from "../riot/types.js";
 
 export class LoadoutBuilder {
   private readonly player: Player;

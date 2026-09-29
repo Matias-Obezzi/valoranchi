@@ -15,6 +15,9 @@
             }
           ]
         },
+        "fit": {
+          "$ref": "#/definitions/RankFit"
+        },
         "peak": {
           "anyOf": [
             {
@@ -136,7 +139,7 @@
           "type": "boolean"
         }
       },
-      "required": ["current", "peak", "act", "lastUpdate", "leaderboardAnonymized"],
+      "required": ["current", "fit", "peak", "act", "lastUpdate", "leaderboardAnonymized"],
       "additionalProperties": false
     },
     "Rank": {
@@ -163,6 +166,40 @@
     },
     "Image": {
       "type": ["string", "null"]
+    },
+    "RankFit": {
+      "type": "object",
+      "properties": {
+        "verdict": {
+          "type": ["string", "null"],
+          "enum": ["above", "fit", "below", null]
+        },
+        "ranksAbove": {
+          "type": "number",
+          "enum": [-1, 0, 1, 2]
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Rank"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "averageGain": {
+          "type": ["number", "null"]
+        },
+        "averageLoss": {
+          "type": ["number", "null"]
+        },
+        "sample": {
+          "type": "number"
+        }
+      },
+      "required": ["verdict", "ranksAbove", "expected", "averageGain", "averageLoss", "sample"],
+      "additionalProperties": false
     },
     "RankMovement": {
       "type": "string",

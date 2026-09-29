@@ -71,10 +71,7 @@ export class SocialService implements SocialApi {
   ): Promise<{ cid: string; message: string; type: "chat" | "groupchat" }> {
     ChatValidator.validateMessageText(text);
     const chatApi = this.chatApi();
-    const [rawFriends, convs] = await Promise.all([
-      chatApi.friends(),
-      this.conversations(),
-    ]);
+    const [rawFriends, convs] = await Promise.all([chatApi.friends(), this.conversations()]);
     const { cid, type } = ChatValidator.validateMessageTarget(to, rawFriends, convs);
     return { cid, message: text, type };
   }
@@ -90,7 +87,9 @@ export class SocialService implements SocialApi {
     ]);
     const rawMsg = await chatApi.sendMessage(body.cid, body.message, body.type);
     const isRoom = body.type === "groupchat";
-    const at = rawMsg?.time ? new Date(Number(rawMsg.time)).toISOString() : new Date().toISOString();
+    const at = rawMsg?.time
+      ? new Date(Number(rawMsg.time)).toISOString()
+      : new Date().toISOString();
     return {
       id: rawMsg?.id || rawMsg?.mid || String(Date.now()),
       conversationId: body.cid,
@@ -106,7 +105,9 @@ export class SocialService implements SocialApi {
     };
   }
 
-  async validateSendFriendRequest(riotId: string): Promise<{ game_name: string; game_tag: string }> {
+  async validateSendFriendRequest(
+    riotId: string,
+  ): Promise<{ game_name: string; game_tag: string }> {
     const chatApi = this.chatApi();
     const [friends, requests, session] = await Promise.all([
       this.friends(),
@@ -128,7 +129,9 @@ export class SocialService implements SocialApi {
     return this.friendRequests();
   }
 
-  async validateAcceptFriendRequest(puuid: string): Promise<{ game_name: string; game_tag: string }> {
+  async validateAcceptFriendRequest(
+    puuid: string,
+  ): Promise<{ game_name: string; game_tag: string }> {
     const chatApi = this.chatApi();
     const rawRequests = await chatApi.friendRequests();
     const { gameName, gameTag } = ChatValidator.validateAcceptFriendRequest(puuid, rawRequests);

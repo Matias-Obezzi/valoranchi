@@ -5,11 +5,7 @@ import type { Offer, Order, OwnedItems, Store, Wallet } from "../model/index.js"
 import { CURRENCY_UUIDS } from "../riot/types.js";
 import type { StoreApi } from "./api.js";
 import type { ClientContext } from "./ClientContext.js";
-import {
-  StoreValidator,
-  type BuyTarget,
-  type BuyValidationResult,
-} from "./StoreValidator.js";
+import { StoreValidator, type BuyTarget, type BuyValidationResult } from "./StoreValidator.js";
 
 export class StoreService implements StoreApi {
   constructor(private readonly context: ClientContext) {}

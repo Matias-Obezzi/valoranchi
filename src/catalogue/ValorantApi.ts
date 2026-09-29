@@ -134,20 +134,32 @@ export class ValorantApi {
 
   private async fetchBaseCatalogue(
     language: string,
-  ): Promise<Omit<ValorantApiCatalogueData, "tiers" | "seasons" | "levelBorders" | "contracts" | "missions">> {
-    const [weaponsRes, cardsRes, titlesRes, spraysRes, buddiesRes, agentsRes, tiersRes, curRes, bunRes, mapsRes] =
-      await Promise.all([
-        this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
-        this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
-        this.fetchEndpoint<ValorantApiPlayerTitle[]>("playerTitles", language),
-        this.fetchEndpoint<ValorantApiSpray[]>("sprays", language),
-        this.fetchEndpoint<ValorantApiBuddy[]>("buddies", language),
-        this.fetchEndpoint<ValorantApiAgent[]>("agents", language),
-        this.fetchEndpoint<ValorantApiContentTier[]>("contentTiers", language),
-        this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
-        this.fetchEndpoint<ValorantApiBundle[]>("bundles", language),
-        this.fetchEndpoint<ValorantApiMap[]>("maps", language),
-      ]);
+  ): Promise<
+    Omit<ValorantApiCatalogueData, "tiers" | "seasons" | "levelBorders" | "contracts" | "missions">
+  > {
+    const [
+      weaponsRes,
+      cardsRes,
+      titlesRes,
+      spraysRes,
+      buddiesRes,
+      agentsRes,
+      tiersRes,
+      curRes,
+      bunRes,
+      mapsRes,
+    ] = await Promise.all([
+      this.fetchEndpoint<ValorantApiWeapon[]>("weapons", language),
+      this.fetchEndpoint<ValorantApiPlayerCard[]>("playerCards", language),
+      this.fetchEndpoint<ValorantApiPlayerTitle[]>("playerTitles", language),
+      this.fetchEndpoint<ValorantApiSpray[]>("sprays", language),
+      this.fetchEndpoint<ValorantApiBuddy[]>("buddies", language),
+      this.fetchEndpoint<ValorantApiAgent[]>("agents", language),
+      this.fetchEndpoint<ValorantApiContentTier[]>("contentTiers", language),
+      this.fetchEndpoint<ValorantApiCurrency[]>("currencies", language),
+      this.fetchEndpoint<ValorantApiBundle[]>("bundles", language),
+      this.fetchEndpoint<ValorantApiMap[]>("maps", language),
+    ]);
     return {
       weapons: weaponsRes.data,
       playerCards: cardsRes.data,
@@ -162,10 +174,11 @@ export class ValorantApi {
     };
   }
 
-  private async fetchExtraCatalogue(language: string): Promise<Pick<
-    ValorantApiCatalogueData,
-    "tiers" | "seasons" | "levelBorders" | "contracts" | "missions"
-  >> {
+  private async fetchExtraCatalogue(
+    language: string,
+  ): Promise<
+    Pick<ValorantApiCatalogueData, "tiers" | "seasons" | "levelBorders" | "contracts" | "missions">
+  > {
     const [compTiersRes, seasonsRes, bordersRes, contractsRes, missionsRes] = await Promise.all([
       this.fetchEndpoint<ValorantApiTierGroup[]>("competitivetiers", language),
       this.fetchEndpoint<ValorantApiSeason[]>("seasons", language),
@@ -183,7 +196,6 @@ export class ValorantApi {
       missions: missionsRes.data,
     };
   }
-
 
   private async fetchEndpoint<T>(endpoint: string, language: string): Promise<ApiResponse<T>> {
     const url = `https://valorant-api.com/v1/${endpoint}?language=${encodeURIComponent(language)}`;

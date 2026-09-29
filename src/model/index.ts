@@ -355,8 +355,18 @@ export type Match = {
   replayRecorded: boolean;
 };
 
+export type RankFit = {
+  verdict: "above" | "fit" | "below" | null;
+  ranksAbove: -1 | 0 | 1 | 2;
+  expected: Rank | null;
+  averageGain: number | null;
+  averageLoss: number | null;
+  sample: number;
+};
+
 export type Mmr = {
   current: Rank | null;
+  fit: RankFit;
   peak: (Rank & { act: { uuid: string; name: string | null } }) | null;
   act: {
     uuid: string;
@@ -676,4 +686,3 @@ export type Participant = {
   muted: boolean;
   activePlatform: string | null;
 };
-

@@ -17,7 +17,6 @@ import type { PartyApi } from "./api.js";
 import { resolveLobbyNames } from "./LiveMatchService.js";
 import { PartyValidator, type PartyAction, type PartyActionRequest } from "./PartyValidator.js";
 
-
 export class PartyService implements PartyApi {
   constructor(private readonly context: ClientContext) {}
 
@@ -351,7 +350,8 @@ export class PartyService implements PartyApi {
   async validateMakeCustomGame(): Promise<{ partyId: string }> {
     const session = await this.context.sessions.session();
     const partyPlayer = await this.context.api(session).partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await this.context.api(session).party(partyPlayer.CurrentPartyID);
     const member = (party.Members ?? []).find((m) => m.Subject === session.puuid);
     if (!member?.IsOwner) throw new ValidationError("not-owner", "Caller is not the party owner");
@@ -368,7 +368,8 @@ export class PartyService implements PartyApi {
   async validateMakeDefault(queue: string): Promise<{ partyId: string; queue: string }> {
     const session = await this.context.sessions.session();
     const partyPlayer = await this.context.api(session).partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await this.context.api(session).party(partyPlayer.CurrentPartyID);
     const member = (party.Members ?? []).find((m) => m.Subject === session.puuid);
     if (!member?.IsOwner) throw new ValidationError("not-owner", "Caller is not the party owner");
@@ -388,7 +389,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const [party, configs, catalogue] = await Promise.all([
       api.party(partyPlayer.CurrentPartyID),
       api.customGameConfigs(),
@@ -407,7 +409,9 @@ export class PartyService implements PartyApi {
     const payload = await this.validateSetCustomGameSettings(settings);
     const session = await this.context.sessions.session();
     const partyPlayer = await this.context.api(session).partyPlayer();
-    await this.context.api(session).setPartyCustomGameSettings(partyPlayer!.CurrentPartyID, payload);
+    await this.context
+      .api(session)
+      .setPartyCustomGameSettings(partyPlayer!.CurrentPartyID, payload);
     return this.current();
   }
 
@@ -418,7 +422,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await api.party(partyPlayer.CurrentPartyID);
     return PartyValidator.validateSetTeam(party, session.puuid, puuid, team);
   }
@@ -436,7 +441,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await api.party(partyPlayer.CurrentPartyID);
     return PartyValidator.validateStartCustomGame(party, session.puuid);
   }
@@ -452,7 +458,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await api.party(partyPlayer.CurrentPartyID);
     return PartyValidator.validateBalanceTeams(party, session.puuid);
   }
@@ -470,7 +477,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const [party, configs] = await Promise.all([
       api.party(partyPlayer.CurrentPartyID),
       api.customGameConfigs(),
@@ -496,7 +504,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     const party = await api.party(partyPlayer.CurrentPartyID);
     return PartyValidator.validateSetModerator(party, session.puuid, puuid, isModerator);
   }
@@ -530,7 +539,8 @@ export class PartyService implements PartyApi {
     const session = await this.context.sessions.session();
     const api = this.context.api(session);
     const partyPlayer = await api.partyPlayer();
-    if (!partyPlayer?.CurrentPartyID) throw new ValidationError("no-party", "Not currently in a party");
+    if (!partyPlayer?.CurrentPartyID)
+      throw new ValidationError("no-party", "Not currently in a party");
     await Promise.all([
       api.refreshPartyPings(partyPlayer.CurrentPartyID, session.puuid),
       api.refreshPartyCompetitiveTier(partyPlayer.CurrentPartyID, session.puuid),
@@ -539,4 +549,3 @@ export class PartyService implements PartyApi {
     return this.current();
   }
 }
-

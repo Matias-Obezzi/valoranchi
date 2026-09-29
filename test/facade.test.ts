@@ -704,7 +704,9 @@ describe("RiotClient facade", () => {
         postSpy.mockClear();
 
         // 3. sendFriendRequest failure: already friends -> no post
-        await expect(client.social.sendFriendRequest("Friend1#001")).rejects.toThrow(ValidationError);
+        await expect(client.social.sendFriendRequest("Friend1#001")).rejects.toThrow(
+          ValidationError,
+        );
         expect(postSpy).not.toHaveBeenCalled();
 
         // 4. sendFriendRequest success: sends post and returns requests
@@ -716,7 +718,9 @@ describe("RiotClient facade", () => {
         postSpy.mockClear();
 
         // 5. acceptFriendRequest failure: missing request -> no post
-        await expect(client.social.acceptFriendRequest("missing-puuid")).rejects.toThrow(ValidationError);
+        await expect(client.social.acceptFriendRequest("missing-puuid")).rejects.toThrow(
+          ValidationError,
+        );
         expect(postSpy).not.toHaveBeenCalled();
 
         // 6. acceptFriendRequest success: sends request with player's name & tag

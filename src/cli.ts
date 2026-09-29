@@ -146,7 +146,6 @@ Options:
   --version          Show version number
 `;
 
-
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
 ) as { version: string };
@@ -285,7 +284,9 @@ interface CliCommandOptions {
 
 const UNKNOWN_COMMAND = Symbol("UNKNOWN_COMMAND");
 
-function parseTarget(to: string): { puuid: string } | { conversationId: string } | { riotId: string } {
+function parseTarget(
+  to: string,
+): { puuid: string } | { conversationId: string } | { riotId: string } {
   if (to.includes("#")) return { riotId: to };
   if (to.includes("@")) return { conversationId: to };
   return { puuid: to };
@@ -296,7 +297,10 @@ function parseBooleanFlag(name: string, value: unknown): boolean | undefined {
   const str = String(value).toLowerCase();
   if (str === "on" || str === "true") return true;
   if (str === "off" || str === "false") return false;
-  throw new ValidationError("invalid-argument", `Expected ${name} on|off, received: ${String(value)}`);
+  throw new ValidationError(
+    "invalid-argument",
+    `Expected ${name} on|off, received: ${String(value)}`,
+  );
 }
 
 function parseNullableUuid(value: unknown): string | null | undefined {
@@ -306,17 +310,25 @@ function parseNullableUuid(value: unknown): string | null | undefined {
   return str;
 }
 
-function parseSprays(sprayArgs: string[] | undefined): Array<string | null | undefined> | undefined {
+function parseSprays(
+  sprayArgs: string[] | undefined,
+): Array<string | null | undefined> | undefined {
   if (!sprayArgs) return undefined;
   const sprays: Array<string | null | undefined> = [undefined, undefined, undefined];
   for (const arg of sprayArgs) {
     const eqIdx = arg.indexOf("=");
     if (eqIdx === -1) {
-      throw new ValidationError("invalid-argument", `Invalid spray spec: ${arg}. Expected <slot>=<uuid|none>`);
+      throw new ValidationError(
+        "invalid-argument",
+        `Invalid spray spec: ${arg}. Expected <slot>=<uuid|none>`,
+      );
     }
     const slotNum = Number(arg.slice(0, eqIdx));
     if (isNaN(slotNum) || slotNum < 0 || slotNum > 2) {
-      throw new ValidationError("too-many-sprays", `Invalid spray slot: ${arg.slice(0, eqIdx)}. Expected 0, 1, or 2`);
+      throw new ValidationError(
+        "too-many-sprays",
+        `Invalid spray slot: ${arg.slice(0, eqIdx)}. Expected 0, 1, or 2`,
+      );
     }
     sprays[slotNum] = parseNullableUuid(arg.slice(eqIdx + 1));
   }
@@ -353,7 +365,10 @@ function parseGuns(
     for (const arg of buddyArgs) {
       const eqIdx = arg.indexOf("=");
       if (eqIdx === -1) {
-        throw new ValidationError("invalid-argument", `Invalid buddy spec: ${arg}. Expected <weapon>=<buddy|none>`);
+        throw new ValidationError(
+          "invalid-argument",
+          `Invalid buddy spec: ${arg}. Expected <weapon>=<buddy|none>`,
+        );
       }
       const weapon = arg.slice(0, eqIdx);
       const buddy = parseNullableUuid(arg.slice(eqIdx + 1));
@@ -379,7 +394,10 @@ function parseEquipChange(values: Record<string, unknown>): LoadoutChange {
     title: values.title as string | undefined,
     levelBorder: border,
     incognito: parseBooleanFlag("incognito", values.incognito),
-    hideAccountLevel: parseBooleanFlag("hide-level", values["hide-level"] ?? values["hide-account-level"]),
+    hideAccountLevel: parseBooleanFlag(
+      "hide-level",
+      values["hide-level"] ?? values["hide-account-level"],
+    ),
   };
 }
 
@@ -518,23 +536,33 @@ async function executeSocialWriteCommand(
         );
       }
       const target = parseTarget(to);
-      return yes ? client.social.sendMessage(target, text) : client.social.validateSendMessage(target, text);
+      return yes
+        ? client.social.sendMessage(target, text)
+        : client.social.validateSendMessage(target, text);
     }
     case "friend-request": {
       const riotId = requirePositional(pos, 1, "Usage: riotclient friend-request <name#tag>");
-      return yes ? client.social.sendFriendRequest(riotId) : client.social.validateSendFriendRequest(riotId);
+      return yes
+        ? client.social.sendFriendRequest(riotId)
+        : client.social.validateSendFriendRequest(riotId);
     }
     case "friend-accept": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient friend-accept <puuid>");
-      return yes ? client.social.acceptFriendRequest(puuid) : client.social.validateAcceptFriendRequest(puuid);
+      return yes
+        ? client.social.acceptFriendRequest(puuid)
+        : client.social.validateAcceptFriendRequest(puuid);
     }
     case "friend-decline": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient friend-decline <puuid>");
-      return yes ? client.social.declineFriendRequest(puuid) : client.social.validateDeclineFriendRequest(puuid);
+      return yes
+        ? client.social.declineFriendRequest(puuid)
+        : client.social.validateDeclineFriendRequest(puuid);
     }
     case "friend-cancel": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient friend-cancel <puuid>");
-      return yes ? client.social.cancelFriendRequest(puuid) : client.social.validateCancelFriendRequest(puuid);
+      return yes
+        ? client.social.cancelFriendRequest(puuid)
+        : client.social.validateCancelFriendRequest(puuid);
     }
     case "friend-remove": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient friend-remove <puuid>");
@@ -594,15 +622,25 @@ async function executeAccountWriteCommand(
     }
     case "equip-collection": {
       const raw = pos.slice(1).join(",");
-      const skinUuids = raw.split(",").map((s) => s.trim()).filter(Boolean);
+      const skinUuids = raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
       if (skinUuids.length === 0) {
-        throw new ValidationError("invalid-argument", "Usage: riotclient equip-collection <skinUuid,...>");
+        throw new ValidationError(
+          "invalid-argument",
+          "Usage: riotclient equip-collection <skinUuid,...>",
+        );
       }
-      return yes ? client.account.equipCollection(skinUuids) : client.account.validateEquipCollection(skinUuids);
+      return yes
+        ? client.account.equipCollection(skinUuids)
+        : client.account.validateEquipCollection(skinUuids);
     }
     case "contract-activate": {
       const uuid = requirePositional(pos, 1, "Usage: riotclient contract-activate <uuid>");
-      return yes ? client.account.activateContract(uuid) : client.account.validateActivateContract(uuid);
+      return yes
+        ? client.account.activateContract(uuid)
+        : client.account.validateActivateContract(uuid);
     }
     case "favourite-add": {
       const skin = requirePositional(pos, 1, "Usage: riotclient favourite-add <skin>");
@@ -610,7 +648,9 @@ async function executeAccountWriteCommand(
     }
     case "favourite-remove": {
       const skin = requirePositional(pos, 1, "Usage: riotclient favourite-remove <skin>");
-      return yes ? client.account.removeFavourite(skin) : client.account.validateRemoveFavourite(skin);
+      return yes
+        ? client.account.removeFavourite(skin)
+        : client.account.validateRemoveFavourite(skin);
     }
     case "privacy":
       return executePrivacyCommand(client, yes, vals);
@@ -685,8 +725,12 @@ async function executePartyCommand(
     }
     case "party-code":
       return vals.revoke
-        ? (yes ? client.party.revokeInviteCode() : client.party.validateRevokeInviteCode())
-        : (yes ? client.party.createInviteCode() : client.party.validateCreateInviteCode());
+        ? yes
+          ? client.party.revokeInviteCode()
+          : client.party.validateRevokeInviteCode()
+        : yes
+          ? client.party.createInviteCode()
+          : client.party.validateCreateInviteCode();
     case "party-join": {
       const target = requirePositional(pos, 1, "Usage: riotclient party-join <partyId|code>");
       const isPartyId = target.includes("-") || target.length >= 32;
@@ -700,7 +744,9 @@ async function executePartyCommand(
         "ready",
         requirePositional(pos, 1, "Usage: riotclient party-ready on|off"),
       );
-      return yes ? client.party.setReady(Boolean(ready)) : client.party.validateSetReady(Boolean(ready));
+      return yes
+        ? client.party.setReady(Boolean(ready))
+        : client.party.validateSetReady(Boolean(ready));
     }
     case "party-queue": {
       const queue = requirePositional(pos, 1, "Usage: riotclient party-queue <queue>");
@@ -715,7 +761,9 @@ async function executePartyCommand(
       if (access !== "open" && access !== "closed") {
         throw new ValidationError("invalid-argument", "Usage: riotclient party-access open|closed");
       }
-      return yes ? client.party.setAccessibility(access) : client.party.validateSetAccessibility(access);
+      return yes
+        ? client.party.setAccessibility(access)
+        : client.party.validateSetAccessibility(access);
     }
     case "party-start":
       return yes ? client.party.startMatchmaking() : client.party.validateStartMatchmaking();
@@ -773,13 +821,23 @@ async function executePartyExtraCommand(
     }
     case "party-servers": {
       const raw = requirePositional(pos, 1, "Usage: riotclient party-servers <id,...>");
-      const ids = raw.split(",").map((s) => s.trim()).filter(Boolean);
-      return yes ? client.party.setPreferredServers(ids) : client.party.validateSetPreferredServers(ids);
+      const ids = raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      return yes
+        ? client.party.setPreferredServers(ids)
+        : client.party.validateSetPreferredServers(ids);
     }
     case "party-moderator": {
       const puuid = requirePositional(pos, 1, "Usage: riotclient party-moderator <puuid> on|off");
-      const mod = parseBooleanFlag("moderator", requirePositional(pos, 2, "Usage: riotclient party-moderator <puuid> on|off"));
-      return yes ? client.party.setModerator(puuid, Boolean(mod)) : client.party.validateSetModerator(puuid, Boolean(mod));
+      const mod = parseBooleanFlag(
+        "moderator",
+        requirePositional(pos, 2, "Usage: riotclient party-moderator <puuid> on|off"),
+      );
+      return yes
+        ? client.party.setModerator(puuid, Boolean(mod))
+        : client.party.validateSetModerator(puuid, Boolean(mod));
     }
     case "party-refresh":
       return yes ? client.party.refresh() : client.party.validateRefresh();
@@ -789,7 +847,11 @@ async function executePartyExtraCommand(
 }
 
 function parseCustomGameRules(vals: Record<string, unknown>): Record<string, unknown> {
-  const ruleList = Array.isArray(vals.rule) ? (vals.rule as string[]) : vals.rule ? [String(vals.rule)] : [];
+  const ruleList = Array.isArray(vals.rule)
+    ? (vals.rule as string[])
+    : vals.rule
+      ? [String(vals.rule)]
+      : [];
   const rules: Record<string, unknown> = {};
   for (const r of ruleList) {
     const idx = r.indexOf("=");
@@ -868,7 +930,10 @@ async function executeMatchActionCommand(
         });
       }
       if (!vals.confirm) {
-        throw new ValidationError("confirm-required", "Dodge requires explicit confirmation: pass --confirm with --yes");
+        throw new ValidationError(
+          "confirm-required",
+          "Dodge requires explicit confirmation: pass --confirm with --yes",
+        );
       }
       return client.matches.dodge({ confirm: true });
     }
@@ -879,7 +944,10 @@ async function executeMatchActionCommand(
         });
       }
       if (!vals.confirm) {
-        throw new ValidationError("confirm-required", "Leaving match requires explicit confirmation: pass --confirm with --yes");
+        throw new ValidationError(
+          "confirm-required",
+          "Leaving match requires explicit confirmation: pass --confirm with --yes",
+        );
       }
       return client.matches.leaveMatch({ confirm: true });
     }
@@ -896,7 +964,11 @@ async function executeSettingsCommand(
   vals: Record<string, unknown>,
 ): Promise<unknown> {
   if (command !== "settings-save") return UNKNOWN_COMMAND;
-  const filePath = requirePositional(pos, 1, "Usage: riotclient settings-save <file.json> [--yes --confirm]");
+  const filePath = requirePositional(
+    pos,
+    1,
+    "Usage: riotclient settings-save <file.json> [--yes --confirm]",
+  );
   const content = JSON.parse(readFileSync(filePath, "utf-8")) as unknown;
   if (!yes) {
     return client.account.validateSaveSettings(content, { confirm: true });
@@ -977,7 +1049,6 @@ async function executeCommand(
   if (setts !== UNKNOWN_COMMAND) return setts;
   return executeWriteCommand(client, command, options);
 }
-
 
 export async function runCli(args: string[]): Promise<number> {
   const parsed = parseArgs({

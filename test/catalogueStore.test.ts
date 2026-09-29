@@ -21,7 +21,10 @@ function gatewayServing(version = versionResponse) {
       return { status: 200, data: [{ uuid: "set-1", tiers: sampleData.tiers }] };
     }
     if ((endpoint as string) === "levelborders") {
-      return { status: 200, data: sampleData.levelBorders ?? [{ uuid: "border-1", startingLevel: 1 }] };
+      return {
+        status: 200,
+        data: sampleData.levelBorders ?? [{ uuid: "border-1", startingLevel: 1 }],
+      };
     }
     return { status: 200, data: sampleData[endpoint] };
   });
@@ -191,4 +194,3 @@ describe("FileCatalogueStore", () => {
     expect(store.read("en-US")?.data.missions).toBeDefined();
   });
 });
-

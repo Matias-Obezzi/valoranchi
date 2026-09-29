@@ -24,7 +24,6 @@ import type {
   RiotSessionResponse,
 } from "../src/riot/types.js";
 
-
 const catalogueData = JSON.parse(
   fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
 ) as ValorantApiCatalogueData;
@@ -326,10 +325,7 @@ describe("ContentBuilder, QueueConfigBuilder, GameSessionBuilder", () => {
 
   it("builds custom game configs resolving maps, modes and server pings", () => {
     const rawConfigs = {
-      EnabledMaps: [
-        "/Game/Maps/Ascent/Ascent",
-        "/Game/Maps/Bonsai/Bonsai",
-      ],
+      EnabledMaps: ["/Game/Maps/Ascent/Ascent", "/Game/Maps/Bonsai/Bonsai"],
       EnabledModes: [
         "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
         "/Game/GameModes/Deathmatch/DeathmatchGameMode.DeathmatchGameMode_C",

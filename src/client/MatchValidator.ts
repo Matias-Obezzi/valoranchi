@@ -85,9 +85,7 @@ export class MatchValidator {
     pregameMatch: RiotPregameMatchResponse,
     selfPuuid: string,
   ): void {
-    const selfPlayer = (pregameMatch.AllyTeam?.Players ?? []).find(
-      (p) => p.Subject === selfPuuid,
-    );
+    const selfPlayer = (pregameMatch.AllyTeam?.Players ?? []).find((p) => p.Subject === selfPuuid);
     if (selfPlayer?.CharacterSelectionState === "locked") {
       throw new ValidationError("already-locked", "Agent selection is already locked");
     }
@@ -119,10 +117,7 @@ export class MatchValidator {
     options?: { confirm?: boolean },
   ): { method: string; path: string; matchId: string; puuid: string } {
     if (options?.confirm !== true) {
-      throw new ValidationError(
-        "confirm-required",
-        "Leaving match requires explicit confirmation",
-      );
+      throw new ValidationError("confirm-required", "Leaving match requires explicit confirmation");
     }
     if (!corePlayer?.MatchID) {
       throw new ValidationError("not-in-match", "Not currently in a match");

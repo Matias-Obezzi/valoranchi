@@ -83,7 +83,7 @@ describe("PartyService", () => {
       valorantApi: {} as never,
       api: () => apiInstance,
       catalogue: async () => catalogue,
-      player: () => ({} as never),
+      player: () => ({}) as never,
     };
 
     service = new PartyService(context);

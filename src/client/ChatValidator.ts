@@ -65,7 +65,10 @@ export class ChatValidator {
       };
     }
 
-    throw new ValidationError("invalid-target", "Target must specify puuid, conversationId, or riotId");
+    throw new ValidationError(
+      "invalid-target",
+      "Target must specify puuid, conversationId, or riotId",
+    );
   }
 
   static parseRiotId(riotId: string): { gameName: string; gameTag: string } {
@@ -91,10 +94,7 @@ export class ChatValidator {
     const lowerName = gameName.toLowerCase();
     const lowerTag = gameTag.toLowerCase();
 
-    if (
-      self.gameName?.toLowerCase() === lowerName &&
-      self.tagLine?.toLowerCase() === lowerTag
-    ) {
+    if (self.gameName?.toLowerCase() === lowerName && self.tagLine?.toLowerCase() === lowerTag) {
       throw new ValidationError("cannot-target-self", "Cannot send friend request to yourself");
     }
 
@@ -127,9 +127,13 @@ export class ChatValidator {
   ): { gameName: string; gameTag: string } {
     const req = requests.find((r) => r.puuid === puuid && r.subscription === "pending_in");
     if (!req) {
-      throw new ValidationError("no-incoming-request", "No incoming friend request from this player", {
-        puuid,
-      });
+      throw new ValidationError(
+        "no-incoming-request",
+        "No incoming friend request from this player",
+        {
+          puuid,
+        },
+      );
     }
     return { gameName: req.game_name, gameTag: req.game_tag };
   }
@@ -137,18 +141,26 @@ export class ChatValidator {
   static validateDeclineFriendRequest(puuid: string, requests: RawFriendRequest[]): void {
     const req = requests.find((r) => r.puuid === puuid && r.subscription === "pending_in");
     if (!req) {
-      throw new ValidationError("no-incoming-request", "No incoming friend request from this player", {
-        puuid,
-      });
+      throw new ValidationError(
+        "no-incoming-request",
+        "No incoming friend request from this player",
+        {
+          puuid,
+        },
+      );
     }
   }
 
   static validateCancelFriendRequest(puuid: string, requests: RawFriendRequest[]): void {
     const req = requests.find((r) => r.puuid === puuid && r.subscription === "pending_out");
     if (!req) {
-      throw new ValidationError("no-outgoing-request", "No outgoing friend request to this player", {
-        puuid,
-      });
+      throw new ValidationError(
+        "no-outgoing-request",
+        "No outgoing friend request to this player",
+        {
+          puuid,
+        },
+      );
     }
   }
 
@@ -173,10 +185,7 @@ export class ChatValidator {
       const lowerName = gameName.toLowerCase();
       const lowerTag = gameTag.toLowerCase();
 
-      if (
-        self.gameName?.toLowerCase() === lowerName &&
-        self.tagLine?.toLowerCase() === lowerTag
-      ) {
+      if (self.gameName?.toLowerCase() === lowerName && self.tagLine?.toLowerCase() === lowerTag) {
         throw new ValidationError("cannot-target-self", "Cannot block yourself");
       }
 

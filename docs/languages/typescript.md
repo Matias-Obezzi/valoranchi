@@ -96,9 +96,14 @@ events.on("disconnected", () => {
   console.log("WebSocket disconnected from Riot Client");
 });
 
-events.on("friend:presence", ({ friend, change }: { friend: Friend; change: "update" | "offline" }) => {
-  console.log(`Friend ${friend.gameName}#${friend.tagLine} is now ${change} (${friend.presence.state})`);
-});
+events.on(
+  "friend:presence",
+  ({ friend, change }: { friend: Friend; change: "update" | "offline" }) => {
+    console.log(
+      `Friend ${friend.gameName}#${friend.tagLine} is now ${change} (${friend.presence.state})`,
+    );
+  },
+);
 
 events.on("message", (msg: Message) => {
   console.log(`[${msg.from.gameName}]: ${msg.body}`);

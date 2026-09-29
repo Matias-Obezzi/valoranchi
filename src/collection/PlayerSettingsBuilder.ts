@@ -1,8 +1,4 @@
-import type {
-  PlayerSettings,
-  PlayerSettingsBind,
-  PlayerSettingsMouse,
-} from "../model/index.js";
+import type { PlayerSettings, PlayerSettingsBind, PlayerSettingsMouse } from "../model/index.js";
 
 interface RawActionMapping {
   actionName?: string;
@@ -68,9 +64,7 @@ export class PlayerSettingsBuilder {
     return {
       sensitivity: findFloat(/Sensitivity$/i) ?? findFloat(/MouseSensitivity/i),
       scopedSensitivityMultiplier:
-        findFloat(/ZoomMultiplier/i) ??
-        findFloat(/TargetingMultiplier/i) ??
-        findFloat(/Scoped/i),
+        findFloat(/ZoomMultiplier/i) ?? findFloat(/TargetingMultiplier/i) ?? findFloat(/Scoped/i),
       invertY: findBool(/InvertMouse/i) ?? findBool(/Invert.*Axis/i),
       rawInputBuffer: findBool(/RawInput/i),
     };

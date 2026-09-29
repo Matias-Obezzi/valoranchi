@@ -1,6 +1,7 @@
 import type { Catalogue } from "../catalogue/Catalogue.js";
 import type { Mmr, Rank, RankChange, RankMovement } from "../model/index.js";
 import type { RiotCompetitiveUpdate, RiotMmrResponse, RiotSeasonalInfo } from "../riot/types.js";
+import { rankFit } from "./RankFit.js";
 import { RankResolver, resolveSeasonName } from "./RankResolver.js";
 
 export function rankMovement(tierBefore: number, tierAfter: number, earned: number): RankMovement {
@@ -20,7 +21,7 @@ export class MmrBuilder {
     this.rankResolver = new RankResolver(catalogue);
   }
 
-  buildMmr(raw: RiotMmrResponse): Mmr {
+  buildMmr(raw: RiotMmrResponse, updates: RiotCompetitiveUpdate[] = []): Mmr {
     const currentAct = this.catalogue.currentAct();
     const currentActUuid = currentAct?.uuid ?? null;
     const competitiveSkills = raw.QueueSkills?.competitive;
@@ -28,8 +29,10 @@ export class MmrBuilder {
       ? competitiveSkills?.SeasonalInfoBySeasonID?.[currentActUuid]
       : undefined;
 
+    const current = this.resolveCurrentRank(raw, currentActUuid, seasonalInfo);
     return {
-      current: this.resolveCurrentRank(raw, currentActUuid, seasonalInfo),
+      current,
+      fit: rankFit(current, updates, this.rankResolver),
       peak: this.resolvePeakRank(competitiveSkills?.SeasonalInfoBySeasonID),
       act: currentActUuid
         ? {

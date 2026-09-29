@@ -32,7 +32,6 @@ import type {
   RiotWalletResponse,
 } from "./types.js";
 
-
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export class RiotApi {
@@ -132,7 +131,6 @@ export class RiotApi {
     const url = `${this.session.endpoints.pd}/mmr/v1/players/${puuid}/competitiveupdates?startIndex=${startIndex}&endIndex=${endIndex}&queue=${encodeURIComponent(queue)}`;
     return this.get(url);
   }
-
 
   async pregamePlayer(): Promise<RiotPregamePlayerResponse | null> {
     const url = `${this.session.endpoints.glz}/pregame/v1/players/${this.session.puuid}`;
@@ -315,7 +313,11 @@ export class RiotApi {
     isModerator: boolean,
   ): Promise<unknown> {
     const url = `${this.session.endpoints.glz}/parties/v1/parties/${encodeURIComponent(partyId)}/setplayermoderatorstatus`;
-    return this.gateway.post(url, { Subject: puuid, IsModerator: isModerator }, this.session.headers());
+    return this.gateway.post(
+      url,
+      { Subject: puuid, IsModerator: isModerator },
+      this.session.headers(),
+    );
   }
 
   async refreshPartyPings(partyId: string, puuid = this.session.puuid): Promise<unknown> {
@@ -376,7 +378,6 @@ export class RiotApi {
       this.session.headers(),
     );
   }
-
 
   async clientConfig(region = this.session.region): Promise<RiotClientConfigResponse> {
     return this.gateway.get(`${this.session.endpoints.shared}/v1/config/${region}`);
@@ -453,4 +454,3 @@ export class RiotApi {
     return this.get(`${this.session.endpoints.pd}/premier/v1/affinities/${region}/conferences`);
   }
 }
-

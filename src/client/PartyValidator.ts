@@ -381,8 +381,7 @@ export class PartyValidator {
       throw new ValidationError("not-a-member", "Caller is not a member of the party");
     }
     const isCustom =
-      party.State === "CUSTOM_GAME" ||
-      party.MatchmakingData?.QueueID?.toLowerCase() === "custom";
+      party.State === "CUSTOM_GAME" || party.MatchmakingData?.QueueID?.toLowerCase() === "custom";
     if (!isCustom) {
       throw new ValidationError("not-custom-game", "Party is not in custom game mode");
     }
