@@ -1,0 +1,52 @@
+{
+  "matchInfo": {
+    "matchId": "match-dm-1",
+    "mapId": "/Game/Maps/Ascent/Ascent",
+    "gameLengthMillis": 600000,
+    "gameStartMillis": 1700000000000,
+    "provisioningFlowID": "Matchmaking",
+    "isCompleted": true,
+    "customGameName": null,
+    "queueID": "deathmatch",
+    "gameMode": "/Game/GameModes/Deathmatch/DeathmatchGameMode.DeathmatchGameMode_C",
+    "isRanked": false,
+    "seasonId": "season-act-1",
+    "isReplayRecorded": false
+  },
+  "players": [
+    {
+      "subject": "self-puuid",
+      "gameName": "SelfPlayer",
+      "tagLine": "TAG",
+      "teamId": "self-puuid",
+      "characterId": "agent-1",
+      "stats": {
+        "score": 40,
+        "roundsPlayed": 1,
+        "kills": 40,
+        "deaths": 12,
+        "assists": 2
+      },
+      "competitiveTier": 3,
+      "accountLevel": 50
+    },
+    {
+      "subject": "other-puuid",
+      "gameName": "OtherPlayer",
+      "tagLine": "TAG",
+      "teamId": "other-puuid",
+      "characterId": "agent-1",
+      "stats": {
+        "score": 35,
+        "roundsPlayed": 1,
+        "kills": 35,
+        "deaths": 20,
+        "assists": 5
+      },
+      "competitiveTier": 3,
+      "accountLevel": 45
+    }
+  ],
+  "teams": null,
+  "roundResults": []
+}

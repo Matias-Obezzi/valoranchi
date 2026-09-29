@@ -1,0 +1,186 @@
+{
+  "matchInfo": {
+    "matchId": "match-std-1",
+    "mapId": "/Game/Maps/Ascent/Ascent",
+    "gameLengthMillis": 1800000,
+    "gameStartMillis": 1700000000000,
+    "provisioningFlowID": "Matchmaking",
+    "isCompleted": true,
+    "customGameName": null,
+    "queueID": "competitive",
+    "gameMode": "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+    "isRanked": true,
+    "seasonId": "season-act-1",
+    "isReplayRecorded": true
+  },
+  "players": [
+    {
+      "subject": "self-puuid",
+      "gameName": "SelfPlayer",
+      "tagLine": "TAG",
+      "teamId": "Blue",
+      "partyId": "party-1",
+      "characterId": "agent-1",
+      "stats": {
+        "score": 4500,
+        "roundsPlayed": 20,
+        "kills": 15,
+        "deaths": 10,
+        "assists": 5,
+        "abilityCasts": {
+          "grenadeCasts": 3,
+          "ability1Casts": 4,
+          "ability2Casts": 2,
+          "ultimateCasts": 1
+        }
+      },
+      "competitiveTier": 3,
+      "playerCard": "card-1",
+      "playerTitle": "title-1",
+      "accountLevel": 50
+    },
+    {
+      "subject": "enemy-puuid",
+      "gameName": "EnemyPlayer",
+      "tagLine": "TAG",
+      "teamId": "Red",
+      "partyId": "party-2",
+      "characterId": "agent-1",
+      "stats": {
+        "score": 3800,
+        "roundsPlayed": 20,
+        "kills": 12,
+        "deaths": 14,
+        "assists": 3,
+        "abilityCasts": {
+          "grenadeCasts": 1,
+          "ability1Casts": 2,
+          "ability2Casts": 3,
+          "ultimateCasts": 0
+        }
+      },
+      "competitiveTier": 3,
+      "playerCard": "card-1",
+      "playerTitle": "title-1",
+      "accountLevel": 40
+    },
+    {
+      "subject": "observer-puuid",
+      "gameName": "Observer",
+      "tagLine": "OBS",
+      "teamId": "Blue",
+      "characterId": "agent-1",
+      "stats": null,
+      "competitiveTier": 0,
+      "accountLevel": 10
+    }
+  ],
+  "teams": [
+    {
+      "teamId": "Blue",
+      "won": true,
+      "roundsPlayed": 20,
+      "roundsWon": 13,
+      "numPoints": 13
+    },
+    {
+      "teamId": "Red",
+      "won": false,
+      "roundsPlayed": 20,
+      "roundsWon": 7,
+      "numPoints": 7
+    }
+  ],
+  "roundResults": [
+    {
+      "roundNum": 0,
+      "roundResult": "Bomb defused",
+      "roundCeremony": "CeremonyDefault",
+      "winningTeam": "Blue",
+      "bombPlanter": "enemy-puuid",
+      "bombDefuser": "self-puuid",
+      "plantRoundTime": 45000,
+      "plantSite": "A",
+      "defuseRoundTime": 65000,
+      "playerStats": [
+        {
+          "subject": "self-puuid",
+          "kills": [
+            {
+              "gameTime": 50000,
+              "roundTime": 25000,
+              "killer": "self-puuid",
+              "victim": "enemy-puuid",
+              "assistants": [],
+              "victimLocation": { "x": 100, "y": 200 },
+              "finishingDamage": {
+                "damageType": "Weapon",
+                "damageItem": "ee613ee3-4eb0-ab0e-0888-64939b533ee7",
+                "isSecondaryFireMode": false
+              }
+            }
+          ],
+          "damage": [
+            {
+              "receiver": "enemy-puuid",
+              "damage": 160,
+              "legshots": 0,
+              "bodyshots": 0,
+              "headshots": 1
+            }
+          ],
+          "score": 300
+        },
+        {
+          "subject": "enemy-puuid",
+          "kills": [],
+          "damage": [
+            {
+              "receiver": "self-puuid",
+              "damage": 40,
+              "legshots": 1,
+              "bodyshots": 0,
+              "headshots": 0
+            }
+          ],
+          "score": 100
+        }
+      ]
+    },
+    {
+      "roundNum": 1,
+      "roundResult": "Eliminated",
+      "roundCeremony": "CeremonyFlawless",
+      "winningTeam": "Blue",
+      "bombPlanter": null,
+      "bombDefuser": null,
+      "playerStats": [
+        {
+          "subject": "self-puuid",
+          "kills": [
+            {
+              "gameTime": 120000,
+              "roundTime": 18000,
+              "killer": "self-puuid",
+              "victim": "enemy-puuid",
+              "assistants": [],
+              "finishingDamage": {
+                "damageType": "Ability",
+                "damageItem": "Ability1"
+              }
+            }
+          ],
+          "damage": [
+            {
+              "receiver": "enemy-puuid",
+              "damage": 150,
+              "legshots": 1,
+              "bodyshots": 2,
+              "headshots": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

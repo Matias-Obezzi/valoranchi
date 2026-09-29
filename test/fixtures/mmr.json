@@ -1,0 +1,54 @@
+{
+  "Subject": "self-puuid",
+  "Version": 1,
+  "QueueSkills": {
+    "competitive": {
+      "TotalGamesNeededForRating": 0,
+      "TotalGamesNeededForLeaderboard": 0,
+      "CurrentSeasonGamesNeededForRating": 0,
+      "SeasonalInfoBySeasonID": {
+        "season-act-1": {
+          "SeasonID": "season-act-1",
+          "NumberOfWins": 15,
+          "NumberOfWinsWithPlacements": 15,
+          "NumberOfGames": 25,
+          "Rank": 3,
+          "CompetitiveTier": 3,
+          "RankedRating": 75,
+          "WinsByTier": {
+            "3": 15
+          },
+          "GamesNeededForRating": 0,
+          "TotalWinsNeededForRank": 0
+        },
+        "season-act-old": {
+          "SeasonID": "season-act-old",
+          "NumberOfWins": 20,
+          "NumberOfGames": 30,
+          "Rank": 4,
+          "CompetitiveTier": 4,
+          "RankedRating": 50,
+          "WinsByTier": {
+            "4": 20
+          }
+        }
+      }
+    }
+  },
+  "LatestCompetitiveUpdate": {
+    "MatchID": "match-update-1",
+    "MapID": "/Game/Maps/Ascent/Ascent",
+    "SeasonID": "season-act-1",
+    "MatchStartTime": 1700000000000,
+    "TierAfterUpdate": 3,
+    "TierBeforeUpdate": 3,
+    "RankedRatingAfterUpdate": 75,
+    "RankedRatingBeforeUpdate": 55,
+    "RankedRatingEarned": 20,
+    "RankedRatingPerformanceBonus": 2,
+    "CompetitiveMovement": "INCREASE",
+    "AFKPenalty": 0
+  },
+  "IsLeaderboardAnonymized": false,
+  "IsActRankBadgeHidden": false
+}

@@ -266,3 +266,181 @@ export type Store = {
   accessories: { endsAt: string; offers: AccessoryOffer[] } | null;
   radianite: RadianiteOffer[];
 };
+
+export type Agent = { uuid: string; name: string; icon: Image; role: string | null } | null;
+
+export type Rank = {
+  tier: number;
+  name: string;
+  division: string | null;
+  icon: Image;
+  rating: number | null;
+};
+
+export type MatchSummary = {
+  id: string;
+  startedAt: string;
+  queue: string;
+  map: { uuid: string | null; name: string | null; path: string };
+};
+
+export type MatchPlayer = {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  team: "Blue" | "Red" | string;
+  partyId: string | null;
+  agent: Agent;
+  rank: Rank | null;
+  accountLevel: number;
+  card: OwnedCard | null;
+  title: OwnedTitle | null;
+  stats: {
+    score: number;
+    kills: number;
+    deaths: number;
+    assists: number;
+    roundsPlayed: number;
+    headshots: number;
+    bodyshots: number;
+    legshots: number;
+    damage: number;
+    firstBloods: number;
+    plants: number;
+    defuses: number;
+    abilityCasts: { c: number; q: number; e: number; x: number };
+  } | null;
+};
+
+export type MatchRound = {
+  number: number;
+  winner: string;
+  result: string;
+  ceremony: string | null;
+  site: string | null;
+  planter: string | null;
+  defuser: string | null;
+  plantedAt: number | null;
+  defusedAt: number | null;
+  kills: Array<{
+    at: number;
+    roundTime: number;
+    killer: string;
+    victim: string;
+    assistants: string[];
+    weapon: { uuid: string; name: string | null; kind: string };
+    location: { x: number; y: number } | null;
+  }>;
+};
+
+export type Match = {
+  id: string;
+  startedAt: string;
+  lengthMs: number;
+  completed: boolean;
+  queue: string;
+  ranked: boolean;
+  custom: boolean;
+  customName: string | null;
+  map: { uuid: string | null; name: string | null; path: string };
+  mode: string;
+  season: { uuid: string; name: string | null };
+  teams: Array<{ id: string; won: boolean; roundsWon: number; roundsPlayed: number }>;
+  players: MatchPlayer[];
+  rounds: MatchRound[];
+  self: { team: string; won: boolean | null } | null;
+  replayRecorded: boolean;
+};
+
+export type Mmr = {
+  current: Rank | null;
+  peak: (Rank & { act: { uuid: string; name: string | null } }) | null;
+  act: {
+    uuid: string;
+    name: string | null;
+    games: number;
+    wins: number;
+    gamesNeededForRating: number;
+  } | null;
+  lastUpdate: {
+    matchId: string;
+    at: string;
+    before: Rank | null;
+    after: Rank | null;
+    earned: number;
+    movement: string;
+  } | null;
+  leaderboardAnonymized: boolean;
+};
+
+export type RankChange = {
+  matchId: string;
+  at: string;
+  map: { name: string | null; path: string };
+  before: Rank;
+  after: Rank;
+  earned: number;
+  bonus: number;
+  movement: string;
+  afkPenalty: number;
+};
+
+export type LiveMatchPlayer = {
+  puuid: string;
+  gameName: string | null;
+  tagLine: string | null;
+  incognito: boolean;
+  team: string;
+  agent: Agent;
+  selection: "none" | "selected" | "locked" | null;
+  accountLevel: number | null;
+  card: OwnedCard | null;
+  title: OwnedTitle | null;
+  rank: Rank | null;
+  partyId: string | null;
+  loadout: Array<{
+    weapon: { uuid: string; name: string | null };
+    skin: { uuid: string; name: string | null; icon: Image } | null;
+    buddy: { uuid: string; name: string | null; icon: Image } | null;
+  }> | null;
+};
+
+export type LiveMatch =
+  | { phase: "none" }
+  | { phase: "range"; matchId: string }
+  | {
+      phase: "pregame" | "ingame";
+      matchId: string;
+      queue: string | null;
+      ranked: boolean;
+      map: { uuid: string | null; name: string | null; path: string };
+      mode: string | null;
+      phaseEndsInMs: number | null;
+      allies: LiveMatchPlayer[];
+      enemies: LiveMatchPlayer[];
+      self: LiveMatchPlayer | null;
+    };
+
+export type PartyMember = {
+  puuid: string;
+  gameName: string | null;
+  tagLine: string | null;
+  owner: boolean;
+  ready: boolean;
+  rank: Rank | null;
+  accountLevel: number | null;
+  card: OwnedCard | null;
+  title: OwnedTitle | null;
+  incognito: boolean;
+};
+
+export type Party = {
+  id: string;
+  state: string;
+  accessibility: "open" | "closed";
+  queue: string | null;
+  inviteCode: string | null;
+  queueEnteredAt: string | null;
+  members: PartyMember[];
+} | null;
+
