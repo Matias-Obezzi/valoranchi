@@ -308,6 +308,37 @@ All writes are validated locally against your inventory and catalogue before any
 - `client.removeFriend(puuid): Promise<Friend[]>`: Remove a friend.
 - `client.blockPlayer(target): Promise<BlockedPlayer[]>`: Block a player by PUUID or `Name#Tag`.
 - `client.unblockPlayer(puuid): Promise<BlockedPlayer[]>`: Unblock a player.
+- `client.invite(riotId): Promise<Party>`: Invite a player to the party by `Name#Tag`.
+- `client.kick(puuid): Promise<Party>`: Remove a member from the party (owner only).
+- `client.promote(puuid): Promise<Party>`: Transfer party ownership to another member.
+- `client.createInviteCode(): Promise<Party>`: Generate an invite code for the party.
+- `client.revokeInviteCode(): Promise<Party>`: Revoke the party's current invite code.
+- `client.joinByCode(code): Promise<Party>`: Join a party using an alphanumeric invite code.
+- `client.setReady(ready): Promise<Party>`: Set your ready status (`true` or `false`).
+- `client.setQueue(queue): Promise<Party>`: Change party queue (validated against eligible queues).
+- `client.setAccessibility(accessibility): Promise<Party>`: Set party accessibility (`"open"` or `"closed"`).
+- `client.startMatchmaking(): Promise<Party>`: Enter matchmaking queue (requires all members ready and idle party).
+- `client.stopMatchmaking(): Promise<Party>`: Cancel matchmaking queue.
+- `client.leave(): Promise<Party>`: Leave your current party.
+
+### Party Validation Rules
+
+Every party write is validated against the live party state before any request reaches Riot:
+
+- `no-party`: Thrown when outside the client or the player has no active party.
+- `not-owner`: Thrown when a non-owner attempts owner-restricted actions (`kick`, `promote`, `set-queue`, `set-accessibility`, `create-invite-code`, `revoke-invite-code`, `start-matchmaking`, `stop-matchmaking`).
+- `not-a-member`: Thrown when caller is not in party, or when the kick/promote target is not in the party.
+- `self-target`: Thrown when attempting to kick or promote yourself.
+- `already-in-party`: Thrown when joining by code for a party the caller already belongs to.
+- `queue-not-eligible`: Thrown when selecting a queue not present in `EligibleQueues`.
+- `queue-restricted`: Thrown on matchmaking join when party has active queue ineligibilities.
+- `party-not-idle`: Thrown when changing queue, inviting, changing accessibility, or joining matchmaking while party state is not `DEFAULT`.
+- `not-matchmaking`: Thrown when stopping matchmaking while party state is not `MATCHMAKING`.
+- `members-not-ready`: Thrown on matchmaking join when any party member has not set ready.
+- `invalid-riot-id`: Thrown when inviting with a malformed `Name#Tag`.
+- `invalid-code`: Thrown when invite code is not 6 to 12 alphanumeric characters.
+- `invite-code-missing`: Thrown when revoking an invite code but none is active.
+- `restricted`: Thrown on matchmaking join when party has active restriction penalty seconds.
 
 ### Dry-Run by Default in CLI
 
@@ -398,7 +429,7 @@ Access tokens and entitlements JWTs are strictly scoped. They may only ever be s
 
 - No store purchases, radianite upgrades, or transactional operations
 - No automation, bots, or match orchestration
-- No party matchmaking actions (queueing, inviting, entering custom games)
+- No custom games, tournaments, or premier orchestration
 - No telemetry or credential logging
 
 ## Disclaimer
