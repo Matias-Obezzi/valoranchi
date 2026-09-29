@@ -61,7 +61,7 @@ describe("FileCatalogueStore", () => {
       store,
     );
     await stale.getCatalogue("en-US");
-    expect(newer).toHaveBeenCalledTimes(14);
+    expect(newer).toHaveBeenCalledTimes(16);
     expect(store.read("en-US")?.version).toBe("release-10.01-1");
   });
 
@@ -82,7 +82,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
-    expect(gateway).toHaveBeenCalledTimes(14);
+    expect(gateway).toHaveBeenCalledTimes(16);
     expect(store.read("en-US")?.data.bundles).toBeDefined();
   });
 
@@ -103,7 +103,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getMapByPath("/Game/Maps/Ascent/Ascent")?.displayName).toBe("Ascent");
-    expect(gateway).toHaveBeenCalledTimes(14);
+    expect(gateway).toHaveBeenCalledTimes(16);
     expect(store.read("en-US")?.data.maps).toBeDefined();
   });
 
@@ -124,7 +124,7 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getTierByNumber(3)?.tierName).toBe("Iron 3");
-    expect(gateway).toHaveBeenCalledTimes(14);
+    expect(gateway).toHaveBeenCalledTimes(16);
     expect(store.read("en-US")?.data.tiers).toBeDefined();
   });
 
@@ -145,7 +145,50 @@ describe("FileCatalogueStore", () => {
     const catalogue = await api.getCatalogue("en-US");
 
     expect(catalogue.getSeason("season-act-1")?.displayName).toBe("ACT 1");
-    expect(gateway).toHaveBeenCalledTimes(14);
+    expect(gateway).toHaveBeenCalledTimes(16);
     expect(store.read("en-US")?.data.seasons).toBeDefined();
   });
+
+  it("treats a stored catalogue without contracts as a cache miss", async () => {
+    const store = new FileCatalogueStore(dir);
+    const { contracts: _, ...dataWithoutContracts } = sampleData;
+    store.write("en-US", {
+      version: "release-10.00-1",
+      data: dataWithoutContracts as unknown as ValorantApiCatalogueData,
+    });
+
+    const gateway = gatewayServing();
+    const api = new ValorantApi(
+      { get: gateway } as unknown as HttpGateway,
+      new MemoryCatalogueCache(),
+      store,
+    );
+    const catalogue = await api.getCatalogue("en-US");
+
+    expect(catalogue.getContract("contract-jett-1")?.displayName).toBe("Jett Gear");
+    expect(gateway).toHaveBeenCalledTimes(16);
+    expect(store.read("en-US")?.data.contracts).toBeDefined();
+  });
+
+  it("treats a stored catalogue without missions as a cache miss", async () => {
+    const store = new FileCatalogueStore(dir);
+    const { missions: _, ...dataWithoutMissions } = sampleData;
+    store.write("en-US", {
+      version: "release-10.00-1",
+      data: dataWithoutMissions as unknown as ValorantApiCatalogueData,
+    });
+
+    const gateway = gatewayServing();
+    const api = new ValorantApi(
+      { get: gateway } as unknown as HttpGateway,
+      new MemoryCatalogueCache(),
+      store,
+    );
+    const catalogue = await api.getCatalogue("en-US");
+
+    expect(catalogue.getMission("mission-weekly-1")?.title).toBe("Play 10 games");
+    expect(gateway).toHaveBeenCalledTimes(16);
+    expect(store.read("en-US")?.data.missions).toBeDefined();
+  });
 });
+

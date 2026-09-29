@@ -216,5 +216,106 @@
       "uuid": "border-1",
       "startingLevel": 1
     }
+  ],
+  "contracts": [
+    {
+      "uuid": "contract-jett-1",
+      "displayName": "Jett Gear",
+      "displayIcon": "https://media.valorant-api.com/contracts/jett.png",
+      "content": {
+        "relationType": "Agent",
+        "relationUuid": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+        "chapters": [
+          {
+            "isEpilogue": false,
+            "levels": [
+              {
+                "reward": {
+                  "type": "Spray",
+                  "uuid": "00000000-0000-0000-0000-000000000001",
+                  "amount": 1,
+                  "isHighlighted": false
+                },
+                "xp": 20000,
+                "vpCost": 200,
+                "isPurchasableWithVP": false,
+                "doughCost": 2000,
+                "isPurchasableWithDough": true
+              },
+              {
+                "reward": {
+                  "type": "PlayerCard",
+                  "uuid": "00000000-0000-0000-0000-000000000002",
+                  "amount": 1,
+                  "isHighlighted": false
+                },
+                "xp": 30000,
+                "vpCost": 200,
+                "isPurchasableWithVP": false,
+                "doughCost": 2000,
+                "isPurchasableWithDough": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "uuid": "contract-battlepass-1",
+      "displayName": "Episode 1 Battlepass",
+      "displayIcon": null,
+      "content": {
+        "relationType": "Season",
+        "relationUuid": "season-act-1",
+        "chapters": [
+          {
+            "isEpilogue": false,
+            "levels": [
+              {
+                "reward": {
+                  "type": "Currency",
+                  "uuid": "e59aa87c-4cbf-517a-5983-6e81511be9b7",
+                  "amount": 10,
+                  "isHighlighted": false
+                },
+                "xp": 10000,
+                "vpCost": 0,
+                "isPurchasableWithVP": false,
+                "doughCost": 0,
+                "isPurchasableWithDough": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "missions": [
+    {
+      "uuid": "mission-weekly-1",
+      "displayName": "Weekly Mission",
+      "title": "Play 10 games",
+      "type": "EAresMissionType::Weekly",
+      "progressToComplete": 10,
+      "objectives": [
+        {
+          "objectiveUuid": "objective-1",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "uuid": "mission-daily-1",
+      "displayName": "Daily Mission",
+      "title": "Use 5 abilities",
+      "type": "EAresMissionType::Daily",
+      "progressToComplete": 5,
+      "objectives": [
+        {
+          "objectiveUuid": "objective-2",
+          "value": 5
+        }
+      ]
+    }
   ]
 }

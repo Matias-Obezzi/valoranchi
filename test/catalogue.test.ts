@@ -137,7 +137,30 @@ const sampleData = {
       parentUuid: "ep-1",
     },
   ],
+  contracts: [
+    {
+      uuid: "contract-jett-1",
+      displayName: "Jett Gear",
+      displayIcon: null,
+      content: {
+        relationType: "Agent",
+        relationUuid: "agent-1",
+        chapters: [],
+      },
+    },
+  ],
+  missions: [
+    {
+      uuid: "mission-weekly-1",
+      displayName: "Weekly Mission",
+      title: "Play 10 games",
+      type: "EAresMissionType::Weekly",
+      progressToComplete: 10,
+      objectives: [],
+    },
+  ],
 };
+
 
 describe("Catalogue", () => {
   it("indexes entities and resolves lookups in O(1)", () => {
@@ -199,6 +222,8 @@ describe("ValorantApi", () => {
       if (url.includes("seasons")) return { status: 200, data: sampleData.seasons };
       if (url.includes("levelborders"))
         return { status: 200, data: [{ uuid: "border-1", startingLevel: 1 }] };
+      if (url.includes("contracts")) return { status: 200, data: sampleData.contracts ?? [] };
+      if (url.includes("missions")) return { status: 200, data: sampleData.missions ?? [] };
       throw new Error(`Unexpected url: ${url}`);
     });
 
@@ -213,7 +238,10 @@ describe("ValorantApi", () => {
     expect(cat1.getLevelBorder("border-1")?.startingLevel).toBe(1);
     expect(cat1.getBundle("bundle-1")?.displayName).toBe("Prime Bundle");
     expect(cat1.getTierByNumber(3)?.tierName).toBe("Iron 3");
+    expect(cat1.getContract("contract-jett-1")?.displayName).toBe("Jett Gear");
+    expect(cat1.getMission("mission-weekly-1")?.title).toBe("Play 10 games");
     expect(cat2).toBe(cat1);
-    expect(mockGet).toHaveBeenCalledTimes(13);
+    expect(mockGet).toHaveBeenCalledTimes(15);
   });
 });
+

@@ -127,6 +127,55 @@ export interface ValorantApiLevelBorder {
   startingLevel: number;
 }
 
+export interface ValorantApiContractLevelReward {
+  type: string;
+  uuid: string;
+  amount: number;
+  isHighlighted: boolean;
+}
+
+export interface ValorantApiContractLevel {
+  reward: ValorantApiContractLevelReward;
+  xp: number;
+  vpCost: number;
+  isPurchasableWithVP: boolean;
+  doughCost: number;
+  isPurchasableWithDough: boolean;
+}
+
+export interface ValorantApiContractChapter {
+  isEpilogue: boolean;
+  levels: ValorantApiContractLevel[];
+  freeRewards?: ValorantApiContractLevelReward[] | null;
+}
+
+export interface ValorantApiContractContent {
+  relationType: "Agent" | "Season" | "Event" | string;
+  relationUuid: string;
+  chapters: ValorantApiContractChapter[];
+}
+
+export interface ValorantApiContract {
+  uuid: string;
+  displayName: string;
+  displayIcon: string | null;
+  content: ValorantApiContractContent | null;
+}
+
+export interface ValorantApiMissionObjective {
+  objectiveUuid: string;
+  value: number;
+}
+
+export interface ValorantApiMission {
+  uuid: string;
+  displayName: string | null;
+  title: string | null;
+  type: string | null;
+  progressToComplete: number;
+  objectives?: ValorantApiMissionObjective[] | null;
+}
+
 export interface ValorantApiCatalogueData {
   weapons: ValorantApiWeapon[];
   playerCards: ValorantApiPlayerCard[];
@@ -141,4 +190,7 @@ export interface ValorantApiCatalogueData {
   tiers?: ValorantApiTier[];
   seasons?: ValorantApiSeason[];
   levelBorders?: ValorantApiLevelBorder[];
+  contracts?: ValorantApiContract[];
+  missions?: ValorantApiMission[];
 }
+

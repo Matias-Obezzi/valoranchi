@@ -6,9 +6,11 @@ import type {
   ValorantApiCatalogueData,
   ValorantApiChroma,
   ValorantApiContentTier,
+  ValorantApiContract,
   ValorantApiCurrency,
   ValorantApiLevelBorder,
   ValorantApiMap,
+  ValorantApiMission,
   ValorantApiPlayerCard,
   ValorantApiPlayerTitle,
   ValorantApiSeason,
@@ -24,6 +26,8 @@ export class Catalogue {
   readonly tiers: readonly ValorantApiTier[];
   readonly seasons: readonly ValorantApiSeason[];
   readonly levelBorders: readonly ValorantApiLevelBorder[];
+  readonly contracts: readonly ValorantApiContract[];
+  readonly missions: readonly ValorantApiMission[];
   private readonly weaponsByUuid = new Map<string, ValorantApiWeapon>();
   private readonly skinsByUuid = new Map<string, ValorantApiSkin>();
   private readonly skinLevelIndex = new Map<
@@ -50,16 +54,23 @@ export class Catalogue {
   private readonly tierByNumber = new Map<number, ValorantApiTier>();
   private readonly seasonByUuid = new Map<string, ValorantApiSeason>();
   private readonly levelBordersByUuid = new Map<string, ValorantApiLevelBorder>();
+  private readonly contractsByUuid = new Map<string, ValorantApiContract>();
+  private readonly contractsByRelationUuid = new Map<string, ValorantApiContract>();
+  private readonly missionsByUuid = new Map<string, ValorantApiMission>();
 
   constructor(data: ValorantApiCatalogueData) {
     this.weapons = data.weapons;
     this.tiers = data.tiers ?? [];
     this.seasons = data.seasons ?? [];
     this.levelBorders = data.levelBorders ?? [];
+    this.contracts = data.contracts ?? [];
+    this.missions = data.missions ?? [];
     this.indexWeapons(data.weapons);
     this.indexBuddies(data.buddies);
     this.indexOtherEntities(data);
+    this.indexContractsAndMissions(this.contracts, this.missions);
   }
+
 
   private indexWeapons(weapons: ValorantApiWeapon[]): void {
     for (const weapon of weapons) {
@@ -204,4 +215,32 @@ export class Catalogue {
     }
     return undefined;
   }
+
+  private indexContractsAndMissions(
+    contracts: readonly ValorantApiContract[],
+    missions: readonly ValorantApiMission[],
+  ): void {
+    for (const contract of contracts) {
+      this.contractsByUuid.set(contract.uuid.toLowerCase(), contract);
+      if (contract.content?.relationUuid) {
+        this.contractsByRelationUuid.set(contract.content.relationUuid.toLowerCase(), contract);
+      }
+    }
+    for (const mission of missions) {
+      this.missionsByUuid.set(mission.uuid.toLowerCase(), mission);
+    }
+  }
+
+  getContract(uuid: string): ValorantApiContract | undefined {
+    return this.contractsByUuid.get(uuid.toLowerCase());
+  }
+
+  getContractByRelation(relationUuid: string): ValorantApiContract | undefined {
+    return this.contractsByRelationUuid.get(relationUuid.toLowerCase());
+  }
+
+  getMission(uuid: string): ValorantApiMission | undefined {
+    return this.missionsByUuid.get(uuid.toLowerCase());
+  }
 }
+
