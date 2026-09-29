@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `client.watch.match()` and `client.watch.friends()` provide high-level typed event watchers with async iteration (`[Symbol.asyncIterator]`), 5-second polling floor, and 300ms friend presence debouncing. CLI `watch-match` and `watch-friends`.
+- Serve mode (`client.serve()`, CLI `riotclient serve`) runs a local HTTP integration server with REST endpoints (`GET`/`POST /api/<namespace>/<method>`), Server-Sent Events (`GET /events`), auto-generated OpenAPI 3.0 specs (`GET /openapi.json`), route index dashboard (`GET /`), and loopback binding security.
+- Single executable distribution (`npm run exe`) builds a standalone Windows executable (`release/riotclient-win-x64.exe`) with Node.js Single Executable Application (SEA) flow and automated GitHub release workflow attachment.
 - `matches.trend(options?)` calculates competitive rating trends, streaks, net RR movement over 5/10/20 games, win rate, pace (`climbing`, `holding`, `falling`), and distance to next rank or demotion (`RatingTrend`). CLI `trend`.
 - `matches.summary(options?)` aggregates performance stats across recent matches with by-agent and by-map breakdowns, best/worst highlights, and consistency metrics (`PerformanceSummary`). CLI `summary [--count n] [--queue q]`.
 - `matches.assess(puuid)` and live match warnings on `LiveMatchPlayer.warnings` detect rank anomalies (`low-level-high-rank`, `inflated`, `underranked`, `long-streak`, `new-act`) (`PlayerAssessment`). CLI `assess [puuid]`.

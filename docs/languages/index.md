@@ -1,9 +1,10 @@
 # Usage by Language
 
-The `@valoranchi/riot-client` ecosystem offers two integration paths depending on your programming language and runtime:
+The `@valoranchi/riot-client` ecosystem offers three integration paths depending on your programming language and runtime:
 
 1. **Native In-Process Library (Node.js & TypeScript)**: Import the package directly. You get typed domain models, validated write methods, and an event emitter connected to the local Riot Client WebSocket.
 2. **CLI Child Process (Any Language)**: Run the `riotclient` binary as a child process. Receive clean JSON on standard output, detailed structured errors on standard error, and stream real-time events line-by-line via newline-delimited JSON (NDJSON). Strongly-typed data models can be automatically generated using `quicktype` from the committed JSON Schemas in `schema/`.
+3. **Serve Mode (HTTP from Any Language)**: Run `riotclient serve` as a local background daemon. Make standard HTTP calls to `GET /api/<namespace>/<method>` or `POST /api/<namespace>/<method>` and stream real-time updates via Server-Sent Events (`/events`) from any language or runtime without spawning processes or managing process lifecycles. See the [Serve Mode Guide](/guide/serve).
 
 ---
 

@@ -129,6 +129,14 @@
 | Command | Description |
 | :--- | :--- |
 | `watch` | Stream real-time events as JSON lines until interrupted |
+| `watch-match` | Stream match lifecycle events until interrupted |
+| `watch-friends` | Stream friend activity and presence events until interrupted |
+
+### Server
+
+| Command | Description |
+| :--- | :--- |
+| `serve` | Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote] |
 
 ### Options
 
@@ -170,6 +178,9 @@
 | `--cid <id>` | Conversation ID for filtering messages or participants |
 | `--language <lang>` | Catalogue language (default: en-US) |
 | `--cache <seconds>` | Reuse Riot responses younger than this many seconds |
+| `--port <n>` | Port to bind HTTP server (default: 47800) |
+| `--host <ip>` | Host address to bind HTTP server (default: 127.0.0.1) |
+| `--allow-remote` | Allow binding HTTP server to non-loopback address |
 | `--pretty` | Pretty-print JSON output |
 | `--help` | Show usage instructions |
 | `--version` | Show version number |
