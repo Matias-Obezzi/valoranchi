@@ -326,4 +326,289 @@ describe("RiotClient facade", () => {
 
     await client.close();
   });
+
+  describe("matches, mmr, live match, and party facade methods", () => {
+    const tempDir = path.join(__dirname, "tmp-test-matches-facade");
+    const lockfilePath = path.join(tempDir, "lockfile");
+    const matchDetailsFixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "fixtures", "matchDetails.json"), "utf-8"),
+    );
+    const mmrFixture = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "fixtures", "mmr.json"), "utf-8"),
+    );
+
+    const mockLocalApi = {
+      entitlementsToken: async () => ({
+        accessToken: "access",
+        token: "token",
+        subject: "self-puuid",
+      }),
+      valorantSession: async () => ({
+        region: "na",
+        shard: "na",
+      }),
+      close: async () => undefined,
+    } as unknown as RiotClientLocalApi;
+
+    const mockValorantApi = {
+      getClientVersion: async () => "1.0.0",
+      getCatalogue: async () => new Catalogue(catalogueData),
+    } as unknown as ValorantApi;
+
+    const setupClient = (gatewayOverrides: Partial<HttpGateway> = {}) => {
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(lockfilePath, "Riot Client:100:200:test_password");
+
+      const defaultGateway = {
+        get: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/match-history/v1/history/")) {
+            return {
+              History: [
+                {
+                  MatchID: "match-std-1",
+                  GameStartTime: 1700000000000,
+                  QueueID: "competitive",
+                },
+              ],
+            };
+          }
+          if (url.includes("/match-details/v1/matches/")) {
+            return matchDetailsFixture;
+          }
+          if (url.includes("/mmr/v1/players/") && url.includes("/competitiveupdates")) {
+            return {
+              Version: 1,
+              Subject: "self-puuid",
+              Matches: [mmrFixture.LatestCompetitiveUpdate],
+            };
+          }
+          if (url.includes("/mmr/v1/players/")) {
+            return mmrFixture;
+          }
+          return {};
+        }),
+        getOrNull: vi.fn().mockResolvedValue(null),
+        put: vi.fn().mockResolvedValue([
+          { Subject: "self-puuid", GameName: "SelfPlayer", TagLine: "TAG" },
+        ]),
+        post: vi.fn().mockResolvedValue({}),
+        ...gatewayOverrides,
+      } as unknown as HttpGateway;
+
+      return new RiotClient({
+        lockfilePath,
+        gateway: defaultGateway,
+        valorantApi: mockValorantApi,
+        localApiFactory: () => mockLocalApi,
+      });
+    };
+
+    it("fetches match summaries and single match details", async () => {
+      const client = setupClient();
+      try {
+        const summaries = await client.matches({ count: 1 });
+        expect(summaries).toHaveLength(1);
+        expect(summaries[0]?.id).toBe("match-std-1");
+        expect(summaries[0]?.map.name).toBe("Ascent");
+        expect(summaries[0]?.queue).toBe("competitive");
+
+        const match = await client.match("match-std-1");
+        expect(match.id).toBe("match-std-1");
+        expect(match.map.name).toBe("Ascent");
+        expect(match.self?.team).toBe("Blue");
+        expect(match.players[0]?.gameName).toBe("SelfPlayer");
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("fetches MMR and rank history", async () => {
+      const client = setupClient();
+      try {
+        const mmr = await client.mmr();
+        expect(mmr.current?.tier).toBe(3);
+        expect(mmr.current?.name).toBe("Iron 3");
+        expect(mmr.current?.rating).toBe(75);
+        expect(mmr.act?.wins).toBe(15);
+
+        const history = await client.rankHistory({ count: 5 });
+        expect(history).toHaveLength(1);
+        expect(history[0]?.after.name).toBe("Iron 3");
+        expect(history[0]?.earned).toBe(20);
+        expect(history[0]?.movement).toBe("INCREASE");
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("fetches live match in pregame phase", async () => {
+      const client = setupClient({
+        getOrNull: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/pregame/v1/players/")) return { MatchID: "pre-1" };
+          return null;
+        }),
+        get: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/pregame/v1/matches/pre-1")) {
+            return {
+              ID: "pre-1",
+              QueueID: "competitive",
+              MapID: "/Game/Maps/Ascent/Ascent",
+              ProvisioningFlowID: "Matchmaking",
+              Phase: "CharacterSelectFinished",
+              AllyTeam: {
+                Players: [
+                  {
+                    Subject: "self-puuid",
+                    CharacterID: "agent-1",
+                    CharacterSelectionState: "locked",
+                  },
+                ],
+              },
+              EnemyTeam: { Players: [] },
+            };
+          }
+          if (url.includes("/mmr/v1/players/")) return mmrFixture;
+          return {};
+        }),
+      });
+
+      try {
+        const live = await client.liveMatch({ ranks: true });
+        expect(live.phase).toBe("pregame");
+        if (live.phase === "pregame") {
+          expect(live.matchId).toBe("pre-1");
+          expect(live.map?.name).toBe("Ascent");
+          expect(live.allies).toHaveLength(1);
+          expect(live.allies[0]?.gameName).toBe("SelfPlayer");
+          expect(live.allies[0]?.rank?.name).toBe("Iron 3");
+        }
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("fetches live match in coregame and shooting range phase", async () => {
+      const client = setupClient({
+        getOrNull: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/pregame/v1/players/")) return null;
+          if (url.includes("/core-game/v1/players/")) return { MatchID: "core-1" };
+          if (url.includes("/loadouts")) return { Loadouts: [] };
+          return null;
+        }),
+        get: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/core-game/v1/matches/core-1")) {
+            return {
+              MatchID: "core-1",
+              QueueID: "competitive",
+              MapID: "/Game/Maps/Ascent/Ascent",
+              ModeID: "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+              ProvisioningFlow: "Matchmaking",
+              Players: [
+                {
+                  Subject: "self-puuid",
+                  TeamID: "Blue",
+                  CharacterID: "agent-1",
+                },
+              ],
+            };
+          }
+          return {};
+        }),
+      });
+
+      try {
+        const live = await client.liveMatch();
+        expect(live.phase).toBe("ingame");
+        if (live.phase === "ingame") {
+          expect(live.matchId).toBe("core-1");
+          expect(live.map?.name).toBe("Ascent");
+          expect(live.allies).toHaveLength(1);
+        }
+
+        // Shooting range
+        const rangeClient = setupClient({
+          getOrNull: vi.fn().mockImplementation(async (url: string) => {
+            if (url.includes("/pregame/v1/players/")) return null;
+            if (url.includes("/core-game/v1/players/")) return { MatchID: "range-1" };
+            return null;
+          }),
+          get: vi.fn().mockImplementation(async (url: string) => {
+            if (url.includes("/core-game/v1/matches/range-1")) {
+              return {
+                MatchID: "range-1",
+                ProvisioningFlow: "ShootingRange",
+              };
+            }
+            return {};
+          }),
+        });
+
+        const range = await rangeClient.liveMatch();
+        expect(range.phase).toBe("range");
+        if (range.phase === "range") {
+          expect(range.matchId).toBe("range-1");
+        }
+
+        // None
+        const noneClient = setupClient({
+          getOrNull: vi.fn().mockResolvedValue(null),
+        });
+        const none = await noneClient.liveMatch();
+        expect(none.phase).toBe("none");
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+
+    it("fetches party info or null when not in party", async () => {
+      const client = setupClient({
+        getOrNull: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/parties/v1/players/")) return { CurrentPartyID: "party-1" };
+          return null;
+        }),
+        get: vi.fn().mockImplementation(async (url: string) => {
+          if (url.includes("/parties/v1/parties/party-1")) {
+            return {
+              ID: "party-1",
+              MUCName: "muc-1",
+              VoiceRoomID: "voice-1",
+              State: "DEFAULT",
+              MatchmakingData: {
+                QueueID: "competitive",
+              },
+              Accessibility: "OPEN",
+              Members: [
+                {
+                  Subject: "self-puuid",
+                  IsOwner: true,
+                  IsReady: true,
+                  Ping: 25,
+                },
+              ],
+            };
+          }
+          return {};
+        }),
+      });
+
+      try {
+        const party = await client.party();
+        expect(party).not.toBeNull();
+        expect(party?.id).toBe("party-1");
+        expect(party?.queue).toBe("competitive");
+        expect(party?.accessibility).toBe("open");
+        expect(party?.members).toHaveLength(1);
+        expect(party?.members[0]?.gameName).toBe("SelfPlayer");
+        expect(party?.members[0]?.owner).toBe(true);
+
+        const noPartyClient = setupClient({
+          getOrNull: vi.fn().mockResolvedValue(null),
+        });
+        const noParty = await noPartyClient.party();
+        expect(noParty).toBeNull();
+      } finally {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+    });
+  });
 });

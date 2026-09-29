@@ -1,9 +1,14 @@
+import type { Catalogue } from "./catalogue/Catalogue.js";
 import { FileCatalogueStore } from "./catalogue/CatalogueStore.js";
 import { MemoryCatalogueCache, ValorantApi } from "./catalogue/ValorantApi.js";
 import { CollectionBuilder } from "./collection/CollectionBuilder.js";
 import { FriendsBuilder } from "./collection/FriendsBuilder.js";
+import { LiveMatchBuilder } from "./collection/LiveMatchBuilder.js";
 import { LoadoutBuilder } from "./collection/LoadoutBuilder.js";
+import { MatchBuilder } from "./collection/MatchBuilder.js";
 import { MessagesBuilder } from "./collection/MessagesBuilder.js";
+import { MmrBuilder } from "./collection/MmrBuilder.js";
+import { PartyBuilder } from "./collection/PartyBuilder.js";
 import { StoreBuilder } from "./collection/StoreBuilder.js";
 import { RiotClientNotRunningError } from "./errors.js";
 import { RiotEvents, toFriendRequest } from "./events/RiotEvents.js";
@@ -17,10 +22,17 @@ import type {
   Conversation,
   Friend,
   FriendRequest,
+  LiveMatch,
   Loadout,
+  Match,
+  MatchSummary,
   Message,
+  Mmr,
   OwnedItems,
+  Party,
   Player,
+  Rank,
+  RankChange,
   Store,
   Wallet,
 } from "./model/index.js";
@@ -28,7 +40,12 @@ import { HttpGateway } from "./riot/HttpGateway.js";
 import { RiotApi } from "./riot/RiotApi.js";
 import { FileResponseCache } from "./riot/ResponseCache.js";
 import { Session } from "./riot/Session.js";
-import { CURRENCY_UUIDS, type RiotAccountXpResponse, type RiotNameResponse } from "./riot/types.js";
+import {
+  CURRENCY_UUIDS,
+  type RiotAccountXpResponse,
+  type RiotMatchHistoryItem,
+  type RiotNameResponse,
+} from "./riot/types.js";
 
 export interface RiotClientOptions {
   language?: string;
@@ -251,6 +268,134 @@ export class RiotClient {
     return new StoreBuilder(player, rawStorefront, catalogue, Date.now()).build();
   }
 
+  async matches(options?: { count?: number; queue?: string }): Promise<MatchSummary[]> {
+    const session = await this.getSession();
+    const api = this.api(session);
+    const catalogue = await this.valorantApi.getCatalogue(this.language);
+
+    const targetCount = Math.min(Math.max(options?.count ?? 20, 1), 100);
+    const collected: RiotMatchHistoryItem[] = [];
+
+    for (let start = 0; start < targetCount; start += 20) {
+      if (start > 0) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+      const end = Math.min(start + 20, targetCount);
+      const page = await api.matchHistory(start, end, options?.queue);
+      const history = page.History ?? [];
+      if (history.length === 0) break;
+      collected.push(...history);
+      if (history.length < end - start) break;
+    }
+
+    const items = collected.slice(0, targetCount);
+    const summaries = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const details = await api.matchDetails(item.MatchID);
+          return MatchBuilder.toSummary(details, catalogue);
+        } catch {
+          return {
+            id: item.MatchID,
+            startedAt: new Date(item.GameStartTime).toISOString(),
+            queue: item.QueueID,
+            map: { uuid: null, name: null, path: "" },
+          };
+        }
+      }),
+    );
+
+    return options?.queue
+      ? summaries.filter((s) => s.queue.toLowerCase() === options.queue!.toLowerCase())
+      : summaries;
+  }
+
+  async match(id: string): Promise<Match> {
+    const session = await this.getSession();
+    const api = this.api(session);
+    const [details, catalogue] = await Promise.all([
+      api.matchDetails(id),
+      this.valorantApi.getCatalogue(this.language),
+    ]);
+    return new MatchBuilder(details, catalogue, session.puuid).build();
+  }
+
+  async mmr(): Promise<Mmr> {
+    const session = await this.getSession();
+    const api = this.api(session);
+    const [rawMmr, catalogue] = await Promise.all([
+      api.mmr(),
+      this.valorantApi.getCatalogue(this.language),
+    ]);
+    return new MmrBuilder(catalogue).buildMmr(rawMmr);
+  }
+
+  async rankHistory(options?: { count?: number }): Promise<RankChange[]> {
+    const count = Math.max(options?.count ?? 20, 1);
+    const session = await this.getSession();
+    const api = this.api(session);
+    const [rawUpdates, catalogue] = await Promise.all([
+      api.competitiveUpdates(0, count, "competitive"),
+      this.valorantApi.getCatalogue(this.language),
+    ]);
+    return new MmrBuilder(catalogue).buildRankChanges(rawUpdates.Matches ?? []);
+  }
+
+  async liveMatch(options?: { ranks?: boolean; loadouts?: boolean }): Promise<LiveMatch> {
+    const session = await this.getSession();
+    const api = this.api(session);
+    const catalogue = await this.valorantApi.getCatalogue(this.language);
+    const builder = new LiveMatchBuilder(catalogue);
+
+    const pregame = await api.pregamePlayer();
+    if (pregame?.MatchID) {
+      const match = await api.pregameMatch(pregame.MatchID);
+      const puuids = [
+        ...(match.AllyTeam?.Players ?? []).map((p) => p.Subject),
+        ...(match.EnemyTeam?.Players ?? []).map((p) => p.Subject),
+      ];
+      const names = await this.resolveLobbyNames(api, puuids);
+      const ranks = options?.ranks
+        ? await this.resolveLobbyRanks(api, puuids, catalogue)
+        : new Map<string, Rank | null>();
+      return builder.buildPregame(match, names, ranks, session.puuid);
+    }
+
+    const core = await api.coreGamePlayer();
+    if (core?.MatchID) {
+      const match = await api.coreGameMatch(core.MatchID);
+      if (match.ProvisioningFlow === "ShootingRange") {
+        return { phase: "range", matchId: match.MatchID };
+      }
+      const puuids = (match.Players ?? []).map((p) => p.Subject);
+      const names = await this.resolveLobbyNames(api, puuids);
+      const rawLoadouts =
+        options?.loadouts !== false ? await api.coreGameLoadouts(core.MatchID) : null;
+      const ranks = options?.ranks
+        ? await this.resolveLobbyRanks(api, puuids, catalogue)
+        : new Map<string, Rank | null>();
+      return builder.buildCoreGame(match, rawLoadouts, names, ranks, session.puuid);
+    }
+
+    return { phase: "none" };
+  }
+
+  async party(): Promise<Party> {
+    const session = await this.getSession();
+    const api = this.api(session);
+    const partyPlayer = await api.partyPlayer();
+    if (!partyPlayer?.CurrentPartyID) {
+      return null;
+    }
+    const [rawParty, catalogue] = await Promise.all([
+      api.party(partyPlayer.CurrentPartyID),
+      this.valorantApi.getCatalogue(this.language),
+    ]);
+    const puuids = (rawParty.Members ?? []).map((m) => m.Subject);
+    const names = await this.resolveLobbyNames(api, puuids);
+    return new PartyBuilder(catalogue).build(rawParty, names);
+  }
+
   async getSession(): Promise<Session> {
     const lockfile = readLockfile(this.lockfilePath);
     if (!lockfile) {
@@ -355,5 +500,54 @@ export class RiotClient {
       shard: regionInfo.shard,
       clientVersion,
     });
+  }
+
+  private readonly liveRankCache = new Map<string, Rank | null>();
+
+  private async resolveLobbyNames(
+    api: RiotApi,
+    puuids: string[],
+  ): Promise<Map<string, { gameName: string; tagLine: string }>> {
+    const map = new Map<string, { gameName: string; tagLine: string }>();
+    const unique = Array.from(new Set(puuids.filter(Boolean)));
+    if (unique.length === 0) return map;
+    try {
+      const list = await api.names(unique);
+      for (const item of list) {
+        map.set(item.Subject, { gameName: item.GameName, tagLine: item.TagLine });
+      }
+    } catch {}
+    return map;
+  }
+
+  private async resolveLobbyRanks(
+    api: RiotApi,
+    puuids: string[],
+    catalogue: Catalogue,
+  ): Promise<Map<string, Rank | null>> {
+    const ranks = new Map<string, Rank | null>();
+    const mmrBuilder = new MmrBuilder(catalogue);
+    const unique = Array.from(new Set(puuids.filter(Boolean)));
+
+    for (let i = 0; i < unique.length; i++) {
+      const puuid = unique[i]!;
+      if (this.liveRankCache.has(puuid)) {
+        ranks.set(puuid, this.liveRankCache.get(puuid)!);
+        continue;
+      }
+      if (i > 0) {
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      try {
+        const raw = await api.mmr(puuid);
+        const mmr = mmrBuilder.buildMmr(raw);
+        this.liveRankCache.set(puuid, mmr.current);
+        ranks.set(puuid, mmr.current);
+      } catch {
+        this.liveRankCache.set(puuid, null);
+        ranks.set(puuid, null);
+      }
+    }
+    return ranks;
   }
 }
