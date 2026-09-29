@@ -60,7 +60,12 @@ jobs:
           - language: csharp
             run: dotnet build examples/csharp --nologo -v quiet
           - language: java
-            run: javac -d /tmp/java-example examples/java/Main.java
+            run: |
+              mkdir -p /tmp/jackson
+              for artifact in jackson-core jackson-databind jackson-annotations; do
+                curl -sSfL -o /tmp/jackson/$artifact.jar "https://repo1.maven.org/maven2/com/fasterxml/jackson/core/$artifact/2.18.2/$artifact-2.18.2.jar"
+              done
+              javac -cp "/tmp/jackson/*" -d /tmp/java-example examples/java/Main.java
           - language: python
             run: python3 -m py_compile examples/python/main.py
           - language: go
