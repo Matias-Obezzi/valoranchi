@@ -533,6 +533,37 @@ If validation fails, the command exits with code `6` and writes the validation e
 }
 ```
 
+## Raw Layer
+
+Consumers that maintain their own domain models or view models can use the library's session handling, transport, raw endpoints, local API, socket, and validators without importing high-level models:
+
+```ts
+import {
+  FileCatalogueStore,
+  HttpGateway,
+  MemoryCatalogueCache,
+  RiotApi,
+  SessionManager,
+  ValorantApi,
+} from "@valoranchi/riot-client/raw";
+
+const gateway = new HttpGateway();
+const valorantApi = new ValorantApi(
+  gateway,
+  new MemoryCatalogueCache(),
+  new FileCatalogueStore(),
+);
+const sessions = new SessionManager({ valorantApi });
+
+const session = await sessions.session();
+const api = new RiotApi(gateway, session);
+
+const loadout = await api.loadout();
+console.log(loadout);
+```
+
+> **Stability note**: The raw entry follows Riot's shapes and may change with the game.
+
 ## From Other Languages
 
 Any runtime can spawn the `riotclient` binary as a child process and parse stdout as JSON. Type definitions can be generated directly from the committed JSON Schemas in `schema/` using tools such as `quicktype`:
