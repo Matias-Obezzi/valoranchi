@@ -150,3 +150,31 @@ export interface PartyApi {
   customGameConfigs(): Promise<RiotCustomGameConfigsResponse>;
 }
 
+export interface LocalRawApi {
+  get<T = unknown>(path: string): Promise<T>;
+  post<T = unknown>(path: string, body?: unknown): Promise<T>;
+  put<T = unknown>(path: string, body?: unknown): Promise<T>;
+  delete<T = unknown>(path: string, body?: unknown): Promise<T>;
+}
+
+export interface RiotRawApi {
+  get<T = unknown>(
+    url: string,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T>;
+  post<T = unknown>(
+    url: string,
+    body?: unknown,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T>;
+  put<T = unknown>(
+    url: string,
+    body?: unknown,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T>;
+  delete<T = unknown>(
+    url: string,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T>;
+}
+

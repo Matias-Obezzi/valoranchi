@@ -9,10 +9,12 @@ export {
 } from "./RiotClient.js";
 export type {
   AccountApi,
-  SocialApi,
-  StoreApi,
+  LocalRawApi,
   MatchesApi,
   PartyApi,
+  RiotRawApi,
+  SocialApi,
+  StoreApi,
 } from "./client/api.js";
 export {
   PartyValidator,

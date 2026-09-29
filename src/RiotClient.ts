@@ -3,8 +3,10 @@ import { MemoryCatalogueCache, ValorantApi } from "./catalogue/ValorantApi.js";
 import { AccountService } from "./client/AccountService.js";
 import type {
   AccountApi,
+  LocalRawApi,
   MatchesApi,
   PartyApi,
+  RiotRawApi,
   SocialApi,
   StoreApi,
 } from "./client/api.js";
@@ -26,6 +28,78 @@ import type { Session } from "./riot/Session.js";
 
 export type { LoadoutChange, LoadoutGunChange, PartyActionRequest };
 
+class LocalRawService implements LocalRawApi {
+  constructor(private readonly sessions: SessionManager) {}
+
+  async get<T = unknown>(path: string): Promise<T> {
+    const res = await this.sessions.localApi().get<T>(path);
+    return res as T;
+  }
+
+  async post<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.sessions.localApi().post<T>(path, body);
+  }
+
+  async put<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.sessions.localApi().put<T>(path, body);
+  }
+
+  async delete<T = unknown>(path: string, body?: unknown): Promise<T> {
+    return this.sessions.localApi().delete<T>(path, body);
+  }
+}
+
+class RiotRawService implements RiotRawApi {
+  constructor(
+    private readonly sessions: SessionManager,
+    private readonly gateway: HttpGateway,
+  ) {}
+
+  private extractHeaders(
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Record<string, string> | undefined {
+    if (!options) return undefined;
+    if ("headers" in options && options.headers && typeof options.headers === "object") {
+      return options.headers;
+    }
+    return options as Record<string, string>;
+  }
+
+  async get<T = unknown>(
+    url: string,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T> {
+    const session = await this.sessions.session();
+    return this.gateway.get<T>(url, session.headers(this.extractHeaders(options)));
+  }
+
+  async post<T = unknown>(
+    url: string,
+    body?: unknown,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T> {
+    const session = await this.sessions.session();
+    return this.gateway.post<T>(url, body, session.headers(this.extractHeaders(options)));
+  }
+
+  async put<T = unknown>(
+    url: string,
+    body?: unknown,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T> {
+    const session = await this.sessions.session();
+    return this.gateway.put<T>(url, body, session.headers(this.extractHeaders(options)));
+  }
+
+  async delete<T = unknown>(
+    url: string,
+    options?: { headers?: Record<string, string> } | Record<string, string>,
+  ): Promise<T> {
+    const session = await this.sessions.session();
+    return this.gateway.delete<T>(url, session.headers(this.extractHeaders(options)));
+  }
+}
+
 export interface RiotClientOptions {
   language?: string;
   lockfilePath?: string;
@@ -43,6 +117,8 @@ export class RiotClient {
   readonly store: StoreApi;
   readonly matches: MatchesApi;
   readonly party: PartyApi;
+  readonly local: LocalRawApi;
+  readonly riot: RiotRawApi;
 
   private readonly sessions: SessionManager;
   private readonly eventsService: EventsService;
@@ -80,6 +156,8 @@ export class RiotClient {
     this.store = new StoreService(context);
     this.matches = new MatchService(context);
     this.party = new PartyService(context);
+    this.local = new LocalRawService(this.sessions);
+    this.riot = new RiotRawService(this.sessions, gateway);
     this.eventsService = new EventsService(context);
   }
 

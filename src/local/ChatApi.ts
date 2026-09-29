@@ -13,6 +13,8 @@ import type {
   RawMessagesResponse,
   RawPresencesResponse,
   RawChatSession,
+  RawParticipant,
+  RawParticipantsResponse,
 } from "./chatTypes.js";
 
 export class ChatApi {
@@ -115,5 +117,11 @@ export class ChatApi {
 
   async unblockPlayer(puuid: string): Promise<void> {
     await this.localApi.delete("/chat/v4/blocked", { puuid });
+  }
+
+  async participants(cid?: string): Promise<RawParticipant[]> {
+    const path = cid ? `/chat/v5/participants?cid=${encodeURIComponent(cid)}` : "/chat/v5/participants";
+    const res = await this.localApi.get<RawParticipantsResponse>(path);
+    return res?.participants ?? [];
   }
 }

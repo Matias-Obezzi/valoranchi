@@ -110,3 +110,19 @@ export interface RawChatSession {
   loaded?: boolean;
   federated?: boolean;
 }
+
+export interface RawParticipant {
+  cid?: string;
+  puuid?: string;
+  game_name?: string;
+  game_tag?: string;
+  name?: string;
+  pid?: string;
+  region?: string;
+  muted?: boolean;
+  activePlatform?: string | null;
+}
+
+export interface RawParticipantsResponse {
+  participants?: RawParticipant[];
+}

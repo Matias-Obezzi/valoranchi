@@ -107,22 +107,27 @@ export class RiotClientLocalApi {
     );
   }
 
-  async get<T>(path: string): Promise<T | null> {
-    return this.request<T>("GET", path);
+  async get<T>(path: string, headers?: Record<string, string>): Promise<T | null> {
+    return this.request<T>("GET", path, undefined, headers);
   }
 
-  async post<T>(path: string, body?: unknown): Promise<T> {
-    return (await this.request<T>("POST", path, body)) as T;
+  async post<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return (await this.request<T>("POST", path, body, headers)) as T;
   }
 
-  async delete<T>(path: string, body?: unknown): Promise<T> {
-    return (await this.request<T>("DELETE", path, body)) as T;
+  async put<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return (await this.request<T>("PUT", path, body, headers)) as T;
+  }
+
+  async delete<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> {
+    return (await this.request<T>("DELETE", path, body, headers)) as T;
   }
 
   private async request<T>(
-    method: "GET" | "POST" | "DELETE",
+    method: "GET" | "POST" | "PUT" | "DELETE",
     path: string,
     body?: unknown,
+    customHeaders?: Record<string, string>,
   ): Promise<T | null> {
     const normalized = path.startsWith("/") ? path : `/${path}`;
     const url = `https://127.0.0.1:${this.port}${normalized}`;
@@ -132,6 +137,7 @@ export class RiotClientLocalApi {
     const headers: Record<string, string> = {
       Authorization: this.authorization,
       ...(serializedBody !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...customHeaders,
     };
 
     return this.withWarmupRetry<T | null>(async (attempt, maxRetries) => {
@@ -227,6 +233,42 @@ export class RiotClientLocalApi {
     } catch {
       return null;
     }
+  }
+
+  async gameAuthorization(): Promise<string | null> {
+    const url = `https://127.0.0.1:${this.port}/product-session/v1/external-sessions`;
+    try {
+      const response = await this.fetchFn(url, {
+        headers: { Authorization: this.authorization },
+        dispatcher: this.agent,
+      });
+      if (!response.ok) {
+        return null;
+      }
+      const data = (await response.json()) as Record<string, ExternalSessionEntry>;
+      return this.extractGameAuth(data);
+    } catch {
+      return null;
+    }
+  }
+
+  private extractGameAuth(sessions: Record<string, ExternalSessionEntry>): string | null {
+    const valorant = Object.values(sessions).find(
+      (entry) => entry.productId?.toLowerCase() === "valorant",
+    );
+    const args = valorant?.launchConfiguration?.arguments;
+    if (!args || !Array.isArray(args)) {
+      return null;
+    }
+    const tokenArg = args.find((a) => a.startsWith("-remoting-auth-token="));
+    if (!tokenArg) {
+      return null;
+    }
+    const token = tokenArg.slice("-remoting-auth-token=".length).trim();
+    if (!token) {
+      return null;
+    }
+    return `Basic ${Buffer.from(`riot:${token}`).toString("base64")}`;
   }
 
   private parseExternalSessions(
