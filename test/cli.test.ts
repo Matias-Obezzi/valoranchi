@@ -1,3 +1,4 @@
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { RiotClient } from "../src/RiotClient.js";
 import { AccountService } from "../src/client/AccountService.js";
@@ -5,6 +6,9 @@ import { MatchService } from "../src/client/MatchService.js";
 import { PartyService } from "../src/client/PartyService.js";
 import { SocialService } from "../src/client/SocialService.js";
 import { StoreService } from "../src/client/StoreService.js";
+import { SessionManager } from "../src/client/SessionManager.js";
+import { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
+import { HttpGateway } from "../src/riot/HttpGateway.js";
 import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
 import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
 import { TypedEmitter } from "../src/events/TypedEmitter.js";
@@ -860,8 +864,349 @@ describe("CLI write commands and dry-run", () => {
       expect(await runCli(["favourite-remove"])).toBe(6);
       expect(await runCli(["privacy"])).toBe(6);
       expect(await runCli(["buy"])).toBe(6);
+      expect(await runCli(["agent-select"])).toBe(6);
+      expect(await runCli(["agent-lock"])).toBe(6);
+      expect(await runCli(["party-decline-invite"])).toBe(6);
+      expect(await runCli(["party-request"])).toBe(6);
+      expect(await runCli(["party-decline-request"])).toBe(6);
+      expect(await runCli(["custom-game-settings"])).toBe(6);
+      expect(await runCli(["custom-game-team"])).toBe(6);
+      expect(await runCli(["party-default"])).toBe(6);
+      expect(await runCli(["party-servers"])).toBe(6);
+      expect(await runCli(["party-moderator"])).toBe(6);
+      expect(await runCli(["settings-save"])).toBe(6);
+      expect(await runCli(["local"])).toBe(6);
+      expect(await runCli(["riot"])).toBe(6);
     } finally {
       process.stderr.write = originalStderr;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("dispatches live match actions, party extras, custom game, settings, and raw commands", async () => {
+    const originalStdout = process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+
+    vi.spyOn(RiotClient.prototype, "close").mockResolvedValue(undefined);
+
+    // Match actions
+    const valSelect = vi
+      .spyOn(MatchService.prototype, "validateSelectAgent")
+      .mockResolvedValue({ method: "POST", path: "/select/Jett", matchId: "m1", agentUuid: "u1" });
+    const select = vi.spyOn(MatchService.prototype, "selectAgent").mockResolvedValue({} as never);
+
+    const valLock = vi
+      .spyOn(MatchService.prototype, "validateLockAgent")
+      .mockResolvedValue({ method: "POST", path: "/lock/Jett", matchId: "m1", agentUuid: "u1" });
+    const lock = vi.spyOn(MatchService.prototype, "lockAgent").mockResolvedValue({} as never);
+
+    const valDodge = vi
+      .spyOn(MatchService.prototype, "validateDodge")
+      .mockResolvedValue({ method: "POST", path: "/pregame/v1/matches/m1/quit", matchId: "m1" });
+    const dodge = vi
+      .spyOn(MatchService.prototype, "dodge")
+      .mockResolvedValue({ dodged: true, matchId: "m1" });
+    const valLeaveMatch = vi
+      .spyOn(MatchService.prototype, "validateLeaveMatch")
+      .mockResolvedValue({
+        method: "POST",
+        path: "/core-game/v1/players/me/disassociate/m1",
+        matchId: "m1",
+        puuid: "me",
+      });
+    const leaveMatch = vi
+      .spyOn(MatchService.prototype, "leaveMatch")
+      .mockResolvedValue({ left: true, matchId: "m1" });
+
+    // Party extras & Custom games
+    const valJoinParty = vi
+      .spyOn(PartyService.prototype, "validateJoin")
+      .mockResolvedValue({ partyId: "party-uuid-1" });
+    const joinParty = vi.spyOn(PartyService.prototype, "join").mockResolvedValue({} as never);
+
+    const invitesSpy = vi.spyOn(PartyService.prototype, "invites").mockResolvedValue([]);
+    const requestsSpy = vi.spyOn(PartyService.prototype, "requests").mockResolvedValue([]);
+
+    const valDeclineInv = vi
+      .spyOn(PartyService.prototype, "validateDeclineInvite")
+      .mockResolvedValue({ partyId: "p1", inviteId: "inv-1" });
+    const declineInv = vi
+      .spyOn(PartyService.prototype, "declineInvite")
+      .mockResolvedValue({ declined: true, inviteId: "inv-1" });
+
+    const valReqJoin = vi
+      .spyOn(PartyService.prototype, "validateRequestToJoin")
+      .mockResolvedValue({ method: "POST", path: "/req", body: {} });
+    const reqJoin = vi
+      .spyOn(PartyService.prototype, "requestToJoin")
+      .mockResolvedValue({ requested: true, partyId: "p1" });
+
+    const valDeclineReq = vi
+      .spyOn(PartyService.prototype, "validateDeclineRequest")
+      .mockResolvedValue({ partyId: "p1", requestId: "req-1" });
+    const declineReq = vi
+      .spyOn(PartyService.prototype, "declineRequest")
+      .mockResolvedValue({ declined: true, requestId: "req-1" });
+
+    const valCustom = vi
+      .spyOn(PartyService.prototype, "validateMakeCustomGame")
+      .mockResolvedValue({ partyId: "p1" });
+    const custom = vi.spyOn(PartyService.prototype, "makeCustomGame").mockResolvedValue({} as never);
+
+    const valCustomSetts = vi
+      .spyOn(PartyService.prototype, "validateSetCustomGameSettings")
+      .mockResolvedValue({});
+    const customSetts = vi
+      .spyOn(PartyService.prototype, "setCustomGameSettings")
+      .mockResolvedValue({} as never);
+
+    const valSetTeam = vi
+      .spyOn(PartyService.prototype, "validateSetTeam")
+      .mockResolvedValue({ partyId: "p1", team: "TeamOne", puuid: "puuid-1" });
+    const setTeam = vi.spyOn(PartyService.prototype, "setTeam").mockResolvedValue({} as never);
+
+    const valStartCustom = vi
+      .spyOn(PartyService.prototype, "validateStartCustomGame")
+      .mockResolvedValue({ partyId: "p1" });
+    const startCustom = vi
+      .spyOn(PartyService.prototype, "startCustomGame")
+      .mockResolvedValue({} as never);
+
+    const valBalance = vi
+      .spyOn(PartyService.prototype, "validateBalanceTeams")
+      .mockResolvedValue({ partyId: "p1" });
+    const balance = vi.spyOn(PartyService.prototype, "balanceTeams").mockResolvedValue({} as never);
+
+    const valDefault = vi
+      .spyOn(PartyService.prototype, "validateMakeDefault")
+      .mockResolvedValue({ partyId: "p1", queue: "competitive" });
+    const makeDefault = vi
+      .spyOn(PartyService.prototype, "makeDefault")
+      .mockResolvedValue({} as never);
+
+    const valServers = vi
+      .spyOn(PartyService.prototype, "validateSetPreferredServers")
+      .mockResolvedValue({ partyId: "p1", gamePodIds: ["pdx"] });
+    const servers = vi
+      .spyOn(PartyService.prototype, "setPreferredServers")
+      .mockResolvedValue({} as never);
+
+    const valMod = vi
+      .spyOn(PartyService.prototype, "validateSetModerator")
+      .mockResolvedValue({ partyId: "p1", puuid: "puuid-1", isModerator: true });
+    const mod = vi.spyOn(PartyService.prototype, "setModerator").mockResolvedValue({} as never);
+
+    const valRefresh = vi
+      .spyOn(PartyService.prototype, "validateRefresh")
+      .mockResolvedValue({ method: "POST", paths: [] });
+    const refresh = vi.spyOn(PartyService.prototype, "refresh").mockResolvedValue({} as never);
+
+    // Settings & Local
+    const clientSpy = vi.spyOn(AccountService.prototype, "client").mockResolvedValue({} as never);
+    const settingsSpy = vi
+      .spyOn(AccountService.prototype, "settings")
+      .mockResolvedValue({ raw: { key: "val" } } as never);
+    const valSaveSettings = vi
+      .spyOn(AccountService.prototype, "validateSaveSettings")
+      .mockResolvedValue({ type: "Ares.PlayerSettings", data: {} });
+    const saveSettings = vi
+      .spyOn(AccountService.prototype, "saveSettings")
+      .mockResolvedValue({} as never);
+    const participantsSpy = vi
+      .spyOn(SocialService.prototype, "participants")
+      .mockResolvedValue([]);
+
+    const sampleJson = path.join(import.meta.dirname, "fixtures", "catalogue.json");
+
+    try {
+      // agent-select
+      expect(await runCli(["agent-select", "Jett"])).toBe(0);
+      expect(valSelect).toHaveBeenCalledWith("Jett");
+      expect(select).not.toHaveBeenCalled();
+
+      expect(await runCli(["agent-select", "Jett", "--yes"])).toBe(0);
+      expect(select).toHaveBeenCalledWith("Jett");
+
+      // agent-lock
+      expect(await runCli(["agent-lock", "Jett"])).toBe(0);
+      expect(valLock).toHaveBeenCalledWith("Jett");
+      expect(lock).not.toHaveBeenCalled();
+
+      expect(await runCli(["agent-lock", "Jett", "--yes"])).toBe(0);
+      expect(lock).toHaveBeenCalledWith("Jett");
+
+      // dodge
+      expect(await runCli(["dodge"])).toBe(0);
+      expect(valDodge).toHaveBeenCalled();
+      expect(dodge).not.toHaveBeenCalled();
+      expect(await runCli(["dodge", "--yes"])).toBe(6); // requires --confirm
+      expect(await runCli(["dodge", "--yes", "--confirm"])).toBe(0);
+      expect(dodge).toHaveBeenCalledWith({ confirm: true });
+
+      // leave-match
+      expect(await runCli(["leave-match"])).toBe(0);
+      expect(valLeaveMatch).toHaveBeenCalled();
+      expect(leaveMatch).not.toHaveBeenCalled();
+      expect(await runCli(["leave-match", "--yes"])).toBe(6); // requires --confirm
+      expect(await runCli(["leave-match", "--yes", "--confirm"])).toBe(0);
+      expect(leaveMatch).toHaveBeenCalledWith({ confirm: true });
+
+      // party-join by partyId
+      expect(await runCli(["party-join", "12345678-1234-1234-1234-123456789abc"])).toBe(0);
+      expect(valJoinParty).toHaveBeenCalledWith("12345678-1234-1234-1234-123456789abc");
+      expect(joinParty).not.toHaveBeenCalled();
+
+      expect(await runCli(["party-join", "12345678-1234-1234-1234-123456789abc", "--yes"])).toBe(0);
+      expect(joinParty).toHaveBeenCalledWith("12345678-1234-1234-1234-123456789abc");
+
+      // party-invites & party-requests
+      expect(await runCli(["party-invites"])).toBe(0);
+      expect(invitesSpy).toHaveBeenCalledTimes(1);
+      expect(await runCli(["party-requests"])).toBe(0);
+      expect(requestsSpy).toHaveBeenCalledTimes(1);
+
+      // party-decline-invite
+      expect(await runCli(["party-decline-invite", "inv-1"])).toBe(0);
+      expect(valDeclineInv).toHaveBeenCalledWith("inv-1");
+      expect(declineInv).not.toHaveBeenCalled();
+      expect(await runCli(["party-decline-invite", "inv-1", "--yes"])).toBe(0);
+      expect(declineInv).toHaveBeenCalledWith("inv-1");
+
+      // party-request
+      expect(await runCli(["party-request", "p1"])).toBe(0);
+      expect(valReqJoin).toHaveBeenCalledWith("p1");
+      expect(reqJoin).not.toHaveBeenCalled();
+      expect(await runCli(["party-request", "p1", "--yes"])).toBe(0);
+      expect(reqJoin).toHaveBeenCalledWith("p1");
+
+      // party-decline-request
+      expect(await runCli(["party-decline-request", "req-1"])).toBe(0);
+      expect(valDeclineReq).toHaveBeenCalledWith("req-1");
+      expect(declineReq).not.toHaveBeenCalled();
+      expect(await runCli(["party-decline-request", "req-1", "--yes"])).toBe(0);
+      expect(declineReq).toHaveBeenCalledWith("req-1");
+
+      // custom-game
+      expect(await runCli(["custom-game"])).toBe(0);
+      expect(valCustom).toHaveBeenCalledTimes(1);
+      expect(custom).not.toHaveBeenCalled();
+      expect(await runCli(["custom-game", "--yes"])).toBe(0);
+      expect(custom).toHaveBeenCalledTimes(1);
+
+      // custom-game-settings
+      expect(
+        await runCli([
+          "custom-game-settings",
+          "--map",
+          "Ascent",
+          "--mode",
+          "Standard",
+          "--server",
+          "pdx",
+          "--rule",
+          "AllowGameModifiers=true",
+        ]),
+      ).toBe(0);
+      expect(valCustomSetts).toHaveBeenCalledTimes(1);
+      expect(customSetts).not.toHaveBeenCalled();
+
+      expect(
+        await runCli([
+          "custom-game-settings",
+          "--map",
+          "Ascent",
+          "--mode",
+          "Standard",
+          "--yes",
+        ]),
+      ).toBe(0);
+      expect(customSetts).toHaveBeenCalledTimes(1);
+
+      // custom-game-team
+      expect(await runCli(["custom-game-team", "puuid-1", "TeamOne"])).toBe(0);
+      expect(valSetTeam).toHaveBeenCalledWith("puuid-1", "TeamOne");
+      expect(setTeam).not.toHaveBeenCalled();
+      expect(await runCli(["custom-game-team", "puuid-1", "TeamOne", "--yes"])).toBe(0);
+      expect(setTeam).toHaveBeenCalledWith("puuid-1", "TeamOne");
+
+      // custom-game-start
+      expect(await runCli(["custom-game-start"])).toBe(0);
+      expect(valStartCustom).toHaveBeenCalledTimes(1);
+      expect(startCustom).not.toHaveBeenCalled();
+      expect(await runCli(["custom-game-start", "--yes"])).toBe(0);
+      expect(startCustom).toHaveBeenCalledTimes(1);
+
+      // custom-game-balance
+      expect(await runCli(["custom-game-balance"])).toBe(0);
+      expect(valBalance).toHaveBeenCalledTimes(1);
+      expect(balance).not.toHaveBeenCalled();
+      expect(await runCli(["custom-game-balance", "--yes"])).toBe(0);
+      expect(balance).toHaveBeenCalledTimes(1);
+
+      // party-default
+      expect(await runCli(["party-default", "competitive"])).toBe(0);
+      expect(valDefault).toHaveBeenCalledWith("competitive");
+      expect(makeDefault).not.toHaveBeenCalled();
+      expect(await runCli(["party-default", "competitive", "--yes"])).toBe(0);
+      expect(makeDefault).toHaveBeenCalledWith("competitive");
+
+      // party-servers
+      expect(await runCli(["party-servers", "pdx,sjc"])).toBe(0);
+      expect(valServers).toHaveBeenCalledWith(["pdx", "sjc"]);
+      expect(servers).not.toHaveBeenCalled();
+      expect(await runCli(["party-servers", "pdx,sjc", "--yes"])).toBe(0);
+      expect(servers).toHaveBeenCalledWith(["pdx", "sjc"]);
+
+      // party-moderator
+      expect(await runCli(["party-moderator", "puuid-1", "on"])).toBe(0);
+      expect(valMod).toHaveBeenCalledWith("puuid-1", true);
+      expect(mod).not.toHaveBeenCalled();
+      expect(await runCli(["party-moderator", "puuid-1", "off", "--yes"])).toBe(0);
+      expect(mod).toHaveBeenCalledWith("puuid-1", false);
+
+      // party-refresh
+      expect(await runCli(["party-refresh"])).toBe(0);
+      expect(valRefresh).toHaveBeenCalledTimes(1);
+      expect(refresh).not.toHaveBeenCalled();
+      expect(await runCli(["party-refresh", "--yes"])).toBe(0);
+      expect(refresh).toHaveBeenCalledTimes(1);
+
+      // settings & settings-save
+      expect(await runCli(["settings"])).toBe(0);
+      expect(settingsSpy).toHaveBeenCalledTimes(1);
+      expect(await runCli(["settings", "--raw"])).toBe(0);
+
+      expect(await runCli(["settings-save", sampleJson])).toBe(0);
+      expect(valSaveSettings).toHaveBeenCalledTimes(1);
+      expect(saveSettings).not.toHaveBeenCalled();
+      expect(await runCli(["settings-save", sampleJson, "--yes"])).toBe(6); // requires --confirm
+      expect(await runCli(["settings-save", sampleJson, "--yes", "--confirm"])).toBe(0);
+      expect(saveSettings).toHaveBeenCalledTimes(1);
+
+      // client & participants
+      expect(await runCli(["client"])).toBe(0);
+      expect(clientSpy).toHaveBeenCalledTimes(1);
+      expect(await runCli(["participants"])).toBe(0);
+      expect(participantsSpy).toHaveBeenCalledTimes(1);
+
+      // local & riot raw escape hatches
+      const localGet = vi
+        .spyOn(RiotClientLocalApi.prototype, "get")
+        .mockResolvedValue({ status: "local-ok" } as never);
+      expect(await runCli(["local", "get", "/riotclient/region-locale"])).toBe(0);
+      expect(localGet).toHaveBeenCalledWith("/riotclient/region-locale");
+
+      const sessionSpy = vi.spyOn(SessionManager.prototype, "session").mockResolvedValue({
+        headers: () => ({ Authorization: "Bearer test" }),
+      } as never);
+      const riotGet = vi
+        .spyOn(HttpGateway.prototype, "get")
+        .mockResolvedValue({ status: "riot-ok" } as never);
+      expect(await runCli(["riot", "get", "https://pd.na.a.pvp.net/endpoint"])).toBe(0);
+      expect(riotGet).toHaveBeenCalled();
+      expect(sessionSpy).toHaveBeenCalled();
+    } finally {
+      process.stdout.write = originalStdout;
       vi.restoreAllMocks();
     }
   });

@@ -5,6 +5,7 @@ import type {
 } from "../model/index.js";
 
 interface RawActionMapping {
+  actionName?: string;
   name?: string;
   command?: string;
   key?: string;
@@ -28,7 +29,7 @@ export class PlayerSettingsBuilder {
     ) as RawActionMapping[];
 
     const binds: PlayerSettingsBind[] = rawMappings.map((m) => ({
-      command: String(m.name ?? m.command ?? ""),
+      command: String(m.actionName ?? m.name ?? m.command ?? ""),
       key: String(m.key ?? ""),
       alt: Boolean(m.alt),
       ctrl: Boolean(m.ctrl),
@@ -66,7 +67,10 @@ export class PlayerSettingsBuilder {
 
     return {
       sensitivity: findFloat(/Sensitivity$/i) ?? findFloat(/MouseSensitivity/i),
-      scopedSensitivityMultiplier: findFloat(/ZoomMultiplier/i) ?? findFloat(/Scoped/i),
+      scopedSensitivityMultiplier:
+        findFloat(/ZoomMultiplier/i) ??
+        findFloat(/TargetingMultiplier/i) ??
+        findFloat(/Scoped/i),
       invertY: findBool(/InvertMouse/i) ?? findBool(/Invert.*Axis/i),
       rawInputBuffer: findBool(/RawInput/i),
     };

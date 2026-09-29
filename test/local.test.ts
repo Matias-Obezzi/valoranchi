@@ -405,4 +405,81 @@ describe("RiotClientLocalApi", () => {
 
     await expect(api.post("/chat/v6/messages", {})).rejects.toThrow(RiotClientNotRunningError);
   });
+
+  it("extracts gameAuthorization from external-sessions launch arguments", async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        "session-val": {
+          productId: "valorant",
+          launchConfiguration: {
+            arguments: [
+              "-ares-deployment=na",
+              "-remoting-auth-token=secret-game-token",
+              "-app-port=1234",
+            ],
+          },
+        },
+      }),
+      text: async () => "",
+    });
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
+    });
+
+    const auth = await api.gameAuthorization();
+    const expected = `Basic ${Buffer.from("riot:secret-game-token").toString("base64")}`;
+    expect(auth).toBe(expected);
+  });
+
+  it("returns null for gameAuthorization when Valorant is not running", async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        "session-other": {
+          productId: "league_of_legends",
+        },
+      }),
+      text: async () => "",
+    });
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
+    });
+
+    const auth = await api.gameAuthorization();
+    expect(auth).toBeNull();
+  });
+
+  it("sends PUT request with custom Authorization header", async () => {
+    let capturedHeaders: Record<string, string> = {};
+    const mockFetch = async (
+      _url: string,
+      init?: { headers?: Record<string, string>; method?: string },
+    ) => {
+      capturedHeaders = init?.headers ?? {};
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ updated: true }),
+        text: async () => JSON.stringify({ updated: true }),
+      };
+    };
+
+    const api = new RiotClientLocalApi(5678, "pass", {
+      fetchFn: mockFetch as unknown as LocalApiFetchFn,
+    });
+
+    const res = await api.put<{ updated: boolean }>(
+      "/player-preferences/v1/data-json/Ares.PlayerSettings",
+      { data: {} },
+      { Authorization: "Basic custom-auth" },
+    );
+
+    expect(res).toEqual({ updated: true });
+    expect(capturedHeaders.Authorization).toBe("Basic custom-auth");
+  });
 });

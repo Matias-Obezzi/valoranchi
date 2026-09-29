@@ -6,7 +6,9 @@ import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { AccountProgressionBuilder } from "../src/collection/AccountProgressionBuilder.js";
 import { ContentBuilder } from "../src/collection/ContentBuilder.js";
 import { GameSessionBuilder } from "../src/collection/GameSessionBuilder.js";
+import { CustomGameConfigsBuilder } from "../src/collection/CustomGameConfigsBuilder.js";
 import { LeaderboardBuilder } from "../src/collection/LeaderboardBuilder.js";
+import { PlayerSettingsBuilder } from "../src/collection/PlayerSettingsBuilder.js";
 import { QueueConfigBuilder } from "../src/collection/QueueConfigBuilder.js";
 import { StoreOffersBuilder } from "../src/collection/StoreOffersBuilder.js";
 import type {
@@ -258,5 +260,104 @@ describe("ContentBuilder, QueueConfigBuilder, GameSessionBuilder", () => {
     expect(session.clientVersion).toBe("release-10.00");
     expect(session.playtimeMinutes).toBe(120);
     expect(session.restricted).toBe(false);
+  });
+
+  it("builds player settings decoding keybinds and mouse settings", () => {
+    const rawData = {
+      actionMappings: [
+        {
+          actionName: "Movement_Forward",
+          characterName: "None",
+          key: "W",
+          alt: false,
+          ctrl: false,
+          shift: false,
+          cmd: false,
+          bInvert: false,
+        },
+        {
+          actionName: "Ability_Primary",
+          characterName: "Jett",
+          key: "E",
+          alt: false,
+          ctrl: false,
+          shift: true,
+          cmd: false,
+          bInvert: false,
+        },
+      ],
+      floatSettings: [
+        { settingEnum: "EAresFloatSettingName::MouseSensitivity", value: 0.35 },
+        { settingEnum: "EAresFloatSettingName::MouseSensitivityTargetingMultiplier", value: 0.8 },
+      ],
+      boolSettings: [
+        { settingEnum: "EAresBoolSettingName::InvertMouse", value: false },
+        { settingEnum: "EAresBoolSettingName::RawInputBuffer", value: true },
+      ],
+      roamingSetttingsVersion: 10,
+    };
+
+    const settings = PlayerSettingsBuilder.build(rawData);
+    expect(settings.binds).toHaveLength(2);
+    expect(settings.binds[0]).toEqual({
+      command: "Movement_Forward",
+      key: "W",
+      alt: false,
+      ctrl: false,
+      shift: false,
+      agent: null,
+      slot: 0,
+    });
+    expect(settings.binds[1]).toEqual({
+      command: "Ability_Primary",
+      key: "E",
+      alt: false,
+      ctrl: false,
+      shift: true,
+      agent: "Jett",
+      slot: 0,
+    });
+    expect(settings.mouse.sensitivity).toBe(0.35);
+    expect(settings.mouse.scopedSensitivityMultiplier).toBe(0.8);
+    expect(settings.mouse.invertY).toBe(false);
+    expect(settings.mouse.rawInputBuffer).toBe(true);
+    expect(settings.raw).toBe(rawData);
+  });
+
+  it("builds custom game configs resolving maps, modes and server pings", () => {
+    const rawConfigs = {
+      EnabledMaps: [
+        "/Game/Maps/Ascent/Ascent",
+        "/Game/Maps/Bonsai/Bonsai",
+      ],
+      EnabledModes: [
+        "/Game/GameModes/Bomb/BombGameMode.BombGameMode_C",
+        "/Game/GameModes/Deathmatch/DeathmatchGameMode.DeathmatchGameMode_C",
+      ],
+      GamePodPingServiceInfo: {
+        "aresriot.aws-rso-pdx1.us-west-2": {
+          SecurityHash: 123,
+          PingProxyAddress: "1.2.3.4:5678",
+        },
+        "aresriot.aws-rso-sjc1.us-west-1": {
+          SecurityHash: 456,
+          PingProxyAddress: "5.6.7.8:1234",
+        },
+      },
+    };
+    const pingMap = {
+      "aresriot.aws-rso-pdx1.us-west-2": 24,
+      "aresriot.aws-rso-sjc1.us-west-1": 15,
+    };
+
+    const configs = CustomGameConfigsBuilder.build(rawConfigs as never, catalogue, pingMap);
+    expect(configs.maps).toHaveLength(2);
+    expect(configs.maps[0]?.name).toBe("Ascent");
+    expect(configs.modes).toHaveLength(2);
+    expect(configs.modes[0]?.name).toBe("Standard");
+    expect(configs.modes[1]?.name).toBe("Deathmatch");
+    expect(configs.servers).toHaveLength(2);
+    const pdx = configs.servers.find((s) => s.id.includes("pdx"));
+    expect(pdx?.ping).toBe(24);
   });
 });

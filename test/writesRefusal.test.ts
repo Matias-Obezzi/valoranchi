@@ -6,17 +6,31 @@ import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { AccountValidator } from "../src/client/AccountValidator.js";
+import { MatchValidator } from "../src/client/MatchValidator.js";
+import { PartyValidator } from "../src/client/PartyValidator.js";
 import { StoreValidator } from "../src/client/StoreValidator.js";
 import { ValidationError } from "../src/errors.js";
 import type { RiotClientLocalApi } from "../src/local/RiotClientLocalApi.js";
 import type { OwnedItems, Store, Wallet } from "../src/model/index.js";
 import { RiotClient } from "../src/RiotClient.js";
 import type { HttpGateway } from "../src/riot/HttpGateway.js";
-import type { RiotContractsResponse, RiotFavoritesResponse } from "../src/riot/types.js";
+import {
+  ENTITLEMENT_ITEM_TYPES,
+  type RiotContractsResponse,
+  type RiotCoreGamePlayerResponse,
+  type RiotCustomGameConfigsResponse,
+  type RiotEntitlementsResponse,
+  type RiotFavoritesResponse,
+  type RiotPartyPlayerResponse,
+  type RiotPartyResponse,
+  type RiotPregameMatchResponse,
+  type RiotPregamePlayerResponse,
+} from "../src/riot/types.js";
 
 const catalogueData = JSON.parse(
   fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
 ) as ValorantApiCatalogueData;
+const catalogue = new Catalogue(catalogueData);
 
 function createOwnedItems(overrides?: Partial<OwnedItems>): OwnedItems {
   return {
@@ -508,3 +522,284 @@ describe("refused writes never reach Riot", () => {
     );
   });
 });
+
+describe("live actions and party refusal validators for all 15 reasons", () => {
+  const jettUuid = "add6443a-41bd-e414-f6ad-e58d267f4e95";
+
+  const entitlements: RiotEntitlementsResponse = {
+    EntitlementsByTypes: [
+      {
+        ItemTypeID: ENTITLEMENT_ITEM_TYPES.agent,
+        Entitlements: [{ ItemID: jettUuid, TypeID: ENTITLEMENT_ITEM_TYPES.agent }],
+      },
+    ],
+  };
+
+  const pregameMatch = {
+    ID: "match-pregame-1",
+    AllyTeam: {
+      TeamID: "Blue",
+      Players: [
+        {
+          Subject: "me",
+          CharacterID: "",
+          CharacterSelectionState: "",
+          PregamePlayerState: "joined",
+          CompetitiveTier: 0,
+          PlayerIdentity: {},
+        },
+      ],
+    },
+  } as unknown as RiotPregameMatchResponse;
+
+  const customConfigs = {
+    Enabled: true,
+    Queues: [],
+    EnabledMaps: ["/Game/Maps/Ascent/Ascent"],
+    EnabledModes: ["/Game/GameModes/Bomb/BombGameMode.BombGameMode_C"],
+    GamePodPingServiceInfo: {
+      "aresriot.aws-rso-pdx1.us-west-2": { SecurityHash: 1, PingProxyAddress: "1.1.1.1" },
+    },
+  } as unknown as RiotCustomGameConfigsResponse;
+
+  const customParty = {
+    ID: "party-custom-1",
+    State: "CUSTOM_GAME",
+    Accessibility: "CLOSED",
+    Members: [{ Subject: "me", IsOwner: true }],
+  } as unknown as RiotPartyResponse;
+
+  it("refuses actions when not in pregame (not-in-pregame)", () => {
+    expect(() =>
+      MatchValidator.validateSelectOrLock(null, catalogue, entitlements, "Jett", "me"),
+    ).toThrowError(expect.objectContaining({ reason: "not-in-pregame" }));
+
+    expect(() =>
+      MatchValidator.validateDodge(null, { confirm: true }),
+    ).toThrowError(expect.objectContaining({ reason: "not-in-pregame" }));
+  });
+
+  it("refuses unknown or non-playable agent (unknown-agent)", () => {
+    expect(() =>
+      MatchValidator.validateSelectOrLock(pregameMatch, catalogue, entitlements, "NonExistentAgent", "me"),
+    ).toThrowError(expect.objectContaining({ reason: "unknown-agent" }));
+  });
+
+  it("refuses agent not owned by player (agent-not-owned)", () => {
+    expect(() =>
+      MatchValidator.validateSelectOrLock(pregameMatch, catalogue, { EntitlementsByTypes: [] }, "Phoenix", "me"),
+    ).toThrowError(expect.objectContaining({ reason: "agent-not-owned" }));
+  });
+
+  it("refuses agent already locked by an ally (agent-locked-by-ally)", () => {
+    const allyLockedMatch = {
+      ID: "m1",
+      AllyTeam: {
+        TeamID: "Blue",
+        Players: [
+          {
+            Subject: "ally-puuid",
+            CharacterID: jettUuid,
+            CharacterSelectionState: "locked",
+            PregamePlayerState: "joined",
+            CompetitiveTier: 0,
+            PlayerIdentity: {},
+          },
+          {
+            Subject: "me",
+            CharacterID: "",
+            CharacterSelectionState: "",
+            PregamePlayerState: "joined",
+            CompetitiveTier: 0,
+            PlayerIdentity: {},
+          },
+        ],
+      },
+    } as unknown as RiotPregameMatchResponse;
+
+    expect(() =>
+      MatchValidator.validateSelectOrLock(allyLockedMatch, catalogue, entitlements, "Jett", "me"),
+    ).toThrowError(expect.objectContaining({ reason: "agent-locked-by-ally" }));
+  });
+
+  it("refuses agent selection when self is already locked (already-locked)", () => {
+    const selfLockedMatch = {
+      ID: "m1",
+      AllyTeam: {
+        TeamID: "Blue",
+        Players: [
+          {
+            Subject: "me",
+            CharacterID: jettUuid,
+            CharacterSelectionState: "locked",
+            PregamePlayerState: "joined",
+            CompetitiveTier: 0,
+            PlayerIdentity: {},
+          },
+        ],
+      },
+    } as unknown as RiotPregameMatchResponse;
+
+    expect(() =>
+      MatchValidator.validateSelectOrLock(selfLockedMatch, catalogue, entitlements, "Jett", "me"),
+    ).toThrowError(expect.objectContaining({ reason: "already-locked" }));
+  });
+
+  it("refuses dangerous actions without explicit confirmation (confirm-required)", async () => {
+    expect(() =>
+      MatchValidator.validateDodge({ MatchID: "m1" } as RiotPregamePlayerResponse, {}),
+    ).toThrowError(expect.objectContaining({ reason: "confirm-required" }));
+
+    expect(() =>
+      MatchValidator.validateLeaveMatch({ MatchID: "m1" } as RiotCoreGamePlayerResponse, "me", {}),
+    ).toThrowError(expect.objectContaining({ reason: "confirm-required" }));
+
+    await expect(client.account.saveSettings({}, {})).rejects.toThrowError(
+      expect.objectContaining({ reason: "confirm-required" }),
+    );
+  });
+
+  it("refuses leave match when not in a match (not-in-match)", () => {
+    expect(() =>
+      MatchValidator.validateLeaveMatch(null, "me", { confirm: true }),
+    ).toThrowError(expect.objectContaining({ reason: "not-in-match" }));
+  });
+
+  it("refuses join or decline when invite does not exist (invite-missing)", () => {
+    const emptyPartyPlayer = { Subject: "me", Invites: [] } as unknown as RiotPartyPlayerResponse;
+    expect(() =>
+      PartyValidator.validateJoin(emptyPartyPlayer, "p-missing"),
+    ).toThrowError(expect.objectContaining({ reason: "invite-missing" }));
+
+    expect(() =>
+      PartyValidator.validateDeclineInvite(emptyPartyPlayer, "inv-missing"),
+    ).toThrowError(expect.objectContaining({ reason: "invite-missing" }));
+  });
+
+  it("refuses decline when join request does not exist (request-missing)", () => {
+    const partyNoRequests = {
+      ID: "p1",
+      Members: [{ Subject: "me", IsOwner: true }],
+      Requests: [],
+    } as unknown as RiotPartyResponse;
+
+    expect(() =>
+      PartyValidator.validateDeclineRequest(partyNoRequests, "me", "req-missing"),
+    ).toThrowError(expect.objectContaining({ reason: "request-missing" }));
+  });
+
+  it("refuses custom game commands when party is not in custom game mode (not-custom-game)", () => {
+    const normalParty = {
+      ID: "p1",
+      State: "DEFAULT",
+      Members: [{ Subject: "me", IsOwner: true }],
+    } as unknown as RiotPartyResponse;
+
+    expect(() =>
+      PartyValidator.validateCustomGame(normalParty, "me"),
+    ).toThrowError(expect.objectContaining({ reason: "not-custom-game" }));
+  });
+
+  it("refuses custom game settings when map is not enabled (map-not-enabled)", () => {
+    expect(() =>
+      PartyValidator.validateSetCustomGameSettings(
+        customParty,
+        "me",
+        { map: "UnknownMap", mode: "Bomb", server: null, rules: {} },
+        customConfigs,
+        catalogue,
+      ),
+    ).toThrowError(expect.objectContaining({ reason: "map-not-enabled" }));
+  });
+
+  it("refuses custom game settings when mode is not enabled (mode-not-enabled)", () => {
+    expect(() =>
+      PartyValidator.validateSetCustomGameSettings(
+        customParty,
+        "me",
+        { map: "Ascent", mode: "UnknownMode", server: null, rules: {} },
+        customConfigs,
+        catalogue,
+      ),
+    ).toThrowError(expect.objectContaining({ reason: "mode-not-enabled" }));
+  });
+
+  it("refuses server pods that are unknown (server-unknown)", () => {
+    expect(() =>
+      PartyValidator.validateSetCustomGameSettings(
+        customParty,
+        "me",
+        { map: "Ascent", mode: "Bomb", server: "unknown-pod", rules: {} },
+        customConfigs,
+        catalogue,
+      ),
+    ).toThrowError(expect.objectContaining({ reason: "server-unknown" }));
+
+    expect(() =>
+      PartyValidator.validateSetPreferredServers(
+        customParty,
+        "me",
+        ["unknown-pod"],
+        ["aresriot.aws-rso-pdx1.us-west-2"],
+      ),
+    ).toThrowError(expect.objectContaining({ reason: "server-unknown" }));
+  });
+
+  it("refuses custom game start when no players are on any team (no-team-players)", () => {
+    const partyNoTeams = {
+      ID: "p1",
+      State: "CUSTOM_GAME",
+      Members: [{ Subject: "me", IsOwner: true }],
+      CustomGameData: {
+        Membership: { TeamOne: [], TeamTwo: [] },
+      },
+    } as unknown as RiotPartyResponse;
+
+    expect(() =>
+      PartyValidator.validateStartCustomGame(partyNoTeams, "me"),
+    ).toThrowError(expect.objectContaining({ reason: "no-team-players" }));
+  });
+
+  it("refuses save settings when game is not running (game-not-running)", async () => {
+    const noValClient = new RiotClient({
+      lockfilePath,
+      catalogueDir: null,
+      localApiFactory: () =>
+        ({
+          gameAuthorization: async () => null,
+          close: async () => undefined,
+        }) as unknown as RiotClientLocalApi,
+    });
+
+    await expect(
+      noValClient.account.validateSaveSettings({}, { confirm: true }),
+    ).rejects.toThrowError(expect.objectContaining({ reason: "game-not-running" }));
+  });
+});
+
+describe("Refused live actions never send requests to Riot", () => {
+  it("proves no network request is sent when agent lock fails validation", async () => {
+    post.mockClear();
+    await expect(client.matches.lockAgent("NonExistentAgent")).rejects.toThrow();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("proves no network request is sent when dodge confirmation is omitted", async () => {
+    post.mockClear();
+    await expect(client.matches.dodge()).rejects.toThrow();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("proves no network request is sent when leaveMatch confirmation is omitted", async () => {
+    post.mockClear();
+    await expect(client.matches.leaveMatch()).rejects.toThrow();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("proves no network request is sent when custom game start has no teams", async () => {
+    post.mockClear();
+    await expect(client.party.startCustomGame()).rejects.toThrow();
+    expect(post).not.toHaveBeenCalled();
+  });
+});
+
