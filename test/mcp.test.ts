@@ -68,9 +68,7 @@ describe("MCP Server", () => {
     freeVp: 0,
   });
 
-  const mockMatchesList = vi.fn().mockResolvedValue([
-    { id: "match-1", queue: "competitive" },
-  ]);
+  const mockMatchesList = vi.fn().mockResolvedValue([{ id: "match-1", queue: "competitive" }]);
 
   const fakeClient = {
     account: {
@@ -79,6 +77,9 @@ describe("MCP Server", () => {
     },
     matches: {
       list: mockMatchesList,
+    },
+    official: {
+      profile: vi.fn().mockResolvedValue({ account: { puuid: "p" }, rank: null }),
     },
     social: {},
     store: {},
@@ -128,7 +129,9 @@ describe("MCP Server", () => {
       method: "tools/list",
     });
 
-    const result = res.result as { tools: Array<{ name: string; description: string; inputSchema: unknown }> };
+    const result = res.result as {
+      tools: Array<{ name: string; description: string; inputSchema: unknown }>;
+    };
     expect(result.tools.length).toBeGreaterThan(0);
 
     const toolNames = result.tools.map((t) => t.name);
@@ -315,6 +318,42 @@ describe("MCP Server", () => {
       result: {},
     });
 
+    await harness.close();
+  });
+
+  it("exposes official tools and hides alias routes", () => {
+    const names = getMcpTools().map((t) => t.name);
+    expect(names).toEqual(expect.arrayContaining(["official_profile", "official_summary"]));
+    expect(names).not.toEqual(expect.arrayContaining(["matches_matches"]));
+    expect(names).not.toContain("store_store");
+    expect(names).not.toContain("party_party");
+  });
+
+  it("calls an official tool with its arguments", async () => {
+    const harness = createHarness(fakeClient);
+    const res = await harness.send({
+      jsonrpc: "2.0",
+      id: 20,
+      method: "tools/call",
+      params: { name: "official_profile", arguments: { riotId: "Foo#BAR", count: 5 } },
+    });
+    expect(fakeClient.official.profile).toHaveBeenCalledWith("Foo#BAR", { count: 5 });
+    expect((res.result as { structuredContent: unknown }).structuredContent).toEqual({
+      account: { puuid: "p" },
+      rank: null,
+    });
+    await harness.close();
+  });
+
+  it("leaves structuredContent out when a tool returns a list", async () => {
+    const harness = createHarness(fakeClient);
+    const res = await harness.send({
+      jsonrpc: "2.0",
+      id: 21,
+      method: "tools/call",
+      params: { name: "matches_list", arguments: {} },
+    });
+    expect(res.result).not.toHaveProperty("structuredContent");
     await harness.close();
   });
 });

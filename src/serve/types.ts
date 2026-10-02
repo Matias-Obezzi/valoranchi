@@ -29,7 +29,7 @@ export interface RouteDefinition {
   path: string;
   summary: string;
   isConfirmGated?: boolean;
+  alias?: boolean;
   responseSchema?: string;
   params?: RouteParam[];
 }
-

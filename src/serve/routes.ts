@@ -365,6 +365,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     action: "store",
     path: "/api/store/store",
     summary: "Get storefront alias",
+    alias: true,
     responseSchema: "Store",
     params: [
       {
@@ -472,6 +473,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     action: "matches",
     path: "/api/matches/matches",
     summary: "List match summaries alias",
+    alias: true,
     responseSchema: "MatchSummary",
     params: [
       {
@@ -538,6 +540,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     action: "match",
     path: "/api/matches/match",
     summary: "Get match details alias",
+    alias: true,
     responseSchema: "Match",
     params: [
       {
@@ -807,6 +810,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     action: "party",
     path: "/api/party/party",
     summary: "Get party alias",
+    alias: true,
     responseSchema: "Party",
   },
   {
@@ -1037,6 +1041,107 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/party/refresh",
     summary: "Refresh party state",
     responseSchema: "Party",
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "account",
+    path: "/api/official/account",
+    summary: "Resolve any player's account and shard through Riot's official API",
+    responseSchema: "OfficialAccount",
+    params: [
+      { name: "riotId", type: "string", description: "Riot ID as Name#Tag", required: true },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "matches",
+    path: "/api/official/matches",
+    summary: "Recent match summaries of any player through Riot's official API",
+    responseSchema: "MatchSummary",
+    params: [
+      { name: "riotId", type: "string", description: "Riot ID as Name#Tag", required: true },
+      { name: "queue", type: "string", description: "Queue id filter, e.g. competitive" },
+      { name: "count", type: "number", description: "Number of matches, default 10" },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "match",
+    path: "/api/official/match",
+    summary: "Full match details through Riot's official API",
+    responseSchema: "Match",
+    params: [
+      { name: "matchId", type: "string", description: "Match id", required: true },
+      {
+        name: "shard",
+        type: "string",
+        description: "Shard: na, latam, br, eu, ap or kr",
+        required: true,
+      },
+      { name: "self", type: "string", description: "Puuid whose point of view to use" },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "summary",
+    path: "/api/official/summary",
+    summary: "Performance summary of any player through Riot's official API",
+    responseSchema: "PerformanceSummary",
+    params: [
+      { name: "riotId", type: "string", description: "Riot ID as Name#Tag", required: true },
+      { name: "queue", type: "string", description: "Queue id, default competitive" },
+      { name: "count", type: "number", description: "Number of matches, default 10" },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "profile",
+    path: "/api/official/profile",
+    summary: "Level, rank and performance of any player through Riot's official API",
+    responseSchema: "OfficialProfile",
+    params: [
+      { name: "riotId", type: "string", description: "Riot ID as Name#Tag", required: true },
+      { name: "count", type: "number", description: "Number of matches, default 10" },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "leaderboard",
+    path: "/api/official/leaderboard",
+    summary: "Ranked leaderboard of a shard through Riot's official API",
+    responseSchema: "Leaderboard",
+    params: [
+      {
+        name: "shard",
+        type: "string",
+        description: "Shard: na, latam, br, eu, ap or kr",
+        required: true,
+      },
+      { name: "act", type: "string", description: "Act id, default the active act" },
+      { name: "start", type: "number", description: "Start index, default 0" },
+      { name: "size", type: "number", description: "Page size, default 50" },
+    ],
+  },
+  {
+    method: "GET",
+    namespace: "official",
+    action: "status",
+    path: "/api/official/status",
+    summary: "Platform status of a shard through Riot's official API",
+    params: [
+      {
+        name: "shard",
+        type: "string",
+        description: "Shard: na, latam, br, eu, ap or kr",
+        required: true,
+      },
+    ],
   },
 ];
 
@@ -1464,8 +1569,49 @@ export async function dispatchApiRoute(
     }
   }
 
+  const official = namespace === "official" && dispatchOfficialRoute(client, normMethod, query);
+  if (official) return official;
+
   throw new ValidationError(
     "route-not-found",
     `Unknown endpoint: ${req.method} /api/${namespace}/${methodName}`,
   );
+}
+
+function optionalNumber(value: string | undefined): number | undefined {
+  return value === undefined ? undefined : Number(value);
+}
+
+function dispatchOfficialRoute(
+  client: RiotClient,
+  method: string,
+  query: Record<string, string>,
+): Promise<unknown> | undefined {
+  const count = optionalNumber(query.count);
+  switch (method) {
+    case "account":
+      return client.official.account(query.riotId ?? "");
+    case "matches":
+      return client.official.matches(query.riotId ?? "", { queue: query.queue, count });
+    case "match":
+      return client.official.match(query.matchId ?? "", {
+        shard: query.shard ?? "",
+        self: query.self,
+      });
+    case "summary":
+      return client.official.summary(query.riotId ?? "", { queue: query.queue, count });
+    case "profile":
+      return client.official.profile(query.riotId ?? "", { count });
+    case "leaderboard":
+      return client.official.leaderboard({
+        shard: query.shard ?? "",
+        act: query.act,
+        start: optionalNumber(query.start),
+        size: optionalNumber(query.size),
+      });
+    case "status":
+      return client.official.status(query.shard ?? "");
+    default:
+      return undefined;
+  }
 }

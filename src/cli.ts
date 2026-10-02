@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { RiotClientError, ValidationError } from "./errors.js";
+import { PACKAGE_VERSION } from "./version.js";
 import { formatError } from "./formatError.js";
 import { McpServer } from "./mcp/index.js";
 import { RiotClient, type LoadoutChange, type LoadoutGunChange } from "./RiotClient.js";
@@ -181,20 +182,6 @@ Options:
   --version          Show version number
 `;
 
-function getPackageVersion(): string {
-  try {
-    return (
-      JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf-8")) as {
-        version: string;
-      }
-    ).version;
-  } catch {
-    return "0.3.0";
-  }
-}
-
-const PACKAGE_VERSION = getPackageVersion();
-
 const ERROR_EXIT_CODES: Record<string, number> = {
   RIOT_CLIENT_NOT_RUNNING: 2,
   RIOT_CLIENT_NOT_READY: 3,
@@ -369,7 +356,6 @@ export async function runMcp(client: RiotClient): Promise<number> {
 
   return 0;
 }
-
 
 interface CliCommandOptions {
   language?: string;

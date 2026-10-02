@@ -40,7 +40,7 @@ function buildToolInputSchema(route: RouteDefinition): McpToolInputSchema {
 
 function isReadOnlyRoute(route: RouteDefinition): boolean {
   if (route.method !== "GET") return false;
-  if (route.isConfirmGated) return false;
+  if (route.isConfirmGated || route.alias) return false;
   return !CONFIRM_GATED_ROUTES.has(`${route.namespace}/${route.action}`);
 }
 
@@ -56,6 +56,10 @@ export function getMcpTools(): McpTool[] {
     description: route.summary,
     inputSchema: buildToolInputSchema(route),
   }));
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function stringifyArgs(args: Record<string, unknown>): Record<string, string> {
@@ -92,7 +96,7 @@ export async function executeMcpTool(
 
     return {
       content: [{ type: "text", text: JSON.stringify(result ?? null) }],
-      structuredContent: result,
+      ...(isPlainObject(result) ? { structuredContent: result } : {}),
     };
   } catch (error: unknown) {
     if (error instanceof RiotClientError) {

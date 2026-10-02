@@ -1,20 +1,11 @@
-import { readFileSync } from "node:fs";
 import readline from "node:readline";
 import type { RiotClient } from "../RiotClient.js";
+import { PACKAGE_VERSION } from "../version.js";
 import { executeMcpTool, getMcpTools, McpError } from "./tools.js";
 import type { JsonRpcRequest, JsonRpcResponse, McpServerOptions } from "./types.js";
 
 const SUPPORTED_PROTOCOL_VERSIONS = new Set(["2025-06-18", "2025-03-26", "2024-11-05"]);
 const DEFAULT_PROTOCOL_VERSION = "2025-06-18";
-
-function getPackageVersion(): string {
-  try {
-    const url = new URL("../../package.json", import.meta.url);
-    return (JSON.parse(readFileSync(url, "utf-8")) as { version: string }).version;
-  } catch {
-    return "0.4.0";
-  }
-}
 
 function resolveProtocolVersion(clientVersion: unknown): string {
   if (typeof clientVersion === "string" && SUPPORTED_PROTOCOL_VERSIONS.has(clientVersion)) {
@@ -36,7 +27,7 @@ export class McpServer {
     this.client = client;
     this.input = options.input ?? process.stdin;
     this.output = options.output ?? process.stdout;
-    this.version = options.version ?? getPackageVersion();
+    this.version = options.version ?? PACKAGE_VERSION;
   }
 
   start(): Promise<void> {
@@ -110,7 +101,9 @@ export class McpServer {
     }
   }
 
-  private async handleMessage(rawMessage: Record<string, unknown>): Promise<JsonRpcResponse | null> {
+  private async handleMessage(
+    rawMessage: Record<string, unknown>,
+  ): Promise<JsonRpcResponse | null> {
     const req = rawMessage as unknown as JsonRpcRequest;
     if (req.id === undefined || req.method === "notifications/initialized") {
       return null;

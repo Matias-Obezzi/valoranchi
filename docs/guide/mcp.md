@@ -117,6 +117,10 @@ The MCP server exposes inspection tools across all core domains:
 | `party_current` | Party | Get current party roster, leader, and queue |
 | `party_queues` | Party | List matchmaking queue configurations |
 | `social_friends` | Social | Get friends roster and live presence |
+| `official_profile` | Official | Level, rank and performance of any player (needs `RIOT_API_KEY`) |
+| `official_summary` | Official | Performance summary of any player (needs `RIOT_API_KEY`) |
+| `official_matches` | Official | Recent matches of any player (needs `RIOT_API_KEY`) |
+| `official_leaderboard` | Official | Ranked leaderboard of a shard (needs `RIOT_API_KEY`) |
 
 ---
 
@@ -130,3 +134,4 @@ Once configured, you can ask your AI assistant questions such as:
 - *"What daily and weekly missions do I still need to complete?"*
 - *"Who is currently in my party and are we queued for a match?"*
 - *"What skins do I have equipped on my Vandal and Phantom?"*
+- *"How has Player#TAG been playing lately, and which agents do they main?"*
