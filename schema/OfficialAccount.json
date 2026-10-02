@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/OfficialAccount",
+  "definitions": {
+    "OfficialAccount": {
+      "type": "object",
+      "properties": {
+        "puuid": {
+          "type": "string"
+        },
+        "gameName": {
+          "type": "string"
+        },
+        "tagLine": {
+          "type": "string"
+        },
+        "shard": {
+          "type": "string"
+        }
+      },
+      "required": ["puuid", "gameName", "tagLine", "shard"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -57,6 +57,11 @@ export {
 } from "./collection/LoadoutWriter.js";
 export { RateLimiter, type RateLimiterOptions } from "./official/RateLimiter.js";
 export { OfficialApi, type OfficialApiOptions } from "./official/OfficialApi.js";
+export {
+  OfficialMatchAdapter,
+  toMatchDetails,
+  toLeaderboard,
+} from "./official/OfficialMatchAdapter.js";
 
 export * from "./official/types.js";
 export * from "./riot/types.js";

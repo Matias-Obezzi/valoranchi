@@ -47,6 +47,7 @@ const types = [
   "CollectionValue",
   "StoreHistory",
   "MatchSyncResult",
+  "OfficialAccount",
 ];
 
 const schemaDir = path.resolve("schema");

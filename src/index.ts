@@ -88,6 +88,7 @@ export type {
   Message,
   Mmr,
   NightMarketOffer,
+  OfficialAccount,
   OwnedAgent,
   OwnedBuddy,
   OwnedCard,

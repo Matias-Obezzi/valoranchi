@@ -852,3 +852,11 @@ export type MatchSyncResult = {
   added: MatchSummary[];
   total: number;
 };
+
+export type OfficialAccount = {
+  puuid: string;
+  gameName: string;
+  tagLine: string;
+  shard: string;
+};
+
