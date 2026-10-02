@@ -1362,15 +1362,11 @@ describe("CLI write commands and dry-run", () => {
     const originalStderr = process.stderr.write;
 
     let stdoutOutput = "";
-    let stderrOutput = "";
     process.stdout.write = vi.fn().mockImplementation((chunk: string) => {
       stdoutOutput += chunk;
       return true;
     });
-    process.stderr.write = vi.fn().mockImplementation((chunk: string) => {
-      stderrOutput += chunk;
-      return true;
-    });
+    process.stderr.write = vi.fn().mockReturnValue(true);
 
     const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
       if (url.includes("/accounts/by-riot-id/")) {
