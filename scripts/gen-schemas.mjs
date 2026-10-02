@@ -49,6 +49,9 @@ const types = [
   "MatchSyncResult",
   "OfficialAccount",
   "OfficialProfile",
+  "Wishlist",
+  "WishlistHit",
+  "WishlistCheck",
 ];
 
 const schemaDir = path.resolve("schema");

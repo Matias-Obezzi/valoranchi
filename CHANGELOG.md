@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Skin wishlist management and storefront rotation matching via `client.store.wishlist()`, `client.store.wishlistAdd(skin)`, `client.store.wishlistRemove(skin)`, and `client.store.wishlistCheck()` (`Wishlist`, `WishlistHit`, `WishlistCheck`), persisting wishlists per-puuid to disk cache with local validation against owned inventory, unpurchasable cosmetics, and unknown skin names without Riot mutations.
+- Store watcher `client.watch.store(options?)` (`StoreWatcher`) monitoring daily storefront, night market, and featured bundle rotations with interval polling, post-rotation timeout realignment, and rotation-scoped hit deduplication (`<uuid>:<where>:<endsAt>`).
+- Outbound webhook notifier `WebhookNotifier` delivering store wishlist alerts to Discord webhooks and generic HTTPS endpoints with 10-second request timeouts and non-Riot fetch isolation.
+- CLI commands `riotclient wishlist [list]`, `riotclient wishlist add <skin>`, `riotclient wishlist remove <skin>`, `riotclient wishlist check`, and `riotclient watch store [--webhook <url>] [--interval <min>]`.
+- Local serve REST API endpoints `GET /api/store/wishlist`, `GET /api/store/wishlistCheck`, `POST /api/store/wishlistAdd`, and `POST /api/store/wishlistRemove`, exposing wishlist queries through the local server and MCP read-only tools.
+- JSON Schema definitions for `Wishlist`, `WishlistHit`, and `WishlistCheck` models under `schema/`.
+
 - Model Context Protocol (MCP) server over stdio (`riotclient mcp`, `McpServer`) allowing AI assistants (Claude Code, Claude Desktop, Cursor) to inspect active session, inventory, loadout, store, matches, and party data read-only over JSON-RPC 2.0.
 
 - Permanent disk caching for completed official matches (`isCompleted: true`) stored under `official/` in the cache directory, avoiding redundant network requests, with toggle via `officialCache: false` and CLI `--no-official-cache`.

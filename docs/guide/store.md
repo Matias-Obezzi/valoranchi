@@ -270,3 +270,66 @@ riotclient store-seen 8908f237-47b2-031a-e905-1a89c93cc8f5
   "times": 3
 }
 ```
+
+### wishlist
+
+Retrieves or modifies the player's personal skin wishlist saved in local storage (`wishlist/<puuid>.json`).
+Wishlist operations perform local validations: unknown skins, unpurchasable default skins, and already owned skins are rejected before persisting.
+
+```ts
+const list = await client.store.wishlist();
+await client.store.wishlistAdd("Prime Vandal");
+await client.store.wishlistRemove("Prime Vandal");
+```
+
+```bash
+riotclient wishlist
+riotclient wishlist add "Prime Vandal"
+riotclient wishlist remove "Prime Vandal"
+```
+
+```json
+{
+  "skins": [
+    {
+      "uuid": "8908f237-47b2-031a-e905-1a89c93cc8f5",
+      "name": "Prime Vandal",
+      "addedAt": "2026-10-02T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+### wishlistCheck
+
+Evaluates the active daily store, night market, and featured bundle offers against the saved skin wishlist, returning matched hit items with pricing and expiration timestamps.
+
+```ts
+const check = await client.store.wishlistCheck();
+console.log(check.hits);
+```
+
+```bash
+riotclient wishlist check
+```
+
+```json
+{
+  "checkedAt": "2026-10-02T12:00:00.000Z",
+  "hits": [
+    {
+      "skin": {
+        "uuid": "8908f237-47b2-031a-e905-1a89c93cc8f5",
+        "name": "Prime Vandal",
+        "weapon": "Vandal",
+        "icon": "https://media.valorant-api.com/weaponskinlevels/7209796e-4f76-88c9-04fa-fb81498b5e9d/displayicon.png"
+      },
+      "where": "daily",
+      "price": 1775,
+      "discountedPrice": null,
+      "bundleName": null,
+      "endsAt": "2026-10-03T00:00:00.000Z"
+    }
+  ]
+}
+```

@@ -97,9 +97,70 @@ friends.on("message", (msg) => {
 
 ---
 
+## Store Watcher (`client.watch.store()`)
+
+The store watcher monitors your daily storefront, night market, and featured bundle offers for skins on your local wishlist (`client.store.wishlist()`). When a wishlisted skin appears in your shop, it emits a `hit` event and can optionally notify an external webhook (such as a Discord channel).
+
+Hits are deduplicated by rotation window (`<skinUuid>:<where>:<endsAt>`), ensuring repeated checks within the same store rotation do not trigger duplicate notifications.
+
+### Options
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `intervalMinutes` | `number` | `60` | Polling interval in minutes between rotation checks (minimum 1 minute). |
+| `webhook` | `string` | `undefined` | Optional webhook URL (`https:` only) to post hit notifications to. |
+| `discord` | `boolean` | auto | Format notification for Discord webhooks (defaults to `true` if webhook URL contains `discord.com` or `discordapp.com`). |
+
+### Events Emitted
+
+| Event   | Type / Payload   | Description                                                                                                   |
+| :------ | :--------------- | :------------------------------------------------------------------------------------------------------------ |
+| `hit`   | `WishlistHit`    | Emitted whenever a wishlisted skin appears in daily rotation, night market, or featured bundle.               |
+| `check` | `WishlistCheck`  | Emitted on each storefront check, providing current shop offers and any matching hits.                       |
+| `error` | `Error`          | Emitted if an unhandled error occurs during store inspection or webhook notification dispatch.                |
+
+### Usage with Event Listener
+
+```typescript
+import { RiotClient } from "@valoranchi/riot-client";
+
+const client = new RiotClient();
+
+// Add skins to wishlist
+await client.store.wishlistAdd("Reaver Vandal");
+await client.store.wishlistAdd("Prime Karambit");
+
+const watcher = client.watch
+  .store({
+    intervalMinutes: 30,
+    webhook: "https://discord.com/api/webhooks/...",
+  })
+  .start();
+
+watcher.on("hit", (hit) => {
+  console.log(`Wishlist hit! ${hit.skin.name} is in your ${hit.where} for ${hit.price} VP`);
+});
+
+watcher.on("check", (check) => {
+  console.log(`Checked store at ${check.checkedAt}. Hits: ${check.hits.length}`);
+});
+```
+
+### Usage with Async Iterator
+
+```typescript
+for await (const { event, at, data } of client.watch.store()) {
+  if (event === "hit") {
+    console.log(`[${at}] Wishlist hit:`, data);
+  }
+}
+```
+
+---
+
 ## CLI Streaming Commands
 
-Both watchers are exposed directly from the CLI and print newline-delimited JSON (NDJSON):
+Watchers are exposed directly from the CLI and print newline-delimited JSON (NDJSON):
 
 ```bash
 # Stream match events
@@ -107,6 +168,9 @@ riotclient watch-match
 
 # Stream friend events
 riotclient watch-friends
+
+# Stream store wishlist alerts (optionally forwarding to Discord webhook)
+riotclient watch store --webhook https://discord.com/api/webhooks/... --interval 30
 ```
 
 Output format:
@@ -115,4 +179,5 @@ Output format:
 {"event":"pregame","at":"2026-09-29T20:00:00.000Z","data":{...}}
 {"event":"locked","at":"2026-09-29T20:00:15.000Z","data":{...}}
 {"event":"round","at":"2026-09-29T20:05:00.000Z","data":{"round":1,"ally":1,"enemy":0}}
+{"event":"hit","at":"2026-10-02T12:00:00.000Z","data":{"skin":{"name":"Reaver Vandal",...},"where":"daily",...}}
 ```

@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/WishlistHit",
+  "definitions": {
+    "WishlistHit": {
+      "type": "object",
+      "properties": {
+        "skin": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "weapon": {
+              "type": "string"
+            },
+            "icon": {
+              "$ref": "#/definitions/Image"
+            }
+          },
+          "required": ["uuid", "name", "weapon", "icon"],
+          "additionalProperties": false
+        },
+        "where": {
+          "type": "string",
+          "enum": ["daily", "night-market", "bundle"]
+        },
+        "price": {
+          "type": "number"
+        },
+        "discountedPrice": {
+          "type": ["number", "null"]
+        },
+        "bundleName": {
+          "type": ["string", "null"]
+        },
+        "endsAt": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["skin", "where", "price", "discountedPrice", "bundleName", "endsAt"],
+      "additionalProperties": false
+    },
+    "Image": {
+      "type": ["string", "null"]
+    }
+  }
+}

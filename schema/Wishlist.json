@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Wishlist",
+  "definitions": {
+    "Wishlist": {
+      "type": "object",
+      "properties": {
+        "skins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WishlistEntry"
+          }
+        }
+      },
+      "required": ["skins"],
+      "additionalProperties": false
+    },
+    "WishlistEntry": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "addedAt": {
+          "type": "string"
+        }
+      },
+      "required": ["uuid", "name", "addedAt"],
+      "additionalProperties": false
+    }
+  }
+}
