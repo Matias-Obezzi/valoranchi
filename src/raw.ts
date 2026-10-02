@@ -55,6 +55,7 @@ export {
   type RiotLoadoutGunPut,
   type RiotLoadoutPutBody,
 } from "./collection/LoadoutWriter.js";
+export { RateLimiter, type RateLimiterOptions } from "./official/RateLimiter.js";
 
 export * from "./riot/types.js";
 export * from "./local/chatTypes.js";
