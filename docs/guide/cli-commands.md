@@ -138,6 +138,16 @@
 | :--- | :--- |
 | `serve` | Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote] |
 
+### Official
+
+| Command | Description |
+| :--- | :--- |
+| `official account <name#tag>` | Print player PUUID and active shard |
+| `official matches <name#tag>` | Print player match history [--queue &lt;q&gt;] [--count &lt;n&gt;] |
+| `official match <id>` | Print full match details (--shard &lt;shard&gt; [--self &lt;puuid&gt;]) |
+| `official leaderboard` | Print competitive leaderboard (--shard &lt;shard&gt; [--act &lt;id&gt;] [--start &lt;n&gt;] [--size &lt;n&gt;]) |
+| `official status` | Print platform status and maintenance alerts (--shard &lt;shard&gt;) |
+
 ### Options
 
 | Option | Description |
@@ -176,6 +186,10 @@
 | `--only <events>` | Comma-separated list of event names to print |
 | `--raw` | Include raw client event frames or unformatted settings |
 | `--cid <id>` | Conversation ID for filtering messages or participants |
+| `--api-key <key>` | Riot Developer API key (or RIOT_API_KEY env) |
+| `--shard <shard>` | Riot shard (na, latam, br, eu, ap, kr) |
+| `--self <puuid>` | Player PUUID for self perspective in official match |
+| `--act <uuid>` | Act or season UUID for official leaderboard |
 | `--language <lang>` | Catalogue language (default: en-US) |
 | `--cache <seconds>` | Reuse Riot responses younger than this many seconds |
 | `--port <n>` | Port to bind HTTP server (default: 47800) |

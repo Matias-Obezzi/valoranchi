@@ -20,6 +20,7 @@ import type { RiotEvents, RiotEventMap } from "../src/events/RiotEvents.js";
 import { TypedEmitter } from "../src/events/TypedEmitter.js";
 import {
   ForbiddenHostError,
+  OfficialApiKeyMissingError,
   RegionUnknownError,
   RiotApiError,
   RiotClientNotReadyError,
@@ -46,6 +47,10 @@ describe("CLI error mapping", () => {
 
   it("maps ValidationError to exit code 6", () => {
     expect(exitCodeForError(new ValidationError("skin-not-owned"))).toBe(6);
+  });
+
+  it("maps OfficialApiKeyMissingError to exit code 7", () => {
+    expect(exitCodeForError(new OfficialApiKeyMissingError())).toBe(7);
   });
 
   it("maps ForbiddenHostError and generic errors to exit code 1", () => {
@@ -1276,6 +1281,76 @@ describe("CLI write commands and dry-run", () => {
       expect(sessionSpy).toHaveBeenCalled();
     } finally {
       process.stdout.write = originalStdout;
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("handles official CLI commands without lockfile and with key validation", async () => {
+    const originalStdout = process.stdout.write;
+    const originalStderr = process.stderr.write;
+    const originalEnv = process.env.RIOT_API_KEY;
+    delete process.env.RIOT_API_KEY;
+
+    let stdoutOutput = "";
+    let stderrOutput = "";
+    process.stdout.write = vi.fn().mockImplementation((chunk: string) => {
+      stdoutOutput += chunk;
+      return true;
+    });
+    process.stderr.write = vi.fn().mockImplementation((chunk: string) => {
+      stderrOutput += chunk;
+      return true;
+    });
+
+    try {
+      // 1. Missing key exits 7 and prints JSON error
+      const missingKeyExit = await runCli(["official", "account", "Jett#NA1"]);
+      expect(missingKeyExit).toBe(7);
+      expect(stderrOutput).toContain("OFFICIAL_API_KEY_MISSING");
+
+      // 2. With key, official account succeeds and prints account JSON
+      const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
+        if (url.includes("/accounts/by-riot-id/")) {
+          return { puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" };
+        }
+        if (url.includes("/active-shards/")) {
+          return { puuid: "puuid-123", game: "val", activeShard: "na" };
+        }
+        return {};
+      });
+
+      stdoutOutput = "";
+      const successExit = await runCli([
+        "official",
+        "account",
+        "Jett#NA1",
+        "--api-key",
+        "rgapi-fake-key",
+      ]);
+      expect(successExit).toBe(0);
+      const parsed = JSON.parse(stdoutOutput);
+      expect(parsed).toEqual({
+        puuid: "puuid-123",
+        gameName: "Jett",
+        tagLine: "NA1",
+        shard: "na",
+      });
+
+      // 3. Status command
+      mockGet.mockResolvedValueOnce({ id: "na", name: "North America", maintenances: [], incidents: [] });
+      const statusExit = await runCli([
+        "official",
+        "status",
+        "--shard",
+        "na",
+        "--api-key",
+        "rgapi-fake-key",
+      ]);
+      expect(statusExit).toBe(0);
+    } finally {
+      process.stdout.write = originalStdout;
+      process.stderr.write = originalStderr;
+      process.env.RIOT_API_KEY = originalEnv;
       vi.restoreAllMocks();
     }
   });

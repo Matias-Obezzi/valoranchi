@@ -119,6 +119,13 @@ Events:
 Server:
   serve            Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote]
 
+Official:
+  official account <name#tag> Print player PUUID and active shard
+  official matches <name#tag> Print player match history [--queue <q>] [--count <n>]
+  official match <id> Print full match details (--shard <shard> [--self <puuid>])
+  official leaderboard Print competitive leaderboard (--shard <shard> [--act <id>] [--start <n>] [--size <n>])
+  official status Print platform status and maintenance alerts (--shard <shard>)
+
 Options:
   --yes              Execute write command (default is dry-run)
   --confirm          Confirm write action (required with buy, dodge, leave-match, settings-save)
@@ -154,6 +161,10 @@ Options:
   --only <events>    Comma-separated list of event names to print
   --raw              Include raw client event frames or unformatted settings
   --cid <id>         Conversation ID for filtering messages or participants
+  --api-key <key>    Riot Developer API key (or RIOT_API_KEY env)
+  --shard <shard>    Riot shard (na, latam, br, eu, ap, kr)
+  --self <puuid>     Player PUUID for self perspective in official match
+  --act <uuid>       Act or season UUID for official leaderboard
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
   --port <n>         Port to bind HTTP server (default: 47800)
@@ -184,6 +195,7 @@ const ERROR_EXIT_CODES: Record<string, number> = {
   REGION_UNKNOWN: 4,
   RIOT_API_ERROR: 5,
   VALIDATION: 6,
+  OFFICIAL_API_KEY_MISSING: 7,
 };
 
 export function exitCodeForError(error: unknown): number {
@@ -1154,6 +1166,68 @@ async function executeRawCommand(
   }
 }
 
+async function executeOfficialCommand(
+  client: RiotClient,
+  command: string,
+  pos: string[],
+  vals: Record<string, unknown>,
+): Promise<unknown> {
+  if (command !== "official") {
+    return UNKNOWN_COMMAND;
+  }
+
+  const sub = pos[1];
+  switch (sub) {
+    case "account": {
+      const riotId = pos[2];
+      if (!riotId) {
+        throw new ValidationError("missing-riot-id", "Riot ID required (e.g. Name#Tag)");
+      }
+      return client.official.account(riotId);
+    }
+    case "matches": {
+      const riotId = pos[2];
+      if (!riotId) {
+        throw new ValidationError("missing-riot-id", "Riot ID required (e.g. Name#Tag)");
+      }
+      const count = vals.count !== undefined ? Number(vals.count) : undefined;
+      const queue = vals.queue !== undefined ? String(vals.queue) : undefined;
+      return client.official.matches(riotId, { count, queue });
+    }
+    case "match": {
+      const matchId = pos[2];
+      if (!matchId) {
+        throw new ValidationError("missing-match-id", "Match ID required");
+      }
+      const shard = vals.shard !== undefined ? String(vals.shard) : undefined;
+      if (!shard) {
+        throw new ValidationError("missing-shard", "Shard required (--shard <shard>)");
+      }
+      const self = vals.self !== undefined ? String(vals.self) : undefined;
+      return client.official.match(matchId, { shard, self });
+    }
+    case "leaderboard": {
+      const shard = vals.shard !== undefined ? String(vals.shard) : undefined;
+      if (!shard) {
+        throw new ValidationError("missing-shard", "Shard required (--shard <shard>)");
+      }
+      const act = vals.act !== undefined ? String(vals.act) : undefined;
+      const start = vals.start !== undefined ? Number(vals.start) : undefined;
+      const size = vals.size !== undefined ? Number(vals.size) : undefined;
+      return client.official.leaderboard({ shard, act, start, size });
+    }
+    case "status": {
+      const shard = vals.shard !== undefined ? String(vals.shard) : undefined;
+      if (!shard) {
+        throw new ValidationError("missing-shard", "Shard required (--shard <shard>)");
+      }
+      return client.official.status(shard);
+    }
+    default:
+      return UNKNOWN_COMMAND;
+  }
+}
+
 async function executeCommand(
   client: RiotClient,
   command: string,
@@ -1163,6 +1237,8 @@ async function executeCommand(
   const vals = options?.rawValues ?? {};
   const yes = Boolean(options?.yes);
 
+  const official = await executeOfficialCommand(client, command, pos, vals);
+  if (official !== UNKNOWN_COMMAND) return official;
   const std = await executeStandardCommand(client, command, options);
   if (std !== UNKNOWN_COMMAND) return std;
   const game = await executeGameCommand(client, command, options);
@@ -1233,6 +1309,10 @@ export async function runCli(args: string[]): Promise<number> {
       port: { type: "string" },
       host: { type: "string" },
       "allow-remote": { type: "boolean", default: false },
+      "api-key": { type: "string" },
+      shard: { type: "string" },
+      self: { type: "string" },
+      act: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -1249,9 +1329,13 @@ export async function runCli(args: string[]): Promise<number> {
 
   const command = parsed.positionals[0]!;
   const cacheSeconds = Number(parsed.values.cache ?? 0);
+  const apiKey = parsed.values["api-key"]
+    ? String(parsed.values["api-key"])
+    : process.env.RIOT_API_KEY;
   const client = new RiotClient({
     language: parsed.values.language,
     responseCache: cacheSeconds > 0 ? { ttlMs: cacheSeconds * 1000 } : undefined,
+    officialApiKey: apiKey,
   });
 
   try {
