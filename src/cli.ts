@@ -1398,9 +1398,7 @@ export async function runCli(args: string[]): Promise<number> {
   try {
     if (command === "watch") {
       if (parsed.positionals[1] === "store") {
-        const intervalMinutes = parsed.values.interval
-          ? Number(parsed.values.interval)
-          : undefined;
+        const intervalMinutes = parsed.values.interval ? Number(parsed.values.interval) : undefined;
         const webhook = parsed.values.webhook ? String(parsed.values.webhook) : undefined;
         return await runWatchStore(client, { webhook, intervalMinutes });
       }
@@ -1411,9 +1409,7 @@ export async function runCli(args: string[]): Promise<number> {
     }
 
     if (command === "watch-store") {
-      const intervalMinutes = parsed.values.interval
-        ? Number(parsed.values.interval)
-        : undefined;
+      const intervalMinutes = parsed.values.interval ? Number(parsed.values.interval) : undefined;
       const webhook = parsed.values.webhook ? String(parsed.values.webhook) : undefined;
       return await runWatchStore(client, { webhook, intervalMinutes });
     }

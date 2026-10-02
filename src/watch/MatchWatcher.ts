@@ -130,7 +130,9 @@ export class MatchWatcher extends TypedEmitter<MatchWatchEventMap> {
     presence: unknown;
   }): Promise<void> {
     const presence = data.presence as
-      { score?: { ally: number; enemy: number } | null } | null | undefined;
+      | { score?: { ally: number; enemy: number } | null }
+      | null
+      | undefined;
 
     if (data.state === "ingame" && presence?.score) {
       const score = presence.score;

@@ -363,8 +363,8 @@ describe("StoreService wishlist methods", () => {
     const check = await service.wishlistCheck();
     expect(check.checkedAt).toBeDefined();
     expect(check.hits.length).toBeGreaterThanOrEqual(1);
-    expect(
-      check.hits.some((h) => h.skin.name === "Prime Vandal" && h.where === "daily"),
-    ).toBe(true);
+    expect(check.hits.some((h) => h.skin.name === "Prime Vandal" && h.where === "daily")).toBe(
+      true,
+    );
   });
 });

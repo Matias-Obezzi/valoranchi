@@ -2,11 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { TypedEmitter } from "../src/events/TypedEmitter.js";
 import type { RiotEventMap, RiotEvents } from "../src/events/RiotEvents.js";
 import type { MatchesApi } from "../src/client/api.js";
-import {
-  formatPresenceActivity,
-  FriendsWatcher,
-  MatchWatcher,
-} from "../src/watch/index.js";
+import { formatPresenceActivity, FriendsWatcher, MatchWatcher } from "../src/watch/index.js";
 import type { Friend, LiveMatch, Match, Message, ValorantPresence } from "../src/model/index.js";
 
 function makeFakeEvents(): RiotEvents {
@@ -17,7 +13,10 @@ function makeFakeEvents(): RiotEvents {
   return fake;
 }
 
-function makeFakeLiveMatch(phase: "none" | "pregame" | "ingame", opts?: Partial<LiveMatch>): LiveMatch {
+function makeFakeLiveMatch(
+  phase: "none" | "pregame" | "ingame",
+  opts?: Partial<LiveMatch>,
+): LiveMatch {
   if (phase === "none") return { phase: "none" };
   return {
     phase,
@@ -325,7 +324,12 @@ describe("FriendsWatcher", () => {
     fakeEvents.emit("message", message);
     expect(msgSpy).toHaveBeenCalledWith(message);
 
-    const req = { puuid: "p-req", gameName: "NewFriend", tagLine: "123", direction: "incoming" as const };
+    const req = {
+      puuid: "p-req",
+      gameName: "NewFriend",
+      tagLine: "123",
+      direction: "incoming" as const,
+    };
     fakeEvents.emit("friend:request", { request: req, change: "created" });
     expect(reqSpy).toHaveBeenCalledWith(req);
 

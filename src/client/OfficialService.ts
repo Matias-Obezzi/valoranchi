@@ -84,10 +84,7 @@ export class OfficialService implements OfficialApiInterface {
     return performanceSummary(matches, acc.puuid, catalogue);
   }
 
-  async profile(
-    riotId: string,
-    options: { count?: number } = {},
-  ): Promise<OfficialProfile> {
+  async profile(riotId: string, options: { count?: number } = {}): Promise<OfficialProfile> {
     const acc = await this.account(riotId);
     const count = options.count ?? 10;
     const matches = await this.recentMatches(acc, { count });

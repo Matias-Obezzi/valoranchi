@@ -9,9 +9,7 @@ describe("OfficialApi", () => {
     const gateway = new HttpGateway(mockFetch);
     const api = new OfficialApi(gateway, "");
 
-    await expect(api.accountByRiotId("Player", "TAG")).rejects.toThrow(
-      OfficialApiKeyMissingError,
-    );
+    await expect(api.accountByRiotId("Player", "TAG")).rejects.toThrow(OfficialApiKeyMissingError);
     await expect(api.match("na", "match-123")).rejects.toThrow(OfficialApiKeyMissingError);
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -102,9 +100,12 @@ describe("OfficialApi", () => {
       if (attempts === 1) {
         return new Response("Server error", { status: 503 });
       }
-      return new Response(JSON.stringify({ id: "kr", name: "Korea", maintenances: [], incidents: [] }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ id: "kr", name: "Korea", maintenances: [], incidents: [] }),
+        {
+          status: 200,
+        },
+      );
     });
 
     const gateway = new HttpGateway(mockFetch);

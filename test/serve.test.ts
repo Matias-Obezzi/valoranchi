@@ -67,13 +67,11 @@ describe("Serve Mode", () => {
     region: "na",
   });
 
-  const mockFriends = vi.fn().mockResolvedValue([
-    { puuid: "f-1", gameName: "FriendOne", tagLine: "001" },
-  ]);
+  const mockFriends = vi
+    .fn()
+    .mockResolvedValue([{ puuid: "f-1", gameName: "FriendOne", tagLine: "001" }]);
 
-  const mockListMatches = vi.fn().mockResolvedValue([
-    { id: "m-1", queue: "competitive" },
-  ]);
+  const mockListMatches = vi.fn().mockResolvedValue([{ id: "m-1", queue: "competitive" }]);
 
   const mockValidateEquip = vi.fn().mockResolvedValue({ valid: true });
   const mockEquip = vi.fn().mockResolvedValue({ Subject: "p-1", Version: 2 });
@@ -98,7 +96,9 @@ describe("Serve Mode", () => {
       buy: vi.fn().mockResolvedValue({ id: "order-1" }),
       wishlist: vi.fn().mockResolvedValue({ skins: [] }),
       wishlistCheck: vi.fn().mockResolvedValue({ checkedAt: "now", hits: [] }),
-      wishlistAdd: vi.fn().mockResolvedValue({ skins: [{ uuid: "s1", name: "Prime Vandal", addedAt: "now" }] }),
+      wishlistAdd: vi
+        .fn()
+        .mockResolvedValue({ skins: [{ uuid: "s1", name: "Prime Vandal", addedAt: "now" }] }),
       wishlistRemove: vi.fn().mockResolvedValue({ skins: [] }),
     },
     matches: {
@@ -177,7 +177,9 @@ describe("Serve Mode", () => {
       region: "na",
     });
 
-    const resMatches = await requestHttp(`http://127.0.0.1:${testPort}/api/matches/list?count=5&queue=competitive`);
+    const resMatches = await requestHttp(
+      `http://127.0.0.1:${testPort}/api/matches/list?count=5&queue=competitive`,
+    );
     expect(resMatches.status).toBe(200);
     expect(mockListMatches).toHaveBeenCalledWith({ count: 5, queue: "competitive" });
   });
@@ -207,11 +209,14 @@ describe("Serve Mode", () => {
 
   it("enforces confirmation for confirm-gated routes when dryRun=0", async () => {
     // Missing X-Confirm and body confirm -> 400 validation error
-    const resMissing = await requestHttp(`http://127.0.0.1:${testPort}/api/matches/dodge?dryRun=0`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
+    const resMissing = await requestHttp(
+      `http://127.0.0.1:${testPort}/api/matches/dodge?dryRun=0`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      },
+    );
 
     expect(resMissing.status).toBe(400);
     const parsedErr = JSON.parse(resMissing.body);
@@ -219,14 +224,17 @@ describe("Serve Mode", () => {
     expect(parsedErr.error.reason).toBe("confirm-required");
 
     // With confirmation header and body -> 200 success
-    const resConfirmed = await requestHttp(`http://127.0.0.1:${testPort}/api/matches/dodge?dryRun=0`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Confirm": "yes",
+    const resConfirmed = await requestHttp(
+      `http://127.0.0.1:${testPort}/api/matches/dodge?dryRun=0`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Confirm": "yes",
+        },
+        body: JSON.stringify({ confirm: true }),
       },
-      body: JSON.stringify({ confirm: true }),
-    });
+    );
 
     expect(resConfirmed.status).toBe(200);
     expect(mockDodge).toHaveBeenCalled();
@@ -268,11 +276,14 @@ describe("Serve Mode", () => {
     });
     expect(addWishlist.status).toBe(200);
 
-    const removeWishlist = await requestHttp(`http://127.0.0.1:${testPort}/api/store/wishlistRemove`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skin: "Prime Vandal" }),
-    });
+    const removeWishlist = await requestHttp(
+      `http://127.0.0.1:${testPort}/api/store/wishlistRemove`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skin: "Prime Vandal" }),
+      },
+    );
     expect(removeWishlist.status).toBe(200);
   });
 

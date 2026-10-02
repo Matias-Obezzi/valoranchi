@@ -11,7 +11,14 @@ import { SessionManager } from "../src/client/SessionManager.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
-import { exitCodeForError, formatError, formatWatchLine, runCli, runWatchStore, USAGE } from "../src/cli.js";
+import {
+  exitCodeForError,
+  formatError,
+  formatWatchLine,
+  runCli,
+  runWatchStore,
+  USAGE,
+} from "../src/cli.js";
 
 const packageVersion = (
   JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "..", "package.json"), "utf-8")) as {
@@ -1311,15 +1318,17 @@ describe("CLI write commands and dry-run", () => {
       expect(stderrOutput).toContain("OFFICIAL_API_KEY_MISSING");
 
       // 2. With key, official account succeeds and prints account JSON
-      const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
-        if (url.includes("/accounts/by-riot-id/")) {
-          return { puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" };
-        }
-        if (url.includes("/active-shards/")) {
-          return { puuid: "puuid-123", game: "val", activeShard: "na" };
-        }
-        return {};
-      });
+      const mockGet = vi
+        .spyOn(HttpGateway.prototype, "get")
+        .mockImplementation(async (url: string) => {
+          if (url.includes("/accounts/by-riot-id/")) {
+            return { puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" };
+          }
+          if (url.includes("/active-shards/")) {
+            return { puuid: "puuid-123", game: "val", activeShard: "na" };
+          }
+          return {};
+        });
 
       stdoutOutput = "";
       const successExit = await runCli([
@@ -1339,7 +1348,12 @@ describe("CLI write commands and dry-run", () => {
       });
 
       // 3. Status command
-      mockGet.mockResolvedValueOnce({ id: "na", name: "North America", maintenances: [], incidents: [] });
+      mockGet.mockResolvedValueOnce({
+        id: "na",
+        name: "North America",
+        maintenances: [],
+        incidents: [],
+      });
       const statusExit = await runCli([
         "official",
         "status",
@@ -1368,48 +1382,56 @@ describe("CLI write commands and dry-run", () => {
     });
     process.stderr.write = vi.fn().mockReturnValue(true);
 
-    const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
-      if (url.includes("/accounts/by-riot-id/")) {
-        return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
-      }
-      if (url.includes("/active-shards/")) {
-        return { puuid: "puuid-scout", game: "val", activeShard: "na" };
-      }
-      if (url.includes("/matchlists/by-puuid/")) {
-        return {
-          puuid: "puuid-scout",
-          history: [{ matchId: "comp-match-1", gameStartTimeMillis: 1700000000000, queueId: "competitive" }],
-        };
-      }
-      if (url.includes("/matches/comp-match-1")) {
-        return {
-          matchInfo: {
-            matchId: "comp-match-1",
-            mapId: "/Game/Maps/Ascent/Ascent",
-            gameLengthMillis: 5000,
-            gameStartMillis: 1700000000000,
-            isCompleted: true,
-            queueId: "competitive",
-            isRanked: true,
-          },
-          players: [
-            {
-              puuid: "puuid-scout",
-              gameName: "TenZ",
-              tagLine: "SEN",
-              teamId: "Blue",
-              characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
-              competitiveTier: 27,
-              accountLevel: 350,
-              stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+    const mockGet = vi
+      .spyOn(HttpGateway.prototype, "get")
+      .mockImplementation(async (url: string) => {
+        if (url.includes("/accounts/by-riot-id/")) {
+          return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
+        }
+        if (url.includes("/active-shards/")) {
+          return { puuid: "puuid-scout", game: "val", activeShard: "na" };
+        }
+        if (url.includes("/matchlists/by-puuid/")) {
+          return {
+            puuid: "puuid-scout",
+            history: [
+              {
+                matchId: "comp-match-1",
+                gameStartTimeMillis: 1700000000000,
+                queueId: "competitive",
+              },
+            ],
+          };
+        }
+        if (url.includes("/matches/comp-match-1")) {
+          return {
+            matchInfo: {
+              matchId: "comp-match-1",
+              mapId: "/Game/Maps/Ascent/Ascent",
+              gameLengthMillis: 5000,
+              gameStartMillis: 1700000000000,
+              isCompleted: true,
+              queueId: "competitive",
+              isRanked: true,
             },
-          ],
-          teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
-          roundResults: [],
-        };
-      }
-      return {};
-    });
+            players: [
+              {
+                puuid: "puuid-scout",
+                gameName: "TenZ",
+                tagLine: "SEN",
+                teamId: "Blue",
+                characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
+                competitiveTier: 27,
+                accountLevel: 350,
+                stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+              },
+            ],
+            teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
+            roundResults: [],
+          };
+        }
+        return {};
+      });
 
     const catalogueData = JSON.parse(
       fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
@@ -1458,46 +1480,54 @@ describe("CLI write commands and dry-run", () => {
     });
     process.stderr.write = vi.fn().mockReturnValue(true);
 
-    const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
-      if (url.includes("/accounts/by-riot-id/")) {
-        return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
-      }
-      if (url.includes("/active-shards/")) {
-        return { puuid: "puuid-scout", game: "val", activeShard: "na" };
-      }
-      if (url.includes("/matchlists/by-puuid/")) {
-        return {
-          puuid: "puuid-scout",
-          history: [{ matchId: "comp-match-1", gameStartTimeMillis: 1700000000000, queueId: "competitive" }],
-        };
-      }
-      if (url.includes("/matches/comp-match-1")) {
-        return {
-          matchInfo: {
-            matchId: "comp-match-1",
-            mapId: "/Game/Maps/Ascent/Ascent",
-            gameLengthMillis: 5000,
-            gameStartMillis: 1700000000000,
-            isCompleted: true,
-            queueId: "competitive",
-            isRanked: true,
-          },
-          players: [
-            {
-              puuid: "puuid-scout",
-              gameName: "TenZ",
-              tagLine: "SEN",
-              teamId: "Blue",
-              characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
-              stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+    const mockGet = vi
+      .spyOn(HttpGateway.prototype, "get")
+      .mockImplementation(async (url: string) => {
+        if (url.includes("/accounts/by-riot-id/")) {
+          return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
+        }
+        if (url.includes("/active-shards/")) {
+          return { puuid: "puuid-scout", game: "val", activeShard: "na" };
+        }
+        if (url.includes("/matchlists/by-puuid/")) {
+          return {
+            puuid: "puuid-scout",
+            history: [
+              {
+                matchId: "comp-match-1",
+                gameStartTimeMillis: 1700000000000,
+                queueId: "competitive",
+              },
+            ],
+          };
+        }
+        if (url.includes("/matches/comp-match-1")) {
+          return {
+            matchInfo: {
+              matchId: "comp-match-1",
+              mapId: "/Game/Maps/Ascent/Ascent",
+              gameLengthMillis: 5000,
+              gameStartMillis: 1700000000000,
+              isCompleted: true,
+              queueId: "competitive",
+              isRanked: true,
             },
-          ],
-          teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
-          roundResults: [],
-        };
-      }
-      return {};
-    });
+            players: [
+              {
+                puuid: "puuid-scout",
+                gameName: "TenZ",
+                tagLine: "SEN",
+                teamId: "Blue",
+                characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
+                stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+              },
+            ],
+            teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
+            roundResults: [],
+          };
+        }
+        return {};
+      });
 
     const catalogueData = JSON.parse(
       fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),

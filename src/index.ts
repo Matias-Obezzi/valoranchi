@@ -160,8 +160,4 @@ export {
   saveStoreHistory,
 } from "./analysis/storeHistory.js";
 export { loadKnownMatches, saveKnownMatches, syncMatches } from "./analysis/matchSync.js";
-export {
-  loadWishlist,
-  saveWishlist,
-  wishlistHits,
-} from "./analysis/wishlist.js";
+export { loadWishlist, saveWishlist, wishlistHits } from "./analysis/wishlist.js";

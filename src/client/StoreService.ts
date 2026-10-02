@@ -18,11 +18,7 @@ import {
   recordStoreRotation,
   saveStoreHistory,
 } from "../analysis/storeHistory.js";
-import {
-  loadWishlist,
-  saveWishlist,
-  wishlistHits,
-} from "../analysis/wishlist.js";
+import { loadWishlist, saveWishlist, wishlistHits } from "../analysis/wishlist.js";
 import { ValidationError } from "../errors.js";
 import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import { CURRENCY_UUIDS } from "../riot/types.js";
@@ -158,7 +154,10 @@ export class StoreService implements StoreApi {
       throw new ValidationError("unknown-skin", `Unknown skin: ${skin}`);
     }
     if (!skinEntity.contentTierUuid) {
-      throw new ValidationError("skin-not-purchasable", "Default skins cannot be added to wishlist");
+      throw new ValidationError(
+        "skin-not-purchasable",
+        "Default skins cannot be added to wishlist",
+      );
     }
 
     const owned = await this.fetchOwnedItems();
@@ -200,19 +199,14 @@ export class StoreService implements StoreApi {
     const currentWishlist = loadWishlist(cacheDir, session.puuid);
 
     currentWishlist.skins = currentWishlist.skins.filter(
-      (s) =>
-        s.uuid.toLowerCase() !== targetUuid &&
-        s.name.toLowerCase() !== targetName,
+      (s) => s.uuid.toLowerCase() !== targetUuid && s.name.toLowerCase() !== targetName,
     );
     saveWishlist(cacheDir, session.puuid, currentWishlist);
     return currentWishlist;
   }
 
   async wishlistCheck(): Promise<WishlistCheck> {
-    const [store, currentWishlist] = await Promise.all([
-      this.current(),
-      this.wishlist(),
-    ]);
+    const [store, currentWishlist] = await Promise.all([this.current(), this.wishlist()]);
     const hits = wishlistHits(store, currentWishlist);
     return {
       checkedAt: new Date().toISOString(),

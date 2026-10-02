@@ -13,16 +13,20 @@ import {
   recordStoreRotation,
   saveStoreHistory,
 } from "../src/analysis/storeHistory.js";
-import {
-  loadKnownMatches,
-  saveKnownMatches,
-  syncMatches,
-} from "../src/analysis/matchSync.js";
+import { loadKnownMatches, saveKnownMatches, syncMatches } from "../src/analysis/matchSync.js";
 import { MatchBuilder } from "../src/collection/MatchBuilder.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import type { ValorantApiCatalogueData } from "../src/catalogue/types.js";
 import { RankResolver } from "../src/collection/RankResolver.js";
-import type { Loadout, MatchSummary, Mmr, Offer, OwnedItems, Store, StoreHistory } from "../src/model/index.js";
+import type {
+  Loadout,
+  MatchSummary,
+  Mmr,
+  Offer,
+  OwnedItems,
+  Store,
+  StoreHistory,
+} from "../src/model/index.js";
 import type { LoadoutChange } from "../src/client/LoadoutValidator.js";
 import type { RiotCompetitiveUpdate, RiotMatchDetailsResponse } from "../src/riot/types.js";
 
@@ -40,10 +44,7 @@ const twentyUpdates = JSON.parse(
 ) as RiotCompetitiveUpdate[];
 
 const fixtureOffers = JSON.parse(
-  fs.readFileSync(
-    path.join(import.meta.dirname, "fixtures", "analysis", "offers.json"),
-    "utf-8",
-  ),
+  fs.readFileSync(path.join(import.meta.dirname, "fixtures", "analysis", "offers.json"), "utf-8"),
 ) as Offer[];
 
 describe("ratingTrend", () => {
@@ -120,9 +121,7 @@ const rawThreeMatches = JSON.parse(
 ) as RiotMatchDetailsResponse[];
 
 describe("performanceSummary", () => {
-  const matches = rawThreeMatches.map((m) =>
-    new MatchBuilder(m, catalogue, "self-puuid").build(),
-  );
+  const matches = rawThreeMatches.map((m) => new MatchBuilder(m, catalogue, "self-puuid").build());
 
   it("computes overall performance statistics and consistency", () => {
     const summary = performanceSummary(matches, "self-puuid", catalogue);
@@ -236,7 +235,14 @@ describe("playerAssessment", () => {
   it("flags low-level-high-rank when account level is under 50 and tier is Platinum or higher", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(15, 50),
-      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      fit: {
+        verdict: "fit",
+        ranksAbove: 0,
+        expected: null,
+        averageGain: 20,
+        averageLoss: 15,
+        sample: 5,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -255,7 +261,14 @@ describe("playerAssessment", () => {
   it("flags inflated when rank fit verdict is above", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(12, 50),
-      fit: { verdict: "above", ranksAbove: -1, expected: null, averageGain: 10, averageLoss: 20, sample: 5 },
+      fit: {
+        verdict: "above",
+        ranksAbove: -1,
+        expected: null,
+        averageGain: 10,
+        averageLoss: 20,
+        sample: 5,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -271,7 +284,14 @@ describe("playerAssessment", () => {
   it("flags underranked when rank fit is below with two ranks", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(12, 50),
-      fit: { verdict: "below", ranksAbove: 2, expected: null, averageGain: 35, averageLoss: 10, sample: 5 },
+      fit: {
+        verdict: "below",
+        ranksAbove: 2,
+        expected: null,
+        averageGain: 35,
+        averageLoss: 10,
+        sample: 5,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 10, wins: 8, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -287,7 +307,14 @@ describe("playerAssessment", () => {
   it("flags long-streak when streak is 5 or more", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(12, 50),
-      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      fit: {
+        verdict: "fit",
+        ranksAbove: 0,
+        expected: null,
+        averageGain: 20,
+        averageLoss: 15,
+        sample: 5,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -306,7 +333,14 @@ describe("playerAssessment", () => {
   it("flags new-act when fewer than 5 games this act", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(12, 50),
-      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 3 },
+      fit: {
+        verdict: "fit",
+        ranksAbove: 0,
+        expected: null,
+        averageGain: 20,
+        averageLoss: 15,
+        sample: 3,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 3, wins: 2, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -325,7 +359,14 @@ describe("playerAssessment", () => {
   it("returns no flags for normal accounts", () => {
     const mmr = createMockMmr({
       current: resolver.fromTier(12, 50),
-      fit: { verdict: "fit", ranksAbove: 0, expected: null, averageGain: 20, averageLoss: 15, sample: 5 },
+      fit: {
+        verdict: "fit",
+        ranksAbove: 0,
+        expected: null,
+        averageGain: 20,
+        averageLoss: 15,
+        sample: 5,
+      },
       act: { uuid: "act-1", name: "Act 1", games: 10, wins: 5, gamesNeededForRating: 0 },
     });
     const assessment = playerAssessment({
@@ -356,7 +397,11 @@ function createTestLoadout(): Loadout {
     guns: [
       {
         weapon: { uuid: vandal.uuid, name: vandal.displayName },
-        skin: { uuid: primeSkin.uuid, name: primeSkin.displayName, icon: primeSkin.displayIcon ?? null },
+        skin: {
+          uuid: primeSkin.uuid,
+          name: primeSkin.displayName,
+          icon: primeSkin.displayIcon ?? null,
+        },
         level: { uuid: primeSkin.levels[0]!.uuid, name: primeSkin.levels[0]!.displayName },
         chroma: { uuid: primeSkin.chromas[0]!.uuid, name: primeSkin.chromas[0]!.displayName },
         buddy: null,
@@ -489,33 +534,83 @@ describe("collectionValue", () => {
               name: standardSkin.displayName,
               tier: null,
               icon: null,
-              levels: [{ uuid: standardSkin.levels[0]!.uuid, name: standardSkin.levels[0]!.displayName, owned: true }],
-              chromas: [{ uuid: standardSkin.chromas[0]!.uuid, name: standardSkin.chromas[0]!.displayName, owned: true, swatch: null }],
+              levels: [
+                {
+                  uuid: standardSkin.levels[0]!.uuid,
+                  name: standardSkin.levels[0]!.displayName,
+                  owned: true,
+                },
+              ],
+              chromas: [
+                {
+                  uuid: standardSkin.chromas[0]!.uuid,
+                  name: standardSkin.chromas[0]!.displayName,
+                  owned: true,
+                  swatch: null,
+                },
+              ],
             },
             {
               uuid: primeSkin.uuid,
               name: primeSkin.displayName,
-              tier: { uuid: "e046854e-406c-37f4-6607-19a9ba8426fc", name: "Premium", rank: 3, icon: null },
+              tier: {
+                uuid: "e046854e-406c-37f4-6607-19a9ba8426fc",
+                name: "Premium",
+                rank: 3,
+                icon: null,
+              },
               icon: null,
               levels: [
-                { uuid: primeSkin.levels[0]!.uuid, name: primeSkin.levels[0]!.displayName, owned: true },
-                { uuid: primeSkin.levels[1]!.uuid, name: primeSkin.levels[1]!.displayName, owned: true },
+                {
+                  uuid: primeSkin.levels[0]!.uuid,
+                  name: primeSkin.levels[0]!.displayName,
+                  owned: true,
+                },
+                {
+                  uuid: primeSkin.levels[1]!.uuid,
+                  name: primeSkin.levels[1]!.displayName,
+                  owned: true,
+                },
               ],
               chromas: [
-                { uuid: primeSkin.chromas[0]!.uuid, name: primeSkin.chromas[0]!.displayName, owned: true, swatch: null },
-                { uuid: primeSkin.chromas[1]!.uuid, name: primeSkin.chromas[1]!.displayName, owned: true, swatch: null },
+                {
+                  uuid: primeSkin.chromas[0]!.uuid,
+                  name: primeSkin.chromas[0]!.displayName,
+                  owned: true,
+                  swatch: null,
+                },
+                {
+                  uuid: primeSkin.chromas[1]!.uuid,
+                  name: primeSkin.chromas[1]!.displayName,
+                  owned: true,
+                  swatch: null,
+                },
               ],
             },
             {
               uuid: reaverSkin.uuid,
               name: reaverSkin.displayName,
-              tier: { uuid: "e046854e-406c-37f4-6607-19a9ba8426fc", name: "Premium", rank: 3, icon: null },
+              tier: {
+                uuid: "e046854e-406c-37f4-6607-19a9ba8426fc",
+                name: "Premium",
+                rank: 3,
+                icon: null,
+              },
               icon: null,
               levels: [
-                { uuid: reaverSkin.levels[0]!.uuid, name: reaverSkin.levels[0]!.displayName, owned: true },
+                {
+                  uuid: reaverSkin.levels[0]!.uuid,
+                  name: reaverSkin.levels[0]!.displayName,
+                  owned: true,
+                },
               ],
               chromas: [
-                { uuid: reaverSkin.chromas[0]!.uuid, name: reaverSkin.chromas[0]!.displayName, owned: true, swatch: null },
+                {
+                  uuid: reaverSkin.chromas[0]!.uuid,
+                  name: reaverSkin.chromas[0]!.displayName,
+                  owned: true,
+                  swatch: null,
+                },
               ],
             },
             {
@@ -617,11 +712,19 @@ describe("storeHistory", () => {
     expect(day1.days[0]?.day).toBe("2026-01-01");
     expect(day1.days[0]?.daily).toEqual(["skin-a", "skin-b"]);
 
-    const day1Updated = recordStoreRotation(day1, createMockStore(["skin-c"]), new Date("2026-01-01T18:00:00Z"));
+    const day1Updated = recordStoreRotation(
+      day1,
+      createMockStore(["skin-c"]),
+      new Date("2026-01-01T18:00:00Z"),
+    );
     expect(day1Updated.days).toHaveLength(1);
     expect(day1Updated.days[0]?.daily).toEqual(["skin-c"]);
 
-    const day2 = recordStoreRotation(day1Updated, createMockStore(["skin-d"]), new Date("2026-01-02T12:00:00Z"));
+    const day2 = recordStoreRotation(
+      day1Updated,
+      createMockStore(["skin-d"]),
+      new Date("2026-01-02T12:00:00Z"),
+    );
     expect(day2.days).toHaveLength(2);
     expect(day2.days[1]?.day).toBe("2026-01-02");
   });
@@ -690,12 +793,27 @@ describe("matchSync", () => {
     const fetcher = async (startIndex: number): Promise<MatchSummary[]> => {
       if (startIndex === 0) {
         return [
-          { id: "m3", startedAt: "2026-01-03T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
-          { id: "m2", startedAt: "2026-01-02T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+          {
+            id: "m3",
+            startedAt: "2026-01-03T00:00:00Z",
+            queue: "competitive",
+            map: { uuid: null, name: "Ascent", path: "" },
+          },
+          {
+            id: "m2",
+            startedAt: "2026-01-02T00:00:00Z",
+            queue: "competitive",
+            map: { uuid: null, name: "Ascent", path: "" },
+          },
         ];
       }
       return [
-        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        {
+          id: "m1",
+          startedAt: "2026-01-01T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
       ];
     };
     const knownIds = new Set(["m2"]);
@@ -709,8 +827,18 @@ describe("matchSync", () => {
     const fetcher = async (startIndex: number): Promise<MatchSummary[]> => {
       pagesFetched++;
       return [
-        { id: `match-${startIndex}`, startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
-        { id: `match-${startIndex + 1}`, startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        {
+          id: `match-${startIndex}`,
+          startedAt: "2026-01-01T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
+        {
+          id: `match-${startIndex + 1}`,
+          startedAt: "2026-01-01T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
       ];
     };
     const knownIds = new Set<string>();
@@ -723,10 +851,30 @@ describe("matchSync", () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "match-sync-test-"));
     try {
       const matches: MatchSummary[] = [
-        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
-        { id: "m3", startedAt: "2026-01-03T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
-        { id: "m1", startedAt: "2026-01-01T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
-        { id: "m2", startedAt: "2026-01-02T00:00:00Z", queue: "competitive", map: { uuid: null, name: "Ascent", path: "" } },
+        {
+          id: "m1",
+          startedAt: "2026-01-01T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
+        {
+          id: "m3",
+          startedAt: "2026-01-03T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
+        {
+          id: "m1",
+          startedAt: "2026-01-01T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
+        {
+          id: "m2",
+          startedAt: "2026-01-02T00:00:00Z",
+          queue: "competitive",
+          map: { uuid: null, name: "Ascent", path: "" },
+        },
       ];
       saveKnownMatches(tempDir, "player-1", matches);
       const loaded = loadKnownMatches(tempDir, "player-1");
@@ -742,9 +890,3 @@ describe("matchSync", () => {
     }
   });
 });
-
-
-
-
-
-

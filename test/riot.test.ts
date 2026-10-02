@@ -154,9 +154,7 @@ describe("HttpGateway", () => {
     );
     const gateway = new HttpGateway(mockFetch);
 
-    const error = await gateway
-      .get("https://americas.api.riotgames.com/test")
-      .catch((e) => e);
+    const error = await gateway.get("https://americas.api.riotgames.com/test").catch((e) => e);
 
     expect(error).toBeInstanceOf(RiotApiError);
     expect((error as RiotApiError).status).toBe(429);

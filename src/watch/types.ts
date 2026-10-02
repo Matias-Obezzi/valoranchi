@@ -1,4 +1,11 @@
-import type { Friend, FriendRequest, LiveMatch, Match, Message, WishlistHit } from "../model/index.js";
+import type {
+  Friend,
+  FriendRequest,
+  LiveMatch,
+  Match,
+  Message,
+  WishlistHit,
+} from "../model/index.js";
 
 export type MatchWatchEventMap = {
   pregame: [match: LiveMatch];

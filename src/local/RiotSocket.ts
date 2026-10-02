@@ -55,7 +55,9 @@ export function parseFrame(raw: string | unknown): RiotFrame | null {
   }
 
   const payload = parsed[2] as
-    { uri?: unknown; eventType?: unknown; data?: unknown } | null | undefined;
+    | { uri?: unknown; eventType?: unknown; data?: unknown }
+    | null
+    | undefined;
   if (!payload || typeof payload !== "object") {
     return null;
   }

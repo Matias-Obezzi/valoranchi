@@ -199,13 +199,13 @@ export class AccountService implements AccountApi {
     if (!change) return false;
     return Boolean(
       change.guns?.length ||
-      change.sprays?.length ||
-      change.flex !== undefined ||
-      change.card ||
-      change.title ||
-      change.levelBorder ||
-      change.incognito !== undefined ||
-      change.hideAccountLevel !== undefined,
+        change.sprays?.length ||
+        change.flex !== undefined ||
+        change.card ||
+        change.title ||
+        change.levelBorder ||
+        change.incognito !== undefined ||
+        change.hideAccountLevel !== undefined,
     );
   }
 
@@ -422,9 +422,11 @@ export class AccountService implements AccountApi {
         .get<{ locale?: string; region?: string }>("/riotclient/region-locale")
         .catch(() => null),
       localApi
-        .get<{ active?: boolean; game_name?: string; tag_line?: string }>(
-          "/player-account/aliases/v1/active",
-        )
+        .get<{
+          active?: boolean;
+          game_name?: string;
+          tag_line?: string;
+        }>("/player-account/aliases/v1/active")
         .catch(() => null),
       localApi
         .get<

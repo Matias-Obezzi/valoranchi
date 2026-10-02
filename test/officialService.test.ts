@@ -139,8 +139,12 @@ describe("OfficialService", () => {
     });
 
     const rawApi = {
-      accountByRiotId: vi.fn().mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
-      activeShard: vi.fn().mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
+      accountByRiotId: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
+      activeShard: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
       matchlist: vi.fn().mockResolvedValue({
         puuid: "puuid-123",
         history: [
@@ -390,8 +394,12 @@ describe("OfficialService", () => {
 
     const requestedIds: string[] = [];
     const rawApi = {
-      accountByRiotId: vi.fn().mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
-      activeShard: vi.fn().mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
+      accountByRiotId: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
+      activeShard: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
       matchlist: vi.fn().mockResolvedValue({
         puuid: "puuid-123",
         history: [
@@ -449,8 +457,12 @@ describe("OfficialService", () => {
     });
 
     const rawApiWithComp = {
-      accountByRiotId: vi.fn().mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
-      activeShard: vi.fn().mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
+      accountByRiotId: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
+      activeShard: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
       matchlist: vi.fn().mockResolvedValue({
         puuid: "puuid-123",
         history: [
@@ -482,13 +494,15 @@ describe("OfficialService", () => {
     expect(profile.summary.overall.games).toBe(3);
 
     const rawApiNoComp = {
-      accountByRiotId: vi.fn().mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
-      activeShard: vi.fn().mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
+      accountByRiotId: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", gameName: "Jett", tagLine: "NA1" }),
+      activeShard: vi
+        .fn()
+        .mockResolvedValue({ puuid: "puuid-123", game: "val", activeShard: "na" }),
       matchlist: vi.fn().mockResolvedValue({
         puuid: "puuid-123",
-        history: [
-          { matchId: "unrated-1", gameStartTimeMillis: 5000, queueId: "unrated" },
-        ],
+        history: [{ matchId: "unrated-1", gameStartTimeMillis: 5000, queueId: "unrated" }],
       }),
       match: vi.fn().mockImplementation(async (_shard: string, id: string) => {
         return matchFixture(id, "unrated", 5000);

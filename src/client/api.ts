@@ -296,4 +296,3 @@ export interface OfficialApi {
   ): Promise<PerformanceSummary>;
   profile(riotId: string, options?: { count?: number }): Promise<OfficialProfile>;
 }
-
