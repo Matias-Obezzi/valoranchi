@@ -125,6 +125,8 @@ Official:
   official match <id> Print full match details (--shard <shard> [--self <puuid>])
   official leaderboard Print competitive leaderboard (--shard <shard> [--act <id>] [--start <n>] [--size <n>])
   official status Print platform status and maintenance alerts (--shard <shard>)
+  official summary <name#tag> Print player performance summary [--queue <q>] [--count <n>]
+  official profile <name#tag> Print player scouting profile [--count <n>]
 
 Options:
   --yes              Execute write command (default is dry-run)
@@ -167,6 +169,7 @@ Options:
   --act <uuid>       Act or season UUID for official leaderboard
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
+  --no-official-cache Disable official match disk cache
   --port <n>         Port to bind HTTP server (default: 47800)
   --host <ip>        Host address to bind HTTP server (default: 127.0.0.1)
   --allow-remote     Allow binding HTTP server to non-loopback address
@@ -1223,6 +1226,23 @@ async function executeOfficialCommand(
       }
       return client.official.status(shard);
     }
+    case "summary": {
+      const riotId = pos[2];
+      if (!riotId) {
+        throw new ValidationError("missing-riot-id", "Riot ID required (e.g. Name#Tag)");
+      }
+      const count = vals.count !== undefined ? Number(vals.count) : undefined;
+      const queue = vals.queue !== undefined ? String(vals.queue) : undefined;
+      return client.official.summary(riotId, { count, queue });
+    }
+    case "profile": {
+      const riotId = pos[2];
+      if (!riotId) {
+        throw new ValidationError("missing-riot-id", "Riot ID required (e.g. Name#Tag)");
+      }
+      const count = vals.count !== undefined ? Number(vals.count) : undefined;
+      return client.official.profile(riotId, { count });
+    }
     default:
       return UNKNOWN_COMMAND;
   }
@@ -1313,6 +1333,7 @@ export async function runCli(args: string[]): Promise<number> {
       shard: { type: "string" },
       self: { type: "string" },
       act: { type: "string" },
+      "no-official-cache": { type: "boolean", default: false },
     },
     allowPositionals: true,
   });
@@ -1332,10 +1353,12 @@ export async function runCli(args: string[]): Promise<number> {
   const apiKey = parsed.values["api-key"]
     ? String(parsed.values["api-key"])
     : process.env.RIOT_API_KEY;
+  const officialCache = parsed.values["no-official-cache"] ? false : undefined;
   const client = new RiotClient({
     language: parsed.values.language,
     responseCache: cacheSeconds > 0 ? { ttlMs: cacheSeconds * 1000 } : undefined,
     officialApiKey: apiKey,
+    officialCache,
   });
 
   try {

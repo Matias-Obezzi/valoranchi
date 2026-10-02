@@ -147,6 +147,8 @@
 | `official match <id>` | Print full match details (--shard &lt;shard&gt; [--self &lt;puuid&gt;]) |
 | `official leaderboard` | Print competitive leaderboard (--shard &lt;shard&gt; [--act &lt;id&gt;] [--start &lt;n&gt;] [--size &lt;n&gt;]) |
 | `official status` | Print platform status and maintenance alerts (--shard &lt;shard&gt;) |
+| `official summary <name#tag>` | Print player performance summary [--queue &lt;q&gt;] [--count &lt;n&gt;] |
+| `official profile <name#tag>` | Print player scouting profile [--count &lt;n&gt;] |
 
 ### Options
 
@@ -192,6 +194,7 @@
 | `--act <uuid>` | Act or season UUID for official leaderboard |
 | `--language <lang>` | Catalogue language (default: en-US) |
 | `--cache <seconds>` | Reuse Riot responses younger than this many seconds |
+| `--no-official-cache` | Disable official match disk cache |
 | `--port <n>` | Port to bind HTTP server (default: 47800) |
 | `--host <ip>` | Host address to bind HTTP server (default: 127.0.0.1) |
 | `--allow-remote` | Allow binding HTTP server to non-loopback address |

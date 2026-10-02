@@ -8,6 +8,8 @@ import { PartyService } from "../src/client/PartyService.js";
 import { SocialService } from "../src/client/SocialService.js";
 import { StoreService } from "../src/client/StoreService.js";
 import { SessionManager } from "../src/client/SessionManager.js";
+import { Catalogue } from "../src/catalogue/Catalogue.js";
+import { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
 import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
 
@@ -1352,6 +1354,183 @@ describe("CLI write commands and dry-run", () => {
       process.stderr.write = originalStderr;
       process.env.RIOT_API_KEY = originalEnv;
       vi.restoreAllMocks();
+    }
+  });
+
+  it("prints official profile model using fake gateway", async () => {
+    const originalStdout = process.stdout.write;
+    const originalStderr = process.stderr.write;
+
+    let stdoutOutput = "";
+    let stderrOutput = "";
+    process.stdout.write = vi.fn().mockImplementation((chunk: string) => {
+      stdoutOutput += chunk;
+      return true;
+    });
+    process.stderr.write = vi.fn().mockImplementation((chunk: string) => {
+      stderrOutput += chunk;
+      return true;
+    });
+
+    const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
+      if (url.includes("/accounts/by-riot-id/")) {
+        return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
+      }
+      if (url.includes("/active-shards/")) {
+        return { puuid: "puuid-scout", game: "val", activeShard: "na" };
+      }
+      if (url.includes("/matchlists/by-puuid/")) {
+        return {
+          puuid: "puuid-scout",
+          history: [{ matchId: "comp-match-1", gameStartTimeMillis: 1700000000000, queueId: "competitive" }],
+        };
+      }
+      if (url.includes("/matches/comp-match-1")) {
+        return {
+          matchInfo: {
+            matchId: "comp-match-1",
+            mapId: "/Game/Maps/Ascent/Ascent",
+            gameLengthMillis: 5000,
+            gameStartMillis: 1700000000000,
+            isCompleted: true,
+            queueId: "competitive",
+            isRanked: true,
+          },
+          players: [
+            {
+              puuid: "puuid-scout",
+              gameName: "TenZ",
+              tagLine: "SEN",
+              teamId: "Blue",
+              characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
+              competitiveTier: 27,
+              accountLevel: 350,
+              stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+            },
+          ],
+          teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
+          roundResults: [],
+        };
+      }
+      return {};
+    });
+
+    const catalogueData = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
+    );
+    const catalogueSpy = vi
+      .spyOn(ValorantApi.prototype, "getCatalogue")
+      .mockResolvedValue(new Catalogue(catalogueData));
+
+    try {
+      const exitCode = await runCli([
+        "official",
+        "profile",
+        "TenZ#SEN",
+        "--api-key",
+        "rgapi-fake-key",
+        "--no-official-cache",
+      ]);
+      expect(exitCode).toBe(0);
+      const profile = JSON.parse(stdoutOutput);
+      expect(profile.account).toEqual({
+        puuid: "puuid-scout",
+        gameName: "TenZ",
+        tagLine: "SEN",
+        shard: "na",
+      });
+      expect(profile.accountLevel).toBe(350);
+      expect(profile.rank.tier).toBe(27);
+      expect(profile.lastPlayedAt).toBe(new Date(1700000000000).toISOString());
+      expect(profile.summary.overall.games).toBe(1);
+    } finally {
+      process.stdout.write = originalStdout;
+      process.stderr.write = originalStderr;
+      mockGet.mockRestore();
+      catalogueSpy.mockRestore();
+    }
+  });
+
+  it("prints official summary model using fake gateway", async () => {
+    const originalStdout = process.stdout.write;
+    const originalStderr = process.stderr.write;
+
+    let stdoutOutput = "";
+    process.stdout.write = vi.fn().mockImplementation((chunk: string) => {
+      stdoutOutput += chunk;
+      return true;
+    });
+    process.stderr.write = vi.fn().mockReturnValue(true);
+
+    const mockGet = vi.spyOn(HttpGateway.prototype, "get").mockImplementation(async (url: string) => {
+      if (url.includes("/accounts/by-riot-id/")) {
+        return { puuid: "puuid-scout", gameName: "TenZ", tagLine: "SEN" };
+      }
+      if (url.includes("/active-shards/")) {
+        return { puuid: "puuid-scout", game: "val", activeShard: "na" };
+      }
+      if (url.includes("/matchlists/by-puuid/")) {
+        return {
+          puuid: "puuid-scout",
+          history: [{ matchId: "comp-match-1", gameStartTimeMillis: 1700000000000, queueId: "competitive" }],
+        };
+      }
+      if (url.includes("/matches/comp-match-1")) {
+        return {
+          matchInfo: {
+            matchId: "comp-match-1",
+            mapId: "/Game/Maps/Ascent/Ascent",
+            gameLengthMillis: 5000,
+            gameStartMillis: 1700000000000,
+            isCompleted: true,
+            queueId: "competitive",
+            isRanked: true,
+          },
+          players: [
+            {
+              puuid: "puuid-scout",
+              gameName: "TenZ",
+              tagLine: "SEN",
+              teamId: "Blue",
+              characterId: "add6443a-41bd-e414-f6ad-e58d267f4e95",
+              stats: { score: 300, roundsPlayed: 20, kills: 25, deaths: 10, assists: 5 },
+            },
+          ],
+          teams: [{ teamId: "Blue", won: true, roundsPlayed: 20, roundsWon: 13 }],
+          roundResults: [],
+        };
+      }
+      return {};
+    });
+
+    const catalogueData = JSON.parse(
+      fs.readFileSync(path.join(import.meta.dirname, "fixtures", "catalogue.json"), "utf-8"),
+    );
+    const catalogueSpy = vi
+      .spyOn(ValorantApi.prototype, "getCatalogue")
+      .mockResolvedValue(new Catalogue(catalogueData));
+
+    try {
+      const exitCode = await runCli([
+        "official",
+        "summary",
+        "TenZ#SEN",
+        "--queue",
+        "competitive",
+        "--count",
+        "5",
+        "--api-key",
+        "rgapi-fake-key",
+      ]);
+      expect(exitCode).toBe(0);
+      const summary = JSON.parse(stdoutOutput);
+      expect(summary.overall.games).toBe(1);
+      expect(summary.overall.wins).toBe(1);
+    } finally {
+      process.stdout.write = originalStdout;
+      process.stderr.write = originalStderr;
+      mockGet.mockRestore();
+      catalogueSpy.mockRestore();
     }
   });
 });
