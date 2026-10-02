@@ -59,6 +59,7 @@
 | `order <id>` | Print store order details |
 | `night-market-reveal` | Reveal night market offers (dry-run, --yes to apply) |
 | `buy` | Purchase offer or bundle (--offer &lt;id&gt; \| --bundle &lt;id&gt;, requires --yes --confirm) |
+| `wishlist` | Print skin wishlist or manage items (add &lt;skin&gt;, remove &lt;skin&gt;, check) |
 
 ### Matches
 
@@ -129,6 +130,7 @@
 | Command | Description |
 | :--- | :--- |
 | `watch` | Stream real-time events as JSON lines until interrupted |
+| `watch store` | Stream store wishlist rotation hits until interrupted [--webhook &lt;url&gt;] [--interval &lt;min&gt;] |
 | `watch-match` | Stream match lifecycle events until interrupted |
 | `watch-friends` | Stream friend activity and presence events until interrupted |
 
@@ -196,6 +198,8 @@
 | `--language <lang>` | Catalogue language (default: en-US) |
 | `--cache <seconds>` | Reuse Riot responses younger than this many seconds |
 | `--no-official-cache` | Disable official match disk cache |
+| `--webhook <url>` | Webhook URL for store alerts (Discord or generic) |
+| `--interval <min>` | Check interval in minutes for store watcher |
 | `--port <n>` | Port to bind HTTP server (default: 47800) |
 | `--host <ip>` | Host address to bind HTTP server (default: 127.0.0.1) |
 | `--allow-remote` | Allow binding HTTP server to non-loopback address |

@@ -58,6 +58,7 @@ Store:
   order <id>       Print store order details
   night-market-reveal Reveal night market offers (dry-run, --yes to apply)
   buy              Purchase offer or bundle (--offer <id> | --bundle <id>, requires --yes --confirm)
+  wishlist         Print skin wishlist or manage items (add <skin>, remove <skin>, check)
 
 Matches:
   matches          Print recent match history summaries
@@ -116,6 +117,7 @@ Raw (unsupported):
 
 Events:
   watch            Stream real-time events as JSON lines until interrupted
+  watch store      Stream store wishlist rotation hits until interrupted [--webhook <url>] [--interval <min>]
   watch-match      Stream match lifecycle events until interrupted
   watch-friends    Stream friend activity and presence events until interrupted
 
@@ -174,6 +176,8 @@ Options:
   --language <lang>  Catalogue language (default: en-US)
   --cache <seconds>  Reuse Riot responses younger than this many seconds
   --no-official-cache Disable official match disk cache
+  --webhook <url>    Webhook URL for store alerts (Discord or generic)
+  --interval <min>   Check interval in minutes for store watcher
   --port <n>         Port to bind HTTP server (default: 47800)
   --host <ip>        Host address to bind HTTP server (default: 127.0.0.1)
   --allow-remote     Allow binding HTTP server to non-loopback address
@@ -294,6 +298,39 @@ export async function runWatchMatch(client: RiotClient): Promise<number> {
 
 export async function runWatchFriends(client: RiotClient): Promise<number> {
   const watcher = client.watch.friends();
+  const onSignal = () => {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+  };
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+
+  try {
+    for await (const item of watcher) {
+      process.stdout.write(`${JSON.stringify(item)}\n`);
+    }
+  } finally {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    watcher.stop();
+    await client.close();
+  }
+  return 0;
+}
+
+export async function runWatchStore(
+  client: RiotClient,
+  options: { webhook?: string; intervalMinutes?: number } = {},
+): Promise<number> {
+  const intervalMs =
+    options.intervalMinutes && options.intervalMinutes > 0
+      ? options.intervalMinutes * 60 * 1000
+      : undefined;
+  const watcher = client.watch.store({
+    webhook: options.webhook,
+    intervalMs,
+  });
   const onSignal = () => {
     process.off("SIGINT", onSignal);
     process.off("SIGTERM", onSignal);
@@ -550,6 +587,24 @@ async function executeStandardCommand(
       return client.store.offers();
     case "order":
       return client.store.order(requirePositional(pos, 1, "Usage: riotclient order <id>"));
+    case "wishlist": {
+      const action = pos[1];
+      if (!action || action === "list") {
+        return client.store.wishlist();
+      }
+      if (action === "add") {
+        const skin = requirePositional(pos, 2, "Usage: riotclient wishlist add <skin>");
+        return client.store.wishlistAdd(skin);
+      }
+      if (action === "remove") {
+        const skin = requirePositional(pos, 2, "Usage: riotclient wishlist remove <skin>");
+        return client.store.wishlistRemove(skin);
+      }
+      if (action === "check") {
+        return client.store.wishlistCheck();
+      }
+      throw new ValidationError("unknown-command", `Unknown wishlist action: ${action}`);
+    }
     case "client":
       return client.account.client();
     case "participants":
@@ -1311,6 +1366,8 @@ export async function runCli(args: string[]): Promise<number> {
       self: { type: "string" },
       act: { type: "string" },
       "no-official-cache": { type: "boolean", default: false },
+      webhook: { type: "string" },
+      interval: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -1340,10 +1397,25 @@ export async function runCli(args: string[]): Promise<number> {
 
   try {
     if (command === "watch") {
+      if (parsed.positionals[1] === "store") {
+        const intervalMinutes = parsed.values.interval
+          ? Number(parsed.values.interval)
+          : undefined;
+        const webhook = parsed.values.webhook ? String(parsed.values.webhook) : undefined;
+        return await runWatchStore(client, { webhook, intervalMinutes });
+      }
       return await runWatch(client, {
         only: parsed.values.only,
         raw: parsed.values.raw,
       });
+    }
+
+    if (command === "watch-store") {
+      const intervalMinutes = parsed.values.interval
+        ? Number(parsed.values.interval)
+        : undefined;
+      const webhook = parsed.values.webhook ? String(parsed.values.webhook) : undefined;
+      return await runWatchStore(client, { webhook, intervalMinutes });
     }
 
     if (command === "watch-match") {

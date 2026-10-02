@@ -11,7 +11,7 @@ import { SessionManager } from "../src/client/SessionManager.js";
 import { Catalogue } from "../src/catalogue/Catalogue.js";
 import { ValorantApi } from "../src/catalogue/ValorantApi.js";
 import { HttpGateway } from "../src/riot/HttpGateway.js";
-import { exitCodeForError, formatError, formatWatchLine, runCli, USAGE } from "../src/cli.js";
+import { exitCodeForError, formatError, formatWatchLine, runCli, runWatchStore, USAGE } from "../src/cli.js";
 
 const packageVersion = (
   JSON.parse(fs.readFileSync(path.join(import.meta.dirname, "..", "package.json"), "utf-8")) as {
@@ -1528,5 +1528,93 @@ describe("CLI write commands and dry-run", () => {
       mockGet.mockRestore();
       catalogueSpy.mockRestore();
     }
+  });
+
+  describe("CLI wishlist and watch store commands", () => {
+    it("dispatches wishlist, wishlist add, wishlist remove, and wishlist check", async () => {
+      const originalStdout = process.stdout.write;
+      process.stdout.write = vi.fn();
+
+      const wishlistSpy = vi
+        .spyOn(StoreService.prototype, "wishlist")
+        .mockResolvedValue({ skins: [] });
+      const addSpy = vi
+        .spyOn(StoreService.prototype, "wishlistAdd")
+        .mockResolvedValue({ skins: [{ uuid: "s1", name: "Prime Vandal", addedAt: "now" }] });
+      const removeSpy = vi
+        .spyOn(StoreService.prototype, "wishlistRemove")
+        .mockResolvedValue({ skins: [] });
+      const checkSpy = vi
+        .spyOn(StoreService.prototype, "wishlistCheck")
+        .mockResolvedValue({ checkedAt: "now", hits: [] });
+
+      try {
+        expect(await runCli(["wishlist"])).toBe(0);
+        expect(wishlistSpy).toHaveBeenCalledTimes(1);
+
+        expect(await runCli(["wishlist", "add", "Prime Vandal"])).toBe(0);
+        expect(addSpy).toHaveBeenCalledWith("Prime Vandal");
+
+        expect(await runCli(["wishlist", "remove", "Prime Vandal"])).toBe(0);
+        expect(removeSpy).toHaveBeenCalledWith("Prime Vandal");
+
+        expect(await runCli(["wishlist", "check"])).toBe(0);
+        expect(checkSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        process.stdout.write = originalStdout;
+        wishlistSpy.mockRestore();
+        addSpy.mockRestore();
+        removeSpy.mockRestore();
+        checkSpy.mockRestore();
+      }
+    });
+
+    it("rejects unknown wishlist action", async () => {
+      const originalStderr = process.stderr.write;
+      process.stderr.write = vi.fn();
+      try {
+        const exitCode = await runCli(["wishlist", "bogus"]);
+        expect(exitCode).toBe(6);
+      } finally {
+        process.stderr.write = originalStderr;
+      }
+    });
+
+    it("streams NDJSON lines from store watcher in runWatchStore", async () => {
+      let output = "";
+      const originalStdout = process.stdout.write;
+      process.stdout.write = vi.fn().mockImplementation((chunk: string | Uint8Array) => {
+        output += String(chunk);
+        return true;
+      });
+
+      const mockWatcher = {
+        stop: vi.fn(),
+        async *[Symbol.asyncIterator]() {
+          yield { event: "hit", at: "now", data: { skin: { name: "Prime Vandal" } } };
+        },
+      };
+
+      const mockClient = {
+        watch: {
+          store: vi.fn().mockReturnValue(mockWatcher),
+        },
+        close: vi.fn(),
+      } as unknown as RiotClient;
+
+      try {
+        const exitCode = await runWatchStore(mockClient, { intervalMinutes: 10 });
+        expect(exitCode).toBe(0);
+        expect(mockClient.watch.store).toHaveBeenCalledWith({
+          webhook: undefined,
+          intervalMs: 600000,
+        });
+        expect(output).toContain('"Prime Vandal"');
+        expect(mockWatcher.stop).toHaveBeenCalled();
+        expect(mockClient.close).toHaveBeenCalled();
+      } finally {
+        process.stdout.write = originalStdout;
+      }
+    });
   });
 });
