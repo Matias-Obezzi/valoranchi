@@ -9,6 +9,8 @@ import type {
   StoreHistory,
   StoreSeen,
   Wallet,
+  Wishlist,
+  WishlistCheck,
 } from "../model/index.js";
 import {
   loadStoreHistory,
@@ -16,6 +18,12 @@ import {
   recordStoreRotation,
   saveStoreHistory,
 } from "../analysis/storeHistory.js";
+import {
+  loadWishlist,
+  saveWishlist,
+  wishlistHits,
+} from "../analysis/wishlist.js";
+import { ValidationError } from "../errors.js";
 import { defaultResponseCacheDir } from "../riot/ResponseCache.js";
 import { CURRENCY_UUIDS } from "../riot/types.js";
 import type { StoreApi } from "./api.js";
@@ -135,6 +143,81 @@ export class StoreService implements StoreApi {
       this.context.catalogue(),
     ]);
     return new StoreOffersBuilder(catalogue).buildOrder(rawOrder);
+  }
+
+  async wishlist(): Promise<Wishlist> {
+    const session = await this.context.sessions.session();
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    return loadWishlist(cacheDir, session.puuid);
+  }
+
+  async wishlistAdd(skin: string): Promise<Wishlist> {
+    const catalogue = await this.context.catalogue();
+    const skinEntity = catalogue.findSkin(skin);
+    if (!skinEntity) {
+      throw new ValidationError("unknown-skin", `Unknown skin: ${skin}`);
+    }
+    if (!skinEntity.contentTierUuid) {
+      throw new ValidationError("skin-not-purchasable", "Default skins cannot be added to wishlist");
+    }
+
+    const owned = await this.fetchOwnedItems();
+    const isOwned = owned.weapons
+      .flatMap((w) => w.skins)
+      .some((s) => s.uuid.toLowerCase() === skinEntity.uuid.toLowerCase());
+    if (isOwned) {
+      throw new ValidationError("skin-owned", "Skin is already owned");
+    }
+
+    const session = await this.context.sessions.session();
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    const currentWishlist = loadWishlist(cacheDir, session.puuid);
+
+    const isListed = currentWishlist.skins.some(
+      (s) => s.uuid.toLowerCase() === skinEntity.uuid.toLowerCase(),
+    );
+    if (isListed) {
+      return currentWishlist;
+    }
+
+    currentWishlist.skins.push({
+      uuid: skinEntity.uuid,
+      name: skinEntity.displayName,
+      addedAt: new Date().toISOString(),
+    });
+    saveWishlist(cacheDir, session.puuid, currentWishlist);
+    return currentWishlist;
+  }
+
+  async wishlistRemove(skin: string): Promise<Wishlist> {
+    const catalogue = await this.context.catalogue();
+    const skinEntity = catalogue.findSkin(skin);
+    const targetUuid = (skinEntity?.uuid ?? skin).trim().toLowerCase();
+    const targetName = (skinEntity?.displayName ?? skin).trim().toLowerCase();
+
+    const session = await this.context.sessions.session();
+    const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
+    const currentWishlist = loadWishlist(cacheDir, session.puuid);
+
+    currentWishlist.skins = currentWishlist.skins.filter(
+      (s) =>
+        s.uuid.toLowerCase() !== targetUuid &&
+        s.name.toLowerCase() !== targetName,
+    );
+    saveWishlist(cacheDir, session.puuid, currentWishlist);
+    return currentWishlist;
+  }
+
+  async wishlistCheck(): Promise<WishlistCheck> {
+    const [store, currentWishlist] = await Promise.all([
+      this.current(),
+      this.wishlist(),
+    ]);
+    const hits = wishlistHits(store, currentWishlist);
+    return {
+      checkedAt: new Date().toISOString(),
+      hits,
+    };
   }
 
   private async fetchOwnedItems(): Promise<OwnedItems> {

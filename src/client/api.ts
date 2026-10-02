@@ -44,6 +44,8 @@ import type {
   StoreHistory,
   StoreSeen,
   Wallet,
+  Wishlist,
+  WishlistCheck,
 } from "../model/index.js";
 import type { OfficialPlatformData } from "../official/types.js";
 import type { RiotLoadoutResponse } from "../riot/types.js";
@@ -134,6 +136,10 @@ export interface StoreApi {
   order(id: string): Promise<Order>;
   history(options?: { days?: number }): Promise<StoreHistory>;
   seen(skin: string): Promise<StoreSeen>;
+  wishlist(): Promise<Wishlist>;
+  wishlistAdd(skin: string): Promise<Wishlist>;
+  wishlistRemove(skin: string): Promise<Wishlist>;
+  wishlistCheck(): Promise<WishlistCheck>;
 }
 
 export interface MatchesApi {
