@@ -1,5 +1,6 @@
 import { OfficialApiKeyMissingError, RiotApiError, ValidationError } from "../errors.js";
 import type { HttpGateway } from "../riot/HttpGateway.js";
+import type { FileResponseCache } from "../riot/ResponseCache.js";
 import { RateLimiter } from "./RateLimiter.js";
 import type {
   OfficialAccountResponse,
@@ -18,6 +19,7 @@ const AMERICAS_HOST = "https://americas.api.riotgames.com";
 export interface OfficialApiOptions {
   limiter?: RateLimiter;
   sleep?: (ms: number) => Promise<void>;
+  cache?: FileResponseCache;
 }
 
 export class OfficialApi {
@@ -25,6 +27,7 @@ export class OfficialApi {
   private readonly apiKey?: string;
   private readonly limiter: RateLimiter;
   private readonly sleep: (ms: number) => Promise<void>;
+  private readonly cache?: FileResponseCache;
 
   constructor(gateway: HttpGateway, apiKey?: string, options: OfficialApiOptions = {}) {
     this.gateway = gateway;
@@ -32,6 +35,7 @@ export class OfficialApi {
     this.limiter = options.limiter ?? new RateLimiter();
     this.sleep =
       options.sleep ?? ((ms: number) => new Promise((resolve) => setTimeout(resolve, ms)));
+    this.cache = options.cache;
   }
 
   async accountByRiotId(
@@ -66,9 +70,22 @@ export class OfficialApi {
 
   async match(shard: string, matchId: string): Promise<OfficialMatchResponse | null> {
     const validShard = this.validateShard(shard);
+    const cacheKey = `official:match:${validShard}:${matchId.toLowerCase()}`;
+
+    if (this.cache) {
+      const cached = this.cache.get<OfficialMatchResponse>(cacheKey, Infinity);
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
+
     const encodedMatchId = encodeURIComponent(matchId);
     const url = `https://${validShard}.api.riotgames.com/val/match/v1/matches/${encodedMatchId}`;
-    return this.request<OfficialMatchResponse>(url, true);
+    const res = await this.request<OfficialMatchResponse>(url, true);
+    if (res?.matchInfo?.isCompleted && this.cache) {
+      this.cache.set(cacheKey, res);
+    }
+    return res;
   }
 
   async recentMatches(shard: string, queue: string): Promise<OfficialRecentMatchesResponse | null> {

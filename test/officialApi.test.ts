@@ -130,4 +130,57 @@ describe("OfficialApi", () => {
     await expect(api.platformStatus("ap")).rejects.toThrow(RiotApiError);
     expect(mockFetch).toHaveBeenCalledTimes(2);
   });
+
+  it("caches completed matches and reuses them on subsequent calls", async () => {
+    const mockCache = {
+      get: vi.fn().mockReturnValue(undefined),
+      set: vi.fn(),
+      through: vi.fn(),
+      forget: vi.fn(),
+    };
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          matchInfo: { matchId: "Match-1", isCompleted: true },
+          players: [],
+        }),
+        { status: 200 },
+      ),
+    );
+    const gateway = new HttpGateway(mockFetch);
+    const api = new OfficialApi(gateway, "test-key", { cache: mockCache as never });
+
+    const res = await api.match("NA", "Match-1");
+    expect(res?.matchInfo.matchId).toBe("Match-1");
+    expect(mockCache.set).toHaveBeenCalledWith("official:match:na:match-1", res);
+
+    mockCache.get.mockReturnValueOnce(res);
+    const cachedRes = await api.match("NA", "Match-1");
+    expect(cachedRes).toBe(res);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not cache incomplete or null matches", async () => {
+    const mockCache = {
+      get: vi.fn().mockReturnValue(undefined),
+      set: vi.fn(),
+      through: vi.fn(),
+      forget: vi.fn(),
+    };
+    const mockFetch = vi.fn().mockImplementation(async (url: string) => {
+      if (url.includes("incomplete")) {
+        return new Response(
+          JSON.stringify({ matchInfo: { matchId: "incomplete", isCompleted: false } }),
+          { status: 200 },
+        );
+      }
+      return new Response("Not found", { status: 404 });
+    });
+    const gateway = new HttpGateway(mockFetch);
+    const api = new OfficialApi(gateway, "test-key", { cache: mockCache as never });
+
+    await api.match("eu", "incomplete");
+    await api.match("eu", "not-found");
+    expect(mockCache.set).not.toHaveBeenCalled();
+  });
 });

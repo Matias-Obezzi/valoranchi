@@ -29,17 +29,25 @@ export class FileResponseCache {
     this.now = now;
   }
 
+  get<T>(key: string, ttlMs: number = this.ttlMs): T | undefined {
+    return this.read<T>(key, ttlMs);
+  }
+
+  set<T>(key: string, value: T): void {
+    this.write(key, value);
+  }
+
   async through<T>(
     key: string,
     fetcher: () => Promise<T>,
     options?: { ttlMs?: number },
   ): Promise<T> {
-    const fresh = this.read<T>(key, options?.ttlMs);
+    const fresh = this.get<T>(key, options?.ttlMs);
     if (fresh !== undefined) {
       return fresh;
     }
     const value = await fetcher();
-    this.write(key, value);
+    this.set(key, value);
     return value;
   }
 
