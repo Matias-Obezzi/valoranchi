@@ -5,6 +5,7 @@ import type {
   AccountApi,
   LocalRawApi,
   MatchesApi,
+  OfficialApi,
   PartyApi,
   RiotRawApi,
   SocialApi,
@@ -14,6 +15,7 @@ import { createPlayer, type ClientContext } from "./client/ClientContext.js";
 import { EventsService } from "./client/EventsService.js";
 import type { LoadoutChange, LoadoutGunChange } from "./client/LoadoutValidator.js";
 import { MatchService } from "./client/MatchService.js";
+import { OfficialService } from "./client/OfficialService.js";
 import { PartyService } from "./client/PartyService.js";
 import type { PartyActionRequest } from "./client/PartyValidator.js";
 import { SessionManager } from "./client/SessionManager.js";
@@ -111,6 +113,7 @@ export interface RiotClientOptions {
   gateway?: HttpGateway;
   valorantApi?: ValorantApi;
   localApiFactory?: (port: number, pass: string) => RiotClientLocalApi;
+  officialApiKey?: string;
 }
 
 export class RiotClient {
@@ -119,6 +122,7 @@ export class RiotClient {
   readonly store: StoreApi;
   readonly matches: MatchesApi;
   readonly party: PartyApi;
+  readonly official: OfficialApi;
   readonly watch: WatchApi;
   readonly local: LocalRawApi;
   readonly riot: RiotRawApi;
@@ -154,6 +158,8 @@ export class RiotClient {
       catalogue: (lang?: string) => valorantApi.getCatalogue(lang ?? language),
       player: (session: Session) => createPlayer(api(session), session),
       cacheDir,
+      gateway,
+      officialApiKey: options.officialApiKey,
     };
 
     this.account = new AccountService(context);
@@ -161,6 +167,7 @@ export class RiotClient {
     this.store = new StoreService(context);
     this.matches = new MatchService(context);
     this.party = new PartyService(context);
+    this.official = new OfficialService(context);
     this.local = new LocalRawService(this.sessions);
     this.riot = new RiotRawService(this.sessions, gateway);
     this.eventsService = new EventsService(context);

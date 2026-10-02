@@ -37,7 +37,6 @@ function mapMatchInfo(official: OfficialMatchResponse): RiotMatchInfo {
     isRanked: Boolean(info.isRanked),
     seasonId: info.seasonId,
     completionState: info.completionState,
-    platformId: info.platformId,
     gameServerAddress: info.gameServerAddress,
     gameVersion: info.gameVersion,
     isReplayRecorded: info.isReplayRecorded,

@@ -11,6 +11,7 @@ export type {
   AccountApi,
   LocalRawApi,
   MatchesApi,
+  OfficialApi,
   PartyApi,
   RiotRawApi,
   SocialApi,

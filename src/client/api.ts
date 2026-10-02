@@ -22,6 +22,7 @@ import type {
   Message,
   Mission,
   Mmr,
+  OfficialAccount,
   Offer,
   Order,
   OwnedItems,
@@ -43,6 +44,7 @@ import type {
   StoreSeen,
   Wallet,
 } from "../model/index.js";
+import type { OfficialPlatformData } from "../official/types.js";
 import type { RiotLoadoutResponse } from "../riot/types.js";
 import type { LoadoutChange } from "./LoadoutValidator.js";
 import type { PartyActionRequest } from "./PartyValidator.js";
@@ -269,3 +271,17 @@ export interface RiotRawApi {
     options?: { headers?: Record<string, string> } | Record<string, string>,
   ): Promise<T>;
 }
+
+export interface OfficialApi {
+  account(riotId: string): Promise<OfficialAccount>;
+  matches(riotId: string, options?: { queue?: string; count?: number }): Promise<MatchSummary[]>;
+  match(matchId: string, options: { shard: string; self?: string }): Promise<Match>;
+  leaderboard(options: {
+    shard: string;
+    act?: string;
+    start?: number;
+    size?: number;
+  }): Promise<Leaderboard>;
+  status(shard: string): Promise<OfficialPlatformData>;
+}
+
