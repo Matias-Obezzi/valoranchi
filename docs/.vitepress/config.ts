@@ -46,6 +46,7 @@ export default defineConfig({
           { text: "Real-Time Events", link: "/guide/events" },
           { text: "High-Level Watchers", link: "/guide/watchers" },
           { text: "Serve Mode", link: "/guide/serve" },
+          { text: "MCP Server", link: "/guide/mcp" },
           { text: "Single Executable", link: "/guide/executable" },
           { text: "Writes & Safety", link: "/guide/writes-and-safety" },
           { text: "Other Languages", link: "/guide/other-languages" },

@@ -603,6 +603,16 @@ if (process.ExitCode == 0)
 }
 ```
 
+## Model Context Protocol (MCP) Server
+
+Run an MCP server over stdio for AI assistants (Claude Code, Claude Desktop, Cursor) to inspect your own player data:
+
+```bash
+npx @valoranchi/riot-client mcp
+```
+
+All MCP tools are strictly read-only by design: assistants can inspect inventory, daily store offers, match history, and party state, but cannot purchase items, modify loadouts, or change settings. See the [MCP Guide](https://valoranchi.github.io/valoranchi/guide/mcp) for configuration snippets.
+
 ## How Authentication Works
 
 1. The local Riot Client creates a lockfile at `%LOCALAPPDATA%\Riot Games\Riot Client\Config\lockfile`.
