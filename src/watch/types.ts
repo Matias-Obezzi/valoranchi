@@ -1,4 +1,4 @@
-import type { Friend, FriendRequest, LiveMatch, Match, Message } from "../model/index.js";
+import type { Friend, FriendRequest, LiveMatch, Match, Message, WishlistHit } from "../model/index.js";
 
 export type MatchWatchEventMap = {
   pregame: [match: LiveMatch];
@@ -36,4 +36,13 @@ export type FriendsWatchItem =
   | { event: "out-of-game"; at: string; data: Friend }
   | { event: "message"; at: string; data: Message }
   | { event: "request"; at: string; data: FriendRequest }
+  | { event: "error"; at: string; data: { message: string; name?: string } };
+
+export type StoreWatchEventMap = {
+  hit: [hit: WishlistHit];
+  error: [error: Error];
+};
+
+export type StoreWatchItem =
+  | { event: "hit"; at: string; data: WishlistHit }
   | { event: "error"; at: string; data: { message: string; name?: string } };

@@ -173,7 +173,7 @@ export class RiotClient {
     this.local = new LocalRawService(this.sessions);
     this.riot = new RiotRawService(this.sessions, gateway);
     this.eventsService = new EventsService(context);
-    this.watch = new WatchService(() => this.events(), this.matches);
+    this.watch = new WatchService(() => this.events(), this.matches, this.store);
   }
 
   events(): RiotEvents {

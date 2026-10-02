@@ -23,14 +23,19 @@ export { TypedEmitter } from "./events/TypedEmitter.js";
 export {
   FriendsWatcher,
   MatchWatcher,
+  StoreWatcher,
+  WebhookNotifier,
   formatPresenceActivity,
   type FriendsWatcherOptions,
   type MatchWatcherOptions,
+  type StoreWatcherOptions,
   type WatchApi,
   type MatchWatchEventMap,
   type MatchWatchItem,
   type FriendsWatchEventMap,
   type FriendsWatchItem,
+  type StoreWatchEventMap,
+  type StoreWatchItem,
 } from "./watch/index.js";
 export {
   createRiotServer,
