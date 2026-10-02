@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-02
+
 ### Added
 
 - Skin wishlist management and storefront rotation matching via `client.store.wishlist()`, `client.store.wishlistAdd(skin)`, `client.store.wishlistRemove(skin)`, and `client.store.wishlistCheck()` (`Wishlist`, `WishlistHit`, `WishlistCheck`), persisting wishlists per-puuid to disk cache with local validation against owned inventory, unpurchasable cosmetics, and unknown skin names without Riot mutations.
