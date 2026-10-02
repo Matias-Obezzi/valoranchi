@@ -31,11 +31,6 @@ export class RateLimiter {
     await next;
   }
 
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
-    await this.acquire();
-    return fn();
-  }
-
   private async waitForSlot(): Promise<void> {
     while (true) {
       const currentTime = this.now();

@@ -1,5 +1,5 @@
 import { MatchBuilder } from "../collection/MatchBuilder.js";
-import { OfficialApiKeyMissingError, ValidationError } from "../errors.js";
+import { ValidationError } from "../errors.js";
 import type { Leaderboard, Match, MatchSummary, OfficialAccount } from "../model/index.js";
 import { OfficialApi } from "../official/OfficialApi.js";
 import { toLeaderboard, toMatchDetails } from "../official/OfficialMatchAdapter.js";
@@ -16,24 +16,29 @@ export class OfficialService implements OfficialApiInterface {
     private readonly context: ClientContext,
     rawApi?: OfficialApi,
   ) {
-    const key = context.officialApiKey ?? process.env.RIOT_API_KEY;
-    const gateway = context.gateway ?? new HttpGateway();
-    this.rawApi = rawApi ?? new OfficialApi(gateway, key);
+    this.rawApi =
+      rawApi ??
+      new OfficialApi(
+        context.gateway ?? new HttpGateway(),
+        context.officialApiKey ?? process.env.RIOT_API_KEY,
+      );
   }
 
   async account(riotId: string): Promise<OfficialAccount> {
-    this.ensureApiKey();
     const { gameName, gameTag } = ChatValidator.parseRiotId(riotId);
     const acc = await this.rawApi.accountByRiotId(gameName, gameTag);
     if (!acc) {
       throw new ValidationError("player-not-found", `Player '${riotId}' not found`, { riotId });
     }
     const shardInfo = await this.rawApi.activeShard(acc.puuid);
+    if (!shardInfo?.activeShard) {
+      throw new ValidationError("shard-not-found", `No VALORANT shard for '${riotId}'`, { riotId });
+    }
     return {
       puuid: acc.puuid,
       gameName: acc.gameName,
       tagLine: acc.tagLine,
-      shard: shardInfo?.activeShard ?? "",
+      shard: shardInfo.activeShard,
     };
   }
 
@@ -41,7 +46,6 @@ export class OfficialService implements OfficialApiInterface {
     riotId: string,
     options: { queue?: string; count?: number } = {},
   ): Promise<MatchSummary[]> {
-    this.ensureApiKey();
     const acc = await this.account(riotId);
     const matchlist = await this.rawApi.matchlist(acc.shard, acc.puuid);
     let history = matchlist?.history ?? [];
@@ -72,7 +76,6 @@ export class OfficialService implements OfficialApiInterface {
   }
 
   async match(matchId: string, options: { shard: string; self?: string }): Promise<Match> {
-    this.ensureApiKey();
     const matchData = await this.rawApi.match(options.shard, matchId);
     if (!matchData) {
       throw new ValidationError("match-not-found", `Match '${matchId}' not found`, { matchId });
@@ -90,7 +93,6 @@ export class OfficialService implements OfficialApiInterface {
     start?: number;
     size?: number;
   }): Promise<Leaderboard> {
-    this.ensureApiKey();
     let actId = options.act;
     if (!actId) {
       const contents = await this.rawApi.contents(options.shard);
@@ -124,14 +126,6 @@ export class OfficialService implements OfficialApiInterface {
   }
 
   async status(shard: string): Promise<OfficialPlatformData> {
-    this.ensureApiKey();
     return this.rawApi.platformStatus(shard);
-  }
-
-  private ensureApiKey(): void {
-    const key = this.context.officialApiKey ?? process.env.RIOT_API_KEY;
-    if (!key || key.trim().length === 0) {
-      throw new OfficialApiKeyMissingError();
-    }
   }
 }

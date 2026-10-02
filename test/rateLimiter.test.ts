@@ -79,10 +79,10 @@ describe("RateLimiter", () => {
     });
 
     await Promise.all([
-      limiter.execute(async () => timestamps.push(nowTime)),
-      limiter.execute(async () => timestamps.push(nowTime)),
-      limiter.execute(async () => timestamps.push(nowTime)),
-      limiter.execute(async () => timestamps.push(nowTime)),
+      limiter.acquire().then(() => timestamps.push(nowTime)),
+      limiter.acquire().then(() => timestamps.push(nowTime)),
+      limiter.acquire().then(() => timestamps.push(nowTime)),
+      limiter.acquire().then(() => timestamps.push(nowTime)),
     ]);
 
     expect(timestamps).toEqual([1000, 1000, 2000, 2000]);
