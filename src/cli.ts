@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { RiotClientError, ValidationError } from "./errors.js";
 import { formatError } from "./formatError.js";
+import { McpServer } from "./mcp/index.js";
 import { RiotClient, type LoadoutChange, type LoadoutGunChange } from "./RiotClient.js";
 
 export const USAGE = `Usage: riotclient <command> [options]
@@ -119,6 +120,7 @@ Events:
 
 Server:
   serve            Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote]
+  mcp              Start Model Context Protocol (MCP) server over stdio for AI assistants
 
 Official:
   official account <name#tag> Print player PUUID and active shard
@@ -347,6 +349,27 @@ export async function runServe(
   await client.close();
   return 0;
 }
+
+export async function runMcp(client: RiotClient): Promise<number> {
+  const server = new McpServer(client);
+
+  const onSignal = () => {
+    server.close();
+  };
+  process.on("SIGINT", onSignal);
+  process.on("SIGTERM", onSignal);
+
+  try {
+    await server.start();
+  } finally {
+    process.off("SIGINT", onSignal);
+    process.off("SIGTERM", onSignal);
+    await client.close();
+  }
+
+  return 0;
+}
+
 
 interface CliCommandOptions {
   language?: string;
@@ -1350,6 +1373,10 @@ export async function runCli(args: string[]): Promise<number> {
       const host = parsed.values.host;
       const allowRemote = Boolean(parsed.values["allow-remote"]);
       return await runServe(client, { port, host, allowRemote });
+    }
+
+    if (command === "mcp") {
+      return await runMcp(client);
     }
 
     const count = parsed.values.count ? Number(parsed.values.count) : undefined;

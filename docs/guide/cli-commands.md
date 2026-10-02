@@ -137,6 +137,7 @@
 | Command | Description |
 | :--- | :--- |
 | `serve` | Start local HTTP server with SSE events and OpenAPI docs [--port 47800] [--host 127.0.0.1] [--allow-remote] |
+| `mcp` | Start Model Context Protocol (MCP) server over stdio for AI assistants |
 
 ### Official
 

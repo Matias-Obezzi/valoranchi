@@ -48,6 +48,18 @@ export {
   type ServerInstance,
 } from "./serve/index.js";
 export {
+  McpServer,
+  getMcpTools,
+  executeMcpTool,
+  McpError,
+  type McpServerOptions,
+  type McpTool,
+  type McpToolInputSchema,
+  type McpToolProperty,
+  type McpToolResult,
+  type McpTextContent,
+} from "./mcp/index.js";
+export {
   RiotSocket,
   parseFrame,
   type RiotFrame,
