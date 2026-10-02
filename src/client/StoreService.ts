@@ -121,15 +121,7 @@ export class StoreService implements StoreApi {
       this.context.sessions.session(),
       this.context.catalogue(),
     ]);
-    const skinEntity =
-      catalogue.getSkin(skin) ??
-      catalogue.weapons
-        .flatMap((w) => w.skins)
-        .find(
-          (s) =>
-            s.displayName.toLowerCase() === skin.toLowerCase() ||
-            s.uuid.toLowerCase() === skin.toLowerCase(),
-        );
+    const skinEntity = catalogue.findSkin(skin);
     const skinUuid = skinEntity?.uuid ?? skin;
     const cacheDir = this.context.cacheDir ?? defaultResponseCacheDir();
     const history = loadStoreHistory(cacheDir, session.puuid);

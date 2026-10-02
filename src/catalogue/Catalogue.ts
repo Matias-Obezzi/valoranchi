@@ -157,6 +157,16 @@ export class Catalogue {
     return this.skinsByUuid.get(uuid.toLowerCase());
   }
 
+  findSkin(query: string): ValorantApiSkin | undefined {
+    const q = query.trim().toLowerCase();
+    const byUuid = this.skinsByUuid.get(q);
+    if (byUuid) return byUuid;
+    for (const skin of this.skinsByUuid.values()) {
+      if (skin.displayName.toLowerCase() === q) return skin;
+    }
+    return undefined;
+  }
+
   getBuddy(uuid: string): ValorantApiBuddy | undefined {
     return this.buddiesByUuid.get(uuid.toLowerCase());
   }

@@ -868,3 +868,32 @@ export type OfficialProfile = {
   summary: PerformanceSummary;
 };
 
+export type WishlistEntry = {
+  uuid: string;
+  name: string;
+  addedAt: string;
+};
+
+export type Wishlist = {
+  skins: WishlistEntry[];
+};
+
+export type WishlistHit = {
+  skin: {
+    uuid: string;
+    name: string;
+    weapon: string;
+    icon: Image;
+  };
+  where: "daily" | "night-market" | "bundle";
+  price: number;
+  discountedPrice: number | null;
+  bundleName: string | null;
+  endsAt: string | null;
+};
+
+export type WishlistCheck = {
+  checkedAt: string;
+  hits: WishlistHit[];
+};
+

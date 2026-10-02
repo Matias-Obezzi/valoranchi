@@ -138,6 +138,10 @@ export type {
   Tier,
   ValorantPresence,
   Wallet,
+  Wishlist,
+  WishlistCheck,
+  WishlistEntry,
+  WishlistHit,
 } from "./model/index.js";
 export { ratingTrend } from "./analysis/ratingTrend.js";
 export { performanceSummary } from "./analysis/performanceSummary.js";
@@ -151,3 +155,8 @@ export {
   saveStoreHistory,
 } from "./analysis/storeHistory.js";
 export { loadKnownMatches, saveKnownMatches, syncMatches } from "./analysis/matchSync.js";
+export {
+  loadWishlist,
+  saveWishlist,
+  wishlistHits,
+} from "./analysis/wishlist.js";
