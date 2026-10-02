@@ -32,6 +32,62 @@ The library includes an integrated sliding-window `RateLimiter`:
 - When encountering HTTP 429 (Rate Limited), the client respects the `Retry-After` header (up to 10 seconds) and automatically retries once.
 - Transient 5xx server errors trigger an automatic retry after a 500 ms backoff.
 
+## Caching
+
+Official match details for completed matches (`isCompleted: true`) are permanently cached on disk under the `official/` subdirectory within the response cache directory. Once fetched, finished matches are read from local disk on subsequent queries across client instances and never re-requested over the network. Incomplete or missing matches are never stored.
+
+Caching is enabled by default. To disable caching, pass `officialCache: false` in `RiotClientOptions`, or use `--no-official-cache` in the CLI:
+
+```ts
+const client = new RiotClient({
+  officialApiKey: process.env.RIOT_API_KEY,
+  officialCache: false,
+});
+```
+
+## Scouting a Player
+
+The official API enables performance analysis and player scouting for any player without requiring access to their local client.
+
+### Performance Summary
+
+Aggregate performance statistics across recent matches with by-agent and by-map breakdowns, consistency metrics, and highlight stats:
+
+```ts
+// Library usage: defaults to queue "competitive" and count 10
+const summary = await client.official.summary("TenZ#SEN", {
+  queue: "competitive",
+  count: 10,
+});
+console.log(summary.overall.winRate, summary.overall.kd);
+console.log(summary.best.agent, summary.best.map);
+```
+
+```bash
+# CLI usage:
+riotclient official summary "TenZ#SEN" --queue competitive --count 10
+```
+
+### Player Profile
+
+Retrieve an `OfficialProfile` containing account identity, current competitive rank, account level, time of the last played match, and performance summary across recent games:
+
+```ts
+// Library usage:
+const profile = await client.official.profile("TenZ#SEN", { count: 10 });
+console.log(profile.account.puuid, profile.account.shard);
+console.log(profile.accountLevel, profile.rank?.name);
+console.log(profile.lastPlayedAt);
+console.log(profile.summary.overall);
+```
+
+```bash
+# CLI usage:
+riotclient official profile "TenZ#SEN" --count 10
+```
+
+`accountLevel` and `rank` are derived from the player's entry in their most recent competitive match (returning `null` if no competitive matches are found in the evaluated window).
+
 ## Library Usage
 
 Pass `officialApiKey` in options when creating `RiotClient`, or define the `RIOT_API_KEY` environment variable:
@@ -105,3 +161,4 @@ If the API key is missing, the CLI exits with code `7` and outputs a JSON error:
   }
 }
 ```
+

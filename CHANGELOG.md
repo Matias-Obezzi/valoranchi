@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Permanent disk caching for completed official matches (`isCompleted: true`) stored under `official/` in the cache directory, avoiding redundant network requests, with toggle via `officialCache: false` and CLI `--no-official-cache`.
+- Player scouting and performance analysis via `client.official.summary(riotId, options?)` and `client.official.profile(riotId, options?)` (and CLI `riotclient official summary` and `riotclient official profile`), returning `PerformanceSummary` and `OfficialProfile` with rank, level, and match statistics.
 - Official Riot Developer API support (`client.official` and CLI `riotclient official ...`) for remote inspection of player profiles (`account`), match history (`matches`), match details (`match`), competitive leaderboards (`leaderboard`), and platform status (`status`) without running the Riot Client, backed by sliding-window rate limiting (`RateLimiter`), automatic retry handling on 429/5xx, and credential protection.
 
 ## [0.4.0] - 2026-09-29
