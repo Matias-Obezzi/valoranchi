@@ -90,6 +90,7 @@ export type {
   Mmr,
   NightMarketOffer,
   OfficialAccount,
+  OfficialProfile,
   OwnedAgent,
   OwnedBuddy,
   OwnedCard,

@@ -1,10 +1,20 @@
+import path from "node:path";
+import { performanceSummary } from "../analysis/performanceSummary.js";
 import { MatchBuilder } from "../collection/MatchBuilder.js";
 import { ValidationError } from "../errors.js";
-import type { Leaderboard, Match, MatchSummary, OfficialAccount } from "../model/index.js";
+import type {
+  Leaderboard,
+  Match,
+  MatchSummary,
+  OfficialAccount,
+  OfficialProfile,
+  PerformanceSummary,
+} from "../model/index.js";
 import { OfficialApi } from "../official/OfficialApi.js";
 import { toLeaderboard, toMatchDetails } from "../official/OfficialMatchAdapter.js";
 import type { OfficialPlatformData } from "../official/types.js";
 import { HttpGateway } from "../riot/HttpGateway.js";
+import { FileResponseCache } from "../riot/ResponseCache.js";
 import type { OfficialApi as OfficialApiInterface } from "./api.js";
 import { ChatValidator } from "./ChatValidator.js";
 import type { ClientContext } from "./ClientContext.js";
@@ -21,6 +31,12 @@ export class OfficialService implements OfficialApiInterface {
       new OfficialApi(
         context.gateway ?? new HttpGateway(),
         context.officialApiKey ?? process.env.RIOT_API_KEY,
+        {
+          cache:
+            context.officialCache === false || !context.cacheDir
+              ? undefined
+              : new FileResponseCache(Infinity, path.join(context.cacheDir, "official")),
+        },
       );
   }
 
@@ -47,7 +63,57 @@ export class OfficialService implements OfficialApiInterface {
     options: { queue?: string; count?: number } = {},
   ): Promise<MatchSummary[]> {
     const acc = await this.account(riotId);
-    const matchlist = await this.rawApi.matchlist(acc.shard, acc.puuid);
+    const matches = await this.recentMatches(acc, options);
+    return matches.map((m) => ({
+      id: m.id,
+      startedAt: m.startedAt,
+      queue: m.queue,
+      map: m.map,
+    }));
+  }
+
+  async summary(
+    riotId: string,
+    options: { queue?: string; count?: number } = {},
+  ): Promise<PerformanceSummary> {
+    const acc = await this.account(riotId);
+    const queue = options.queue ?? "competitive";
+    const count = options.count ?? 10;
+    const matches = await this.recentMatches(acc, { queue, count });
+    const catalogue = await this.context.catalogue();
+    return performanceSummary(matches, acc.puuid, catalogue);
+  }
+
+  async profile(
+    riotId: string,
+    options: { count?: number } = {},
+  ): Promise<OfficialProfile> {
+    const acc = await this.account(riotId);
+    const count = options.count ?? 10;
+    const matches = await this.recentMatches(acc, { count });
+    const catalogue = await this.context.catalogue();
+    const summary = performanceSummary(matches, acc.puuid, catalogue);
+
+    const newestCompetitive = matches.find((m) => m.queue.toLowerCase() === "competitive");
+    const playerRow = newestCompetitive?.players.find((p) => p.puuid === acc.puuid);
+    const accountLevel = playerRow ? playerRow.accountLevel : null;
+    const rank = playerRow?.rank ?? null;
+    const lastPlayedAt = matches[0]?.startedAt ?? null;
+
+    return {
+      account: acc,
+      accountLevel,
+      rank,
+      lastPlayedAt,
+      summary,
+    };
+  }
+
+  private async recentMatches(
+    account: OfficialAccount,
+    options: { queue?: string; count?: number } = {},
+  ): Promise<Match[]> {
+    const matchlist = await this.rawApi.matchlist(account.shard, account.puuid);
     let history = matchlist?.history ?? [];
 
     if (options.queue) {
@@ -61,16 +127,16 @@ export class OfficialService implements OfficialApiInterface {
     history = history.slice(0, count);
 
     const catalogue = await this.context.catalogue();
-    const summaries: MatchSummary[] = [];
+    const matches: Match[] = [];
     for (const item of history) {
-      const matchData = await this.rawApi.match(acc.shard, item.matchId);
+      const matchData = await this.rawApi.match(account.shard, item.matchId);
       if (matchData) {
         const details = toMatchDetails(matchData);
-        summaries.push(MatchBuilder.toSummary(details, catalogue));
+        matches.push(new MatchBuilder(details, catalogue, account.puuid).build());
       }
     }
 
-    return summaries.sort(
+    return matches.sort(
       (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
     );
   }

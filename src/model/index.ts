@@ -860,3 +860,11 @@ export type OfficialAccount = {
   shard: string;
 };
 
+export type OfficialProfile = {
+  account: OfficialAccount;
+  accountLevel: number | null;
+  rank: Rank | null;
+  lastPlayedAt: string | null;
+  summary: PerformanceSummary;
+};
+

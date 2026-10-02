@@ -48,6 +48,7 @@ const types = [
   "StoreHistory",
   "MatchSyncResult",
   "OfficialAccount",
+  "OfficialProfile",
 ];
 
 const schemaDir = path.resolve("schema");

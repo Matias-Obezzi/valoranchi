@@ -23,6 +23,7 @@ import type {
   Mission,
   Mmr,
   OfficialAccount,
+  OfficialProfile,
   Offer,
   Order,
   OwnedItems,
@@ -283,5 +284,10 @@ export interface OfficialApi {
     size?: number;
   }): Promise<Leaderboard>;
   status(shard: string): Promise<OfficialPlatformData>;
+  summary(
+    riotId: string,
+    options?: { queue?: string; count?: number },
+  ): Promise<PerformanceSummary>;
+  profile(riotId: string, options?: { count?: number }): Promise<OfficialProfile>;
 }
 

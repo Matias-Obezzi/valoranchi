@@ -16,6 +16,7 @@ export interface ClientContext {
   cacheDir?: string;
   gateway?: HttpGateway;
   officialApiKey?: string;
+  officialCache?: boolean;
 }
 
 export async function createPlayer(api: RiotApi, session: Session): Promise<Player> {

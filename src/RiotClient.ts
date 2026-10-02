@@ -114,6 +114,7 @@ export interface RiotClientOptions {
   valorantApi?: ValorantApi;
   localApiFactory?: (port: number, pass: string) => RiotClientLocalApi;
   officialApiKey?: string;
+  officialCache?: boolean;
 }
 
 export class RiotClient {
@@ -160,6 +161,7 @@ export class RiotClient {
       cacheDir,
       gateway,
       officialApiKey: options.officialApiKey,
+      officialCache: options.officialCache,
     };
 
     this.account = new AccountService(context);
