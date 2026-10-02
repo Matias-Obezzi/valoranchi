@@ -1,6 +1,6 @@
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import { URL } from "node:url";
-import { formatError } from "../cli.js";
+import { formatError } from "../formatError.js";
 import {
   ForbiddenHostError,
   RiotApiError,

@@ -15,6 +15,13 @@ export interface ServerInstance {
   close(): Promise<void>;
 }
 
+export interface RouteParam {
+  name: string;
+  type: "string" | "number" | "boolean";
+  description: string;
+  required?: boolean;
+}
+
 export interface RouteDefinition {
   method: "GET" | "POST";
   namespace: string;
@@ -23,4 +30,6 @@ export interface RouteDefinition {
   summary: string;
   isConfirmGated?: boolean;
   responseSchema?: string;
+  params?: RouteParam[];
 }
+

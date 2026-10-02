@@ -3,4 +3,5 @@ export { buildOpenApiSpec } from "./openapi.js";
 export { renderIndexHtml } from "./indexHtml.js";
 export { handleSse } from "./sse.js";
 export { CONFIRM_GATED_ROUTES, ROUTE_DEFINITIONS, dispatchApiRoute } from "./routes.js";
-export type { RouteDefinition, ServeOptions, ServerInstance } from "./types.js";
+export type { RouteDefinition, RouteParam, ServeOptions, ServerInstance } from "./types.js";
+

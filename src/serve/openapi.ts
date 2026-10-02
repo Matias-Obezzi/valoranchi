@@ -46,6 +46,17 @@ export function buildOpenApiSpec(schemaDir?: string): Record<string, unknown> {
     };
 
     const parameters: unknown[] = [];
+    if (r.params) {
+      for (const p of r.params) {
+        parameters.push({
+          name: p.name,
+          in: "query",
+          description: p.description,
+          ...(p.required ? { required: true } : {}),
+          schema: { type: p.type },
+        });
+      }
+    }
     if (r.method === "POST") {
       parameters.push({
         name: "dryRun",

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { RiotClientError, ValidationError } from "./errors.js";
+import { formatError } from "./formatError.js";
 import { RiotClient, type LoadoutChange, type LoadoutGunChange } from "./RiotClient.js";
 
 export const USAGE = `Usage: riotclient <command> [options]
@@ -208,40 +209,7 @@ export function exitCodeForError(error: unknown): number {
   return 1;
 }
 
-export function formatError(error: unknown): {
-  error: {
-    code: string;
-    message: string;
-    reason?: string;
-    details?: Record<string, unknown>;
-  };
-} {
-  if (error instanceof ValidationError) {
-    return {
-      error: {
-        code: error.code,
-        reason: error.reason,
-        message: error.message,
-        details: error.details,
-      },
-    };
-  }
-  if (error instanceof RiotClientError) {
-    return {
-      error: {
-        code: error.code,
-        message: error.message,
-      },
-    };
-  }
-  const message = error instanceof Error ? error.message : String(error);
-  return {
-    error: {
-      code: "UNKNOWN_ERROR",
-      message,
-    },
-  };
-}
+export { formatError };
 
 export function formatWatchLine(
   event: string,

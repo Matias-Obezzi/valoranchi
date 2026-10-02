@@ -1,4 +1,3 @@
-import type { IncomingMessage } from "node:http";
 import type { LoadoutChange } from "../client/LoadoutValidator.js";
 import type { BuyTarget } from "../client/StoreValidator.js";
 import { ValidationError } from "../errors.js";
@@ -31,6 +30,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/account/ownedItems",
     summary: "Get owned inventory collection",
     responseSchema: "OwnedItems",
+    params: [
+      {
+        name: "language",
+        type: "string",
+        description: "Locale code for localized item names (e.g. en-US)",
+      },
+    ],
   },
   {
     method: "GET",
@@ -250,6 +256,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/social/messages",
     summary: "Get chat messages",
     responseSchema: "Message",
+    params: [
+      {
+        name: "cid",
+        type: "string",
+        description: "Conversation ID to filter messages",
+      },
+    ],
   },
   {
     method: "GET",
@@ -258,6 +271,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/social/participants",
     summary: "Get chat participants",
     responseSchema: "Participant",
+    params: [
+      {
+        name: "cid",
+        type: "string",
+        description: "Conversation ID to filter participants",
+      },
+    ],
   },
   {
     method: "POST",
@@ -331,6 +351,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/store/current",
     summary: "Get current store offers and storefront",
     responseSchema: "Store",
+    params: [
+      {
+        name: "language",
+        type: "string",
+        description: "Locale code for localized item names",
+      },
+    ],
   },
   {
     method: "GET",
@@ -339,6 +366,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/store/store",
     summary: "Get storefront alias",
     responseSchema: "Store",
+    params: [
+      {
+        name: "language",
+        type: "string",
+        description: "Locale code for localized item names",
+      },
+    ],
   },
   {
     method: "GET",
@@ -355,6 +389,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/store/order",
     summary: "Get store order details",
     responseSchema: "Order",
+    params: [
+      {
+        name: "id",
+        type: "string",
+        description: "Order ID",
+        required: true,
+      },
+    ],
   },
   {
     method: "GET",
@@ -363,6 +405,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/store/history",
     summary: "Get recorded store rotation history",
     responseSchema: "StoreHistory",
+    params: [
+      {
+        name: "days",
+        type: "number",
+        description: "Number of past days to query",
+      },
+    ],
   },
   {
     method: "GET",
@@ -370,6 +419,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     action: "seen",
     path: "/api/store/seen",
     summary: "Get when a skin was last seen in store",
+    params: [
+      {
+        name: "skin",
+        type: "string",
+        description: "Skin name or UUID to check",
+        required: true,
+      },
+    ],
   },
   {
     method: "POST",
@@ -396,6 +453,18 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/list",
     summary: "List recent match summaries",
     responseSchema: "MatchSummary",
+    params: [
+      {
+        name: "count",
+        type: "number",
+        description: "Number of matches to return",
+      },
+      {
+        name: "queue",
+        type: "string",
+        description: "Match queue type (e.g. competitive, unrated)",
+      },
+    ],
   },
   {
     method: "GET",
@@ -404,6 +473,18 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/matches",
     summary: "List match summaries alias",
     responseSchema: "MatchSummary",
+    params: [
+      {
+        name: "count",
+        type: "number",
+        description: "Number of matches to return",
+      },
+      {
+        name: "queue",
+        type: "string",
+        description: "Match queue type (e.g. competitive, unrated)",
+      },
+    ],
   },
   {
     method: "GET",
@@ -412,6 +493,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/sync",
     summary: "Synchronize matches into cache",
     responseSchema: "MatchSyncResult",
+    params: [
+      {
+        name: "maxPages",
+        type: "number",
+        description: "Maximum number of history pages to fetch",
+      },
+    ],
   },
   {
     method: "GET",
@@ -420,6 +508,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/known",
     summary: "Get cached match summaries",
     responseSchema: "MatchSummary",
+    params: [
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID (defaults to signed-in player)",
+      },
+    ],
   },
   {
     method: "GET",
@@ -428,6 +523,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/get",
     summary: "Get full match details by ID",
     responseSchema: "Match",
+    params: [
+      {
+        name: "id",
+        type: "string",
+        description: "Match ID",
+        required: true,
+      },
+    ],
   },
   {
     method: "GET",
@@ -436,6 +539,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/match",
     summary: "Get match details alias",
     responseSchema: "Match",
+    params: [
+      {
+        name: "id",
+        type: "string",
+        description: "Match ID",
+        required: true,
+      },
+    ],
   },
   {
     method: "GET",
@@ -452,6 +563,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/rankHistory",
     summary: "Get competitive rating updates",
     responseSchema: "RankChange",
+    params: [
+      {
+        name: "count",
+        type: "number",
+        description: "Number of rank updates to return",
+      },
+    ],
   },
   {
     method: "GET",
@@ -460,6 +578,18 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/live",
     summary: "Get live pregame or coregame lobby",
     responseSchema: "LiveMatch",
+    params: [
+      {
+        name: "ranks",
+        type: "boolean",
+        description: "Include player competitive ranks",
+      },
+      {
+        name: "loadouts",
+        type: "boolean",
+        description: "Include player loadout details",
+      },
+    ],
   },
   {
     method: "GET",
@@ -468,6 +598,24 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/listFor",
     summary: "List matches for specific player",
     responseSchema: "MatchSummary",
+    params: [
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID",
+        required: true,
+      },
+      {
+        name: "count",
+        type: "number",
+        description: "Number of matches to return",
+      },
+      {
+        name: "queue",
+        type: "string",
+        description: "Match queue type",
+      },
+    ],
   },
   {
     method: "GET",
@@ -476,6 +624,14 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/mmrFor",
     summary: "Get MMR for specific player",
     responseSchema: "Mmr",
+    params: [
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID",
+        required: true,
+      },
+    ],
   },
   {
     method: "GET",
@@ -484,6 +640,19 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/rankHistoryFor",
     summary: "Get rank history for player",
     responseSchema: "RankChange",
+    params: [
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID",
+        required: true,
+      },
+      {
+        name: "count",
+        type: "number",
+        description: "Number of rank updates to return",
+      },
+    ],
   },
   {
     method: "GET",
@@ -492,6 +661,28 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/leaderboard",
     summary: "Get competitive leaderboard",
     responseSchema: "Leaderboard",
+    params: [
+      {
+        name: "season",
+        type: "string",
+        description: "Season or act UUID",
+      },
+      {
+        name: "start",
+        type: "number",
+        description: "Starting rank offset (0-indexed)",
+      },
+      {
+        name: "size",
+        type: "number",
+        description: "Number of players to return",
+      },
+      {
+        name: "query",
+        type: "string",
+        description: "Search query for player name",
+      },
+    ],
   },
   {
     method: "GET",
@@ -516,6 +707,18 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/trend",
     summary: "Get competitive rating trend",
     responseSchema: "RatingTrend",
+    params: [
+      {
+        name: "count",
+        type: "number",
+        description: "Number of matches to evaluate",
+      },
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID",
+      },
+    ],
   },
   {
     method: "GET",
@@ -524,6 +727,23 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/summary",
     summary: "Get recent performance summary",
     responseSchema: "PerformanceSummary",
+    params: [
+      {
+        name: "count",
+        type: "number",
+        description: "Number of matches to summarize",
+      },
+      {
+        name: "queue",
+        type: "string",
+        description: "Match queue type",
+      },
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID",
+      },
+    ],
   },
   {
     method: "GET",
@@ -532,6 +752,13 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     path: "/api/matches/assess",
     summary: "Assess player rank anomalies",
     responseSchema: "PlayerAssessment",
+    params: [
+      {
+        name: "puuid",
+        type: "string",
+        description: "Target player PUUID (defaults to signed-in player)",
+      },
+    ],
   },
   {
     method: "POST",
@@ -816,7 +1043,7 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
 function isDryRun(
   query: Record<string, string>,
   body: Record<string, unknown>,
-  headers: IncomingMessage["headers"],
+  headers: Record<string, string | string[] | undefined>,
 ): boolean {
   if (query.dryRun !== undefined) {
     return query.dryRun === "1" || query.dryRun.toLowerCase() === "true";
@@ -837,7 +1064,7 @@ export async function dispatchApiRoute(
   methodName: string,
   query: Record<string, string>,
   body: Record<string, unknown>,
-  req: IncomingMessage,
+  req: { method?: string; headers: Record<string, string | string[] | undefined> },
 ): Promise<unknown> {
   const normMethod = methodName.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
   const routeKey = `${namespace}/${normMethod}`;

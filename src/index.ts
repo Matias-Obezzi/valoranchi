@@ -43,6 +43,7 @@ export {
   ROUTE_DEFINITIONS,
   dispatchApiRoute,
   type RouteDefinition,
+  type RouteParam,
   type ServeOptions,
   type ServerInstance,
 } from "./serve/index.js";
