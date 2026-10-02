@@ -96,6 +96,10 @@ describe("Serve Mode", () => {
       current: vi.fn().mockResolvedValue({ daily: null }),
       validateBuy: vi.fn().mockResolvedValue({ valid: true }),
       buy: vi.fn().mockResolvedValue({ id: "order-1" }),
+      wishlist: vi.fn().mockResolvedValue({ skins: [] }),
+      wishlistCheck: vi.fn().mockResolvedValue({ checkedAt: "now", hits: [] }),
+      wishlistAdd: vi.fn().mockResolvedValue({ skins: [{ uuid: "s1", name: "Prime Vandal", addedAt: "now" }] }),
+      wishlistRemove: vi.fn().mockResolvedValue({ skins: [] }),
     },
     matches: {
       list: mockListMatches,
@@ -248,6 +252,28 @@ describe("Serve Mode", () => {
     mockWhoami.mockRejectedValueOnce(new Error("Database crash"));
     const res500 = await requestHttp(`http://127.0.0.1:${testPort}/api/account/whoami`);
     expect(res500.status).toBe(500);
+  });
+
+  it("dispatches wishlist routes", async () => {
+    const getWishlist = await requestHttp(`http://127.0.0.1:${testPort}/api/store/wishlist`);
+    expect(getWishlist.status).toBe(200);
+
+    const checkWishlist = await requestHttp(`http://127.0.0.1:${testPort}/api/store/wishlistCheck`);
+    expect(checkWishlist.status).toBe(200);
+
+    const addWishlist = await requestHttp(`http://127.0.0.1:${testPort}/api/store/wishlistAdd`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skin: "Prime Vandal" }),
+    });
+    expect(addWishlist.status).toBe(200);
+
+    const removeWishlist = await requestHttp(`http://127.0.0.1:${testPort}/api/store/wishlistRemove`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skin: "Prime Vandal" }),
+    });
+    expect(removeWishlist.status).toBe(200);
   });
 
   it("handles GET /events Server-Sent Events", async () => {

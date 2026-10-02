@@ -446,6 +446,54 @@ export const ROUTE_DEFINITIONS: RouteDefinition[] = [
     isConfirmGated: true,
     responseSchema: "Order",
   },
+  {
+    method: "GET",
+    namespace: "store",
+    action: "wishlist",
+    path: "/api/store/wishlist",
+    summary: "Get current skin wishlist",
+    responseSchema: "Wishlist",
+  },
+  {
+    method: "GET",
+    namespace: "store",
+    action: "wishlistCheck",
+    path: "/api/store/wishlistCheck",
+    summary: "Check current store offers against wishlist",
+    responseSchema: "WishlistCheck",
+  },
+  {
+    method: "POST",
+    namespace: "store",
+    action: "wishlistAdd",
+    path: "/api/store/wishlistAdd",
+    summary: "Add skin to wishlist",
+    responseSchema: "Wishlist",
+    params: [
+      {
+        name: "skin",
+        type: "string",
+        description: "Skin name or UUID to add",
+        required: true,
+      },
+    ],
+  },
+  {
+    method: "POST",
+    namespace: "store",
+    action: "wishlistRemove",
+    path: "/api/store/wishlistRemove",
+    summary: "Remove skin from wishlist",
+    responseSchema: "Wishlist",
+    params: [
+      {
+        name: "skin",
+        type: "string",
+        description: "Skin name or UUID to remove",
+        required: true,
+      },
+    ],
+  },
 
   {
     method: "GET",
@@ -1364,6 +1412,14 @@ export async function dispatchApiRoute(
           ? client.store.validateBuy(target, { confirm: true })
           : client.store.buy(target, { confirm: true });
       }
+      case "wishlist":
+        return client.store.wishlist();
+      case "wishlistCheck":
+        return client.store.wishlistCheck();
+      case "wishlistAdd":
+        return client.store.wishlistAdd(String(body.skin ?? query.skin));
+      case "wishlistRemove":
+        return client.store.wishlistRemove(String(body.skin ?? query.skin));
     }
   }
 
