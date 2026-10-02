@@ -64,6 +64,12 @@ describe("HttpGateway", () => {
       }),
     ).rejects.toThrow(ForbiddenHostError);
 
+    await expect(
+      gateway.get("https://valorant-api.com/v1/version", {
+        "X-Riot-Token": "rgapi-secret",
+      }),
+    ).rejects.toThrow(ForbiddenHostError);
+
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -137,6 +143,24 @@ describe("HttpGateway", () => {
     expect(error).toBeInstanceOf(RiotApiError);
     expect((error as RiotApiError).status).toBe(404);
     expect((error as RiotApiError).url).toBe("https://pd.na.a.pvp.net/store/v1/wallet/123");
+  });
+
+  it("extracts retry-after header on rate limit 429", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("Rate limited", {
+        status: 429,
+        headers: { "Retry-After": "7" },
+      }),
+    );
+    const gateway = new HttpGateway(mockFetch);
+
+    const error = await gateway
+      .get("https://americas.api.riotgames.com/test")
+      .catch((e) => e);
+
+    expect(error).toBeInstanceOf(RiotApiError);
+    expect((error as RiotApiError).status).toBe(429);
+    expect((error as RiotApiError).retryAfterSeconds).toBe(7);
   });
 
   it("returns payload on 200 for getOrNull", async () => {

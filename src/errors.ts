@@ -35,8 +35,9 @@ export class ForbiddenHostError extends RiotClientError {
 export class RiotApiError extends RiotClientError {
   readonly status: number;
   readonly url: string;
+  readonly retryAfterSeconds?: number;
 
-  constructor(status: number, rawUrl: string, message?: string) {
+  constructor(status: number, rawUrl: string, message?: string, retryAfterSeconds?: number) {
     const sanitizedUrl = rawUrl.split("?")[0]!;
     super(
       message ?? `Riot API request to ${sanitizedUrl} failed with status ${status}`,
@@ -44,6 +45,13 @@ export class RiotApiError extends RiotClientError {
     );
     this.status = status;
     this.url = sanitizedUrl;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+export class OfficialApiKeyMissingError extends RiotClientError {
+  constructor(message = "Official Riot API key is missing") {
+    super(message, "OFFICIAL_API_KEY_MISSING");
   }
 }
 

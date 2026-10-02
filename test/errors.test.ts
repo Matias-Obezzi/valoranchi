@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ForbiddenHostError,
+  OfficialApiKeyMissingError,
   RegionUnknownError,
   RiotApiError,
   RiotClientError,
@@ -51,14 +52,24 @@ describe("errors", () => {
     expect(forbidden instanceof RiotClientError).toBe(true);
   });
 
-  it("sanitizes url in RiotApiError by stripping query strings", () => {
+  it("sanitizes url in RiotApiError by stripping query strings and captures retryAfterSeconds", () => {
     const apiError = new RiotApiError(
-      404,
+      429,
       "https://pd.na.a.pvp.net/store/v1/wallet/123?token=secret",
+      undefined,
+      5,
     );
-    expect(apiError.status).toBe(404);
+    expect(apiError.status).toBe(429);
     expect(apiError.url).toBe("https://pd.na.a.pvp.net/store/v1/wallet/123");
     expect(apiError.code).toBe("RIOT_API_ERROR");
+    expect(apiError.retryAfterSeconds).toBe(5);
     expect(apiError.message).not.toContain("secret");
+  });
+
+  it("creates OfficialApiKeyMissingError with default code and message", () => {
+    const keyMissing = new OfficialApiKeyMissingError();
+    expect(keyMissing.code).toBe("OFFICIAL_API_KEY_MISSING");
+    expect(keyMissing.message).toContain("Official Riot API key is missing");
+    expect(keyMissing instanceof RiotClientError).toBe(true);
   });
 });

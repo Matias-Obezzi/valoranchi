@@ -56,6 +56,7 @@ export {
 
 export {
   ForbiddenHostError,
+  OfficialApiKeyMissingError,
   RegionUnknownError,
   RiotApiError,
   RiotClientError,

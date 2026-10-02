@@ -81,7 +81,13 @@ export class HttpGateway {
     });
 
     if (!response.ok) {
-      throw new RiotApiError(response.status, url);
+      const retryAfterHeader = response.headers.get("retry-after");
+      const parsedSeconds = retryAfterHeader ? Number(retryAfterHeader) : undefined;
+      const retryAfterSeconds =
+        parsedSeconds !== undefined && Number.isFinite(parsedSeconds) && parsedSeconds >= 0
+          ? parsedSeconds
+          : undefined;
+      throw new RiotApiError(response.status, url, undefined, retryAfterSeconds);
     }
 
     const text = await response.text();
@@ -112,7 +118,9 @@ export class HttpGateway {
       const containsToken = Object.entries(headers).some(([key, val]) => {
         const lowerKey = key.toLowerCase();
         return (
-          (lowerKey === "authorization" || lowerKey === "x-riot-entitlements-jwt") &&
+          (lowerKey === "authorization" ||
+            lowerKey === "x-riot-entitlements-jwt" ||
+            lowerKey === "x-riot-token") &&
           Boolean(val && val.length > 0)
         );
       });
