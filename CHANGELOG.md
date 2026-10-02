@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Official Riot Developer API support (`client.official` and CLI `riotclient official ...`) for remote inspection of player profiles (`account`), match history (`matches`), match details (`match`), competitive leaderboards (`leaderboard`), and platform status (`status`) without running the Riot Client, backed by sliding-window rate limiting (`RateLimiter`), automatic retry handling on 429/5xx, and credential protection.
 - Every language example is a compilable project under `examples/` that the docs import, and CI compiles all of them.
 - `npm run fixtures:record` captures anonymized Riot payloads; snapshot tests rebuild the models from them.
 

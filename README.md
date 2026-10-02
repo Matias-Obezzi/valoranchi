@@ -155,6 +155,10 @@ const rawRiot = await client.riot.get("https://pd.na.a.pvp.net/account-xp/v1/pla
 await client.close();
 ```
 
+## Official Riot Developer API
+
+`@valoranchi/riot-client` also supports Riot Games' official remote developer API (`*.api.riotgames.com`) through `client.official` and the CLI `riotclient official ...` commands. It runs without the Riot Client or VALORANT running on the host machine, using an official API key from [developer.riotgames.com](https://developer.riotgames.com/) (configured via `officialApiKey` or `RIOT_API_KEY` environment variable). The namespace exposes `account(riotId)` for resolving player PUUIDs and active shards, `matches(riotId)` for retrieving match histories, `match(id, { shard })` for detailed match inspection, `leaderboard({ shard })`, and `status(shard)` for platform incidents, complete with automatic sliding-window rate limiting and retry handling.
+
 ## Migrating from 0.1
 
 In 0.2.0, every method moved under its namespace (`account`, `social`, `store`, `matches`, `party`).

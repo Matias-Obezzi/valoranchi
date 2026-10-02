@@ -50,6 +50,7 @@ export default defineConfig({
           { text: "Writes & Safety", link: "/guide/writes-and-safety" },
           { text: "Other Languages", link: "/guide/other-languages" },
           { text: "Raw Layer", link: "/guide/raw-layer" },
+          { text: "Official API", link: "/guide/official-api" },
           { text: "CLI Reference", link: "/guide/cli" },
           { text: "Releasing", link: "/guide/releasing" },
         ],
